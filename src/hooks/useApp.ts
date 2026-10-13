@@ -1,6 +1,6 @@
 import { useCallback, useContext } from 'react'
 import { AppContext } from '../context/AppContext'
-import type { Course, Habit, RoadmapPlan } from '../types'
+import type { Course, Habit, RoadmapDoc, RoadmapPlan } from '../types'
 import { makeId } from '../utils/id'
 
 export function useApp() {
@@ -48,6 +48,27 @@ export function useApp() {
     [dispatch]
   )
 
+  const addRoadmapDoc = useCallback(
+    (title: string, outlineText: string): RoadmapDoc => {
+      const now = new Date().toISOString()
+      const doc: RoadmapDoc = { id: makeId('roadmapdoc'), title, outlineText, createdAt: now, updatedAt: now }
+      dispatch({ type: 'ADD_ROADMAP_DOC', doc })
+      return doc
+    },
+    [dispatch]
+  )
+
+  const updateRoadmapDoc = useCallback(
+    (id: string, title: string, outlineText: string) =>
+      dispatch({ type: 'UPDATE_ROADMAP_DOC', id, title, outlineText }),
+    [dispatch]
+  )
+
+  const deleteRoadmapDoc = useCallback(
+    (id: string) => dispatch({ type: 'DELETE_ROADMAP_DOC', id }),
+    [dispatch]
+  )
+
   return {
     data,
     toggleTopic,
@@ -57,5 +78,8 @@ export function useApp() {
     addHabit,
     cycleHabitMark,
     deleteHabit,
+    addRoadmapDoc,
+    updateRoadmapDoc,
+    deleteRoadmapDoc,
   }
 }

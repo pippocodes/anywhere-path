@@ -1,7 +1,7 @@
-import type { AppData, Course, Habit, RoadmapPlan } from '../types'
+import type { AppData, Course, Habit, RoadmapDoc, RoadmapPlan } from '../types'
 import { cycleMark } from '../utils/habits'
 
-export const initialData: AppData = { courses: [], roadmaps: {}, habits: [] }
+export const initialData: AppData = { courses: [], roadmaps: {}, habits: [], roadmapDocs: [] }
 
 export type Action =
   | { type: 'HYDRATE'; data: AppData }
@@ -12,6 +12,9 @@ export type Action =
   | { type: 'ADD_HABIT'; habit: Habit }
   | { type: 'CYCLE_HABIT_MARK'; habitId: string; date: string }
   | { type: 'DELETE_HABIT'; habitId: string }
+  | { type: 'ADD_ROADMAP_DOC'; doc: RoadmapDoc }
+  | { type: 'UPDATE_ROADMAP_DOC'; id: string; title: string; outlineText: string }
+  | { type: 'DELETE_ROADMAP_DOC'; id: string }
 
 export function appReducer(state: AppData, action: Action): AppData {
   switch (action.type) {
@@ -72,6 +75,22 @@ export function appReducer(state: AppData, action: Action): AppData {
 
     case 'DELETE_HABIT':
       return { ...state, habits: state.habits.filter((h) => h.id !== action.habitId) }
+
+    case 'ADD_ROADMAP_DOC':
+      return { ...state, roadmapDocs: [...state.roadmapDocs, action.doc] }
+
+    case 'UPDATE_ROADMAP_DOC':
+      return {
+        ...state,
+        roadmapDocs: state.roadmapDocs.map((d) =>
+          d.id !== action.id
+            ? d
+            : { ...d, title: action.title, outlineText: action.outlineText, updatedAt: new Date().toISOString() }
+        ),
+      }
+
+    case 'DELETE_ROADMAP_DOC':
+      return { ...state, roadmapDocs: state.roadmapDocs.filter((d) => d.id !== action.id) }
 
     default:
       return state

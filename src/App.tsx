@@ -5,6 +5,7 @@ import PageLoading from './components/PageLoading'
 
 const Home = lazy(() => import('./pages/Home'))
 const Courses = lazy(() => import('./pages/Courses'))
+const RoadmapOutline = lazy(() => import('./pages/RoadmapOutline'))
 const RoadmapBuilder = lazy(() => import('./pages/RoadmapBuilder'))
 const Habits = lazy(() => import('./pages/Habits'))
 const About = lazy(() => import('./pages/About'))
@@ -24,7 +25,7 @@ function App() {
           <Route path="/" element={<Home />} />
           <Route path="/courses" element={<Courses />} />
           <Route path="/roadmap" element={<RoadmapLayout />}>
-            <Route index element={<RoadmapBuilder />} />
+            <Route index element={<RoadmapOutline />} />
             <Route path=":courseId" element={<RoadmapBuilder />} />
           </Route>
           <Route path="/habits" element={<Habits />} />

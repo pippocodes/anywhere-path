@@ -8,7 +8,12 @@ const STORAGE_KEY = 'anywherePathData'
 function loadInitialState(): AppData {
   try {
     const saved = localStorage.getItem(STORAGE_KEY)
-    if (saved) return JSON.parse(saved) as AppData
+    if (saved) {
+      // Merge onto defaults rather than trusting the blob wholesale — this
+      // keeps older saved data working as new AppData fields get added.
+      const parsed = JSON.parse(saved) as Partial<AppData>
+      return { ...initialData, courses: seedCourses, ...parsed }
+    }
   } catch (err) {
     console.error('Failed to load saved data', err)
   }

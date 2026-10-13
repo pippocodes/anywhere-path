@@ -40,6 +40,7 @@ export interface AppData {
   courses: Course[]
   roadmaps: Record<string, RoadmapPlan>
   habits: Habit[]
+  roadmapDocs: RoadmapDoc[]
 }
 
 // --- Outline parser (indented-text roadmap input) ---
@@ -80,4 +81,18 @@ export interface ParseResult {
   nodes: OutlineNode[]
   errors: OutlineError[]
   warnings: OutlineWarning[]
+}
+
+/**
+ * A saved roadmap written as indented outline text. `outlineText` is the
+ * source of truth (what gets exported/edited); the node tree is re-derived
+ * from it with `parseOutline` whenever it's needed rather than stored, so
+ * there's only ever one place that can go stale.
+ */
+export interface RoadmapDoc {
+  id: string
+  title: string
+  outlineText: string
+  createdAt: string
+  updatedAt: string
 }
