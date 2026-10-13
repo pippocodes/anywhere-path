@@ -29,11 +29,22 @@ export interface RoadmapPlan {
 // 0 = not done, 1 = partial, 2 = done
 export type HabitMark = 0 | 1 | 2
 
+export interface HabitCategory {
+  id: string
+  name: string
+  color: string // hex swatch, e.g. "#ff4d6d"
+  archived: boolean
+  order: number
+}
+
 export interface Habit {
   id: string
   name: string
   courseId: string | null
+  categoryId: string | null // null = uncategorized (pre-dates categories, or deliberately unsorted)
   marks: Record<string, HabitMark>
+  archived: boolean
+  order: number
 }
 
 export interface AppData {
@@ -41,6 +52,7 @@ export interface AppData {
   roadmaps: Record<string, RoadmapPlan>
   habits: Habit[]
   roadmapDocs: RoadmapDoc[]
+  habitCategories: HabitCategory[]
 }
 
 // --- Outline parser (indented-text roadmap input) ---

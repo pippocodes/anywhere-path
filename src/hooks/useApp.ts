@@ -1,6 +1,6 @@
 import { useCallback, useContext } from 'react'
 import { AppContext } from '../context/AppContext'
-import type { Course, Habit, RoadmapDoc, RoadmapPlan } from '../types'
+import type { Course, Habit, HabitCategory, RoadmapDoc, RoadmapPlan } from '../types'
 import { makeId } from '../utils/id'
 
 export function useApp() {
@@ -30,11 +30,32 @@ export function useApp() {
   )
 
   const addHabit = useCallback(
-    (name: string, courseId: string | null = null): Habit => {
-      const habit: Habit = { id: makeId('habit'), name, courseId, marks: {} }
+    (name: string, courseId: string | null = null, categoryId: string | null = null): Habit => {
+      const order = data.habits.filter((h) => h.categoryId === categoryId).length
+      const habit: Habit = { id: makeId('habit'), name, courseId, categoryId, marks: {}, archived: false, order }
       dispatch({ type: 'ADD_HABIT', habit })
       return habit
     },
+    [dispatch, data.habits]
+  )
+
+  const renameHabit = useCallback(
+    (habitId: string, name: string) => dispatch({ type: 'RENAME_HABIT', habitId, name }),
+    [dispatch]
+  )
+
+  const setHabitCategory = useCallback(
+    (habitId: string, categoryId: string | null) => dispatch({ type: 'SET_HABIT_CATEGORY', habitId, categoryId }),
+    [dispatch]
+  )
+
+  const archiveHabit = useCallback(
+    (habitId: string, archived = true) => dispatch({ type: 'ARCHIVE_HABIT', habitId, archived }),
+    [dispatch]
+  )
+
+  const reorderHabits = useCallback(
+    (orderedIds: string[]) => dispatch({ type: 'REORDER_HABITS', orderedIds }),
     [dispatch]
   )
 
@@ -45,6 +66,41 @@ export function useApp() {
 
   const deleteHabit = useCallback(
     (habitId: string) => dispatch({ type: 'DELETE_HABIT', habitId }),
+    [dispatch]
+  )
+
+  const addHabitCategory = useCallback(
+    (name: string, color: string): HabitCategory => {
+      const order = data.habitCategories.length
+      const category: HabitCategory = { id: makeId('habitcat'), name, color, archived: false, order }
+      dispatch({ type: 'ADD_HABIT_CATEGORY', category })
+      return category
+    },
+    [dispatch, data.habitCategories]
+  )
+
+  const renameHabitCategory = useCallback(
+    (categoryId: string, name: string) => dispatch({ type: 'RENAME_HABIT_CATEGORY', categoryId, name }),
+    [dispatch]
+  )
+
+  const setHabitCategoryColor = useCallback(
+    (categoryId: string, color: string) => dispatch({ type: 'SET_HABIT_CATEGORY_COLOR', categoryId, color }),
+    [dispatch]
+  )
+
+  const archiveHabitCategory = useCallback(
+    (categoryId: string, archived = true) => dispatch({ type: 'ARCHIVE_HABIT_CATEGORY', categoryId, archived }),
+    [dispatch]
+  )
+
+  const reorderHabitCategories = useCallback(
+    (orderedIds: string[]) => dispatch({ type: 'REORDER_HABIT_CATEGORIES', orderedIds }),
+    [dispatch]
+  )
+
+  const deleteHabitCategory = useCallback(
+    (categoryId: string) => dispatch({ type: 'DELETE_HABIT_CATEGORY', categoryId }),
     [dispatch]
   )
 
@@ -76,8 +132,18 @@ export function useApp() {
     deleteCourse,
     setRoadmap,
     addHabit,
+    renameHabit,
+    setHabitCategory,
+    archiveHabit,
+    reorderHabits,
     cycleHabitMark,
     deleteHabit,
+    addHabitCategory,
+    renameHabitCategory,
+    setHabitCategoryColor,
+    archiveHabitCategory,
+    reorderHabitCategories,
+    deleteHabitCategory,
     addRoadmapDoc,
     updateRoadmapDoc,
     deleteRoadmapDoc,
