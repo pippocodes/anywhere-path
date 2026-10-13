@@ -1,4 +1,5 @@
-import { NavLink } from 'react-router-dom'
+import { NavLink, useNavigate } from 'react-router-dom'
+import { useAuth } from '../context/AuthContext'
 
 const NAV_ITEMS = [
   { to: '/', label: 'Home', end: true },
@@ -10,6 +11,14 @@ const NAV_ITEMS = [
 ]
 
 function Navbar() {
+  const { user, signOut } = useAuth()
+  const navigate = useNavigate()
+
+  async function handleSignOut() {
+    await signOut()
+    navigate('/')
+  }
+
   return (
     <nav
       style={{
@@ -36,6 +45,18 @@ function Navbar() {
           {item.label}
         </NavLink>
       ))}
+      {user ? (
+        <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
+          <span style={{ fontSize: 13, color: 'var(--rose)' }}>{user.email}</span>
+          <button className="btn-outline" onClick={handleSignOut}>
+            Log Out
+          </button>
+        </div>
+      ) : (
+        <NavLink to="/login" className="btn-outline">
+          Log In
+        </NavLink>
+      )}
     </nav>
   )
 }

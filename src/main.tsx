@@ -3,6 +3,7 @@ import { createRoot } from 'react-dom/client'
 import { BrowserRouter } from 'react-router-dom'
 import App from './App'
 import ErrorBoundary from './components/ErrorBoundary'
+import { AuthProvider } from './context/AuthContext'
 import { AppProvider } from './context/AppContext'
 import './index.css'
 
@@ -13,9 +14,11 @@ createRoot(rootEl).render(
   <StrictMode>
     <ErrorBoundary>
       <BrowserRouter>
-        <AppProvider>
-          <App />
-        </AppProvider>
+        <AuthProvider>
+          <AppProvider>
+            <App />
+          </AppProvider>
+        </AuthProvider>
       </BrowserRouter>
     </ErrorBoundary>
   </StrictMode>
