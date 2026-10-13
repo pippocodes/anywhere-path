@@ -41,3 +41,43 @@ export interface AppData {
   roadmaps: Record<string, RoadmapPlan>
   habits: Habit[]
 }
+
+// --- Outline parser (indented-text roadmap input) ---
+
+export type DurationUnit = 'm' | 'h' | 'd' | 'w'
+
+export interface Duration {
+  value: number
+  unit: DurationUnit
+}
+
+/**
+ * One line of a parsed outline. `level` is 0-3: topic, subtopic, module,
+ * sub-module. `duration` is only ever set from an explicit `(2h)`-style
+ * suffix on that line, or defaulted onto leaf nodes with a warning — it is
+ * never set as a computed rollup (use `computeNodeMinutes` for that).
+ */
+export interface OutlineNode {
+  id: string
+  name: string
+  level: number
+  duration: Duration | null
+  children: OutlineNode[]
+  line: number
+}
+
+export interface OutlineError {
+  line: number
+  message: string
+}
+
+export interface OutlineWarning {
+  line: number
+  message: string
+}
+
+export interface ParseResult {
+  nodes: OutlineNode[]
+  errors: OutlineError[]
+  warnings: OutlineWarning[]
+}
