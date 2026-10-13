@@ -92,17 +92,49 @@ export function yearlyCompletion(habits: Habit[], year: number): number[] {
   return Array.from({ length: 12 }, (_, month) => monthCompletionPercent(habits, month, year))
 }
 
+/**
+ * Completion percent over the first `dayCount` days of the given calendar
+ * month — an "elapsed window", as opposed to `monthCompletionPercent`
+ * which always divides by the whole month (right for a progress bar, wrong
+ * for comparing an in-progress month to a finished one).
+ */
+export function elapsedCompletionPercent(habits: Habit[], year: number, month: number, dayCount: number): number {
+  if (habits.length === 0 || dayCount <= 0) return 0
+  let total = 0
+  let earned = 0
+  for (const habit of habits) {
+    for (let d = 1; d <= dayCount; d++) {
+      total++
+      earned += (habit.marks[toDateStr(new Date(year, month, d))] ?? 0) / 2
+    }
+  }
+  return total === 0 ? 0 : Math.round((earned / total) * 100)
+}
+
 export interface MonthComparison {
   thisMonthPercent: number
   lastMonthPercent: number
   deltaPercent: number // positive = ahead of last month
 }
 
-export function compareToLastMonth(habits: Habit[], month: number, year: number): MonthComparison {
+/**
+ * Compares the same number of elapsed days in this month against last
+ * month — e.g. on the 15th, the first 15 days of each — rather than this
+ * month's (necessarily partial) total against last month's complete one,
+ * which would always look like a decline simply because the month isn't
+ * over yet.
+ */
+export function compareToLastMonth(habits: Habit[], referenceDate: Date): MonthComparison {
+  const year = referenceDate.getFullYear()
+  const month = referenceDate.getMonth()
+  const dayOfMonth = referenceDate.getDate()
+
   const lastMonth = month === 0 ? 11 : month - 1
   const lastMonthYear = month === 0 ? year - 1 : year
-  const thisMonthPercent = monthCompletionPercent(habits, month, year)
-  const lastMonthPercent = monthCompletionPercent(habits, lastMonth, lastMonthYear)
+  const lastMonthDayCount = Math.min(dayOfMonth, daysInMonth(lastMonth, lastMonthYear))
+
+  const thisMonthPercent = elapsedCompletionPercent(habits, year, month, dayOfMonth)
+  const lastMonthPercent = elapsedCompletionPercent(habits, lastMonthYear, lastMonth, lastMonthDayCount)
   return { thisMonthPercent, lastMonthPercent, deltaPercent: thisMonthPercent - lastMonthPercent }
 }
 

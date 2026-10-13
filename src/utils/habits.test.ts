@@ -133,17 +133,36 @@ describe('yearlyCompletion', () => {
 })
 
 describe('compareToLastMonth', () => {
-  it('computes the delta between this month and last month', () => {
-    const h = habit({ '2024-02-01': 2, '2024-01-01': 0 })
-    const result = compareToLastMonth([h], 1, 2024) // February, vs January
-    expect(result.thisMonthPercent).toBeGreaterThan(result.lastMonthPercent)
-    expect(result.deltaPercent).toBe(result.thisMonthPercent - result.lastMonthPercent)
+  it('compares the same elapsed-day window in each month, not this (partial) month against a full last month', () => {
+    // Reference date: Feb 15 — only days 1-15 of Feb exist yet.
+    const marks: Record<string, 0 | 1 | 2> = {}
+    for (let d = 1; d <= 15; d++) marks[`2024-02-${String(d).padStart(2, '0')}`] = 2 // perfect so far this month
+    for (let d = 1; d <= 31; d++) marks[`2024-01-${String(d).padStart(2, '0')}`] = 2 // perfect all of January
+    const h = habit(marks)
+
+    const result = compareToLastMonth([h], new Date(2024, 1, 15))
+    // Both windows are equally perfect (first 15 days each) -> no apparent decline,
+    // even though January as a whole had more days than February has had so far.
+    expect(result.thisMonthPercent).toBe(100)
+    expect(result.lastMonthPercent).toBe(100)
+    expect(result.deltaPercent).toBe(0)
   })
 
   it('rolls over the year when comparing January to the previous December', () => {
-    const h = habit({ '2023-12-15': 2 })
-    const result = compareToLastMonth([h], 0, 2024) // January 2024 vs December 2023
-    expect(result.lastMonthPercent).toBeGreaterThan(0)
+    const h = habit({ '2023-12-01': 2, '2024-01-01': 2 })
+    const result = compareToLastMonth([h], new Date(2024, 0, 1)) // Jan 1, 2024 vs Dec 1, 2023
+    expect(result.lastMonthPercent).toBe(100)
+    expect(result.thisMonthPercent).toBe(100)
+  })
+
+  it('detects a genuine decline when this elapsed window is actually worse', () => {
+    const marks: Record<string, 0 | 1 | 2> = {}
+    for (let d = 1; d <= 10; d++) marks[`2024-01-${String(d).padStart(2, '0')}`] = 2 // great January
+    for (let d = 1; d <= 10; d++) marks[`2024-02-${String(d).padStart(2, '0')}`] = 0 // poor February so far
+    const h = habit(marks)
+
+    const result = compareToLastMonth([h], new Date(2024, 1, 10))
+    expect(result.deltaPercent).toBeLessThan(0)
   })
 })
 
