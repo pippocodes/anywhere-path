@@ -19,7 +19,7 @@ function AuthLayout({ title, subtitle, children, footer }: Props) {
             fontFamily: "'Poppins', sans-serif",
             fontWeight: 800,
             fontSize: 22,
-            color: 'var(--ink)',
+            color: 'var(--cream)',
             marginBottom: 28,
             textAlign: 'center',
           }}
@@ -28,7 +28,7 @@ function AuthLayout({ title, subtitle, children, footer }: Props) {
         </Link>
         <h1 style={{ fontSize: 24, marginBottom: subtitle ? 6 : 24, textAlign: 'center' }}>{title}</h1>
         {subtitle && (
-          <p style={{ fontSize: 13.5, color: 'var(--rose)', textAlign: 'center', marginBottom: 24 }}>{subtitle}</p>
+          <p style={{ fontSize: 13.5, color: 'var(--mute)', textAlign: 'center', marginBottom: 24 }}>{subtitle}</p>
         )}
         {children}
         {footer && <div style={{ marginTop: 22, textAlign: 'center', fontSize: 13.5 }}>{footer}</div>}

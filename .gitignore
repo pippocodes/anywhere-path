@@ -6,3 +6,10 @@ dist
 
 .vercel
 .env*
+
+# local design-audit tooling (screenshot pipeline for the redesign pass) —
+# not part of the app, not for commit
+make-test-user.cjs
+seed-audit-data.cjs
+screenshot-audit.cjs
+.test-user-id

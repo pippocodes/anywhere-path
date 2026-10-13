@@ -96,7 +96,7 @@ function AddCourseForm({ onSave, onCancel }: Props) {
         }}
       />
 
-      <div style={{ fontWeight: 600, fontSize: 13.5, color: 'var(--rose)', marginBottom: 10 }}>Modules</div>
+      <div style={{ fontWeight: 600, fontSize: 13.5, color: 'var(--mute)', marginBottom: 10 }}>Modules</div>
 
       {modules.map((mod) => (
         <div key={mod.key} style={{ background: 'var(--bg)', borderRadius: 12, padding: '14px 16px', marginBottom: 12 }}>
@@ -140,7 +140,7 @@ function AddCourseForm({ onSave, onCancel }: Props) {
       </button>
 
       <div style={{ display: 'flex', gap: 12, marginTop: 8 }}>
-        <button className="btn" style={{ background: 'var(--rose)' }} onClick={handleSave}>
+        <button className="btn" style={{ background: 'var(--mute)' }} onClick={handleSave}>
           Save Course
         </button>
         <button className="btn btn-secondary" onClick={onCancel}>

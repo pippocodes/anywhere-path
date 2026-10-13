@@ -47,7 +47,7 @@ function Navbar() {
       ))}
       {user ? (
         <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
-          <span style={{ fontSize: 13, color: 'var(--rose)' }}>{user.email}</span>
+          <span style={{ fontSize: 13, color: 'var(--mute)' }}>{user.email}</span>
           <button className="btn-outline" onClick={handleSignOut}>
             Log Out
           </button>

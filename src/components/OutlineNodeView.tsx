@@ -14,7 +14,7 @@ interface Props {
 
 // One accent color per level (0=topic ... 3=sub-module), reusing the
 // existing palette so a nested outline reads as depth, not new colors.
-const LEVEL_COLOR = ['var(--ink)', 'var(--plum)', 'var(--rose)', 'var(--cherry)']
+const LEVEL_COLOR = ['var(--cream)', 'var(--plum)', 'var(--mute)', 'var(--cherry)']
 const LEVEL_SIZE = [16, 14.5, 13.5, 13]
 const DURATION_UNITS: DurationUnit[] = ['m', 'h', 'd', 'w']
 
@@ -147,7 +147,7 @@ function OutlineNodeView({ node, scheduleIndex }: Props) {
           </span>
         )}
         {!isLeaf && (
-          <span style={{ fontSize: 12, color: 'var(--rose)', fontWeight: 600 }}>{formatHours(minutes)} total</span>
+          <span style={{ fontSize: 12, color: 'var(--mute)', fontWeight: 600 }}>{formatHours(minutes)} total</span>
         )}
         {rangeLabel && <span style={{ fontSize: 11.5, color: 'var(--plum)' }}>{rangeLabel}</span>}
 

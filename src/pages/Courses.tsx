@@ -37,7 +37,7 @@ function Courses() {
         )}
       </AnimatePresence>
 
-      {data.courses.length === 0 && <p style={{ color: 'var(--rose)' }}>No courses yet — add one above.</p>}
+      {data.courses.length === 0 && <p style={{ color: 'var(--mute)' }}>No courses yet — add one above.</p>}
 
       <AnimatePresence initial={false}>
         {data.courses.map((course, index) => (

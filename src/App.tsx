@@ -4,6 +4,10 @@ import { AnimatePresence, motion, useReducedMotion } from 'framer-motion'
 import Navbar from './components/Navbar'
 import PageLoading from './components/PageLoading'
 import ProtectedRoute from './components/ProtectedRoute'
+import AmbientBackground from './components/ui/AmbientBackground'
+import Spotlight from './components/ui/Spotlight'
+import ScrollProgress from './components/ui/ScrollProgress'
+import { ToastProvider } from './components/ui/Toast'
 
 const Home = lazy(() => import('./pages/Home'))
 const Courses = lazy(() => import('./pages/Courses'))
@@ -89,21 +93,28 @@ function AnimatedRoutes() {
 
 function App() {
   return (
-    <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
-      <Navbar />
-      <AnimatedRoutes />
-      <footer
-        style={{
-          padding: '24px 48px',
-          textAlign: 'center',
-          fontSize: 12.5,
-          color: 'var(--rose)',
-          borderTop: '1px solid var(--pink-pale)',
-        }}
-      >
-        © {new Date().getFullYear()} {import.meta.env.VITE_APP_NAME ?? 'Anywhere Path'}. All rights reserved.
-      </footer>
-    </div>
+    <ToastProvider>
+      <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', position: 'relative' }}>
+        <AmbientBackground />
+        <Spotlight />
+        <ScrollProgress />
+        <Navbar />
+        <AnimatedRoutes />
+        <footer
+          style={{
+            position: 'relative',
+            zIndex: 1,
+            padding: '24px 48px',
+            textAlign: 'center',
+            fontSize: 12.5,
+            color: 'var(--mute)',
+            borderTop: '1px solid var(--line)',
+          }}
+        >
+          © {new Date().getFullYear()} {import.meta.env.VITE_APP_NAME ?? 'Anywhere Path'}. All rights reserved.
+        </footer>
+      </div>
+    </ToastProvider>
   )
 }
 

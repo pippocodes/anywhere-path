@@ -67,7 +67,7 @@ function RoadmapBuilder() {
           </select>
         </div>
 
-        <p style={{ fontSize: 13.5, color: 'var(--rose)', marginTop: -8, marginBottom: 20 }}>
+        <p style={{ fontSize: 13.5, color: 'var(--mute)', marginTop: -8, marginBottom: 20 }}>
           This course needs about <strong>{totalHours}h</strong> total, based on its topics.
         </p>
 
@@ -93,7 +93,7 @@ function RoadmapBuilder() {
           <p style={{ fontSize: 15, color: 'var(--plum)', marginBottom: 6 }}>
             Target date: <strong>{targetDateFromDays(Number(targetDays))}</strong>
           </p>
-          <div style={{ fontSize: 28, fontWeight: 800, color: 'var(--rose)', fontFamily: "'Poppins', sans-serif", margin: '10px 0' }}>
+          <div style={{ fontSize: 28, fontWeight: 800, color: 'var(--mute)', fontFamily: "'Poppins', sans-serif", margin: '10px 0' }}>
             {Number(dailyHours)} hrs/day
           </div>
           <button
@@ -124,7 +124,7 @@ function RoadmapBuilder() {
               <div style={{ fontWeight: 700, fontSize: 14, color: 'var(--plum)', marginBottom: 10 }}>
                 Option A · Stay on Deadline
               </div>
-              <div style={{ fontSize: 13, color: 'var(--rose)', marginBottom: 6 }}>
+              <div style={{ fontSize: 13, color: 'var(--mute)', marginBottom: 6 }}>
                 Target date: {targetDateFromDays(Number(targetDays))}
               </div>
               <div style={{ fontSize: 24, fontWeight: 800, color: 'var(--plum)', fontFamily: "'Poppins', sans-serif", marginBottom: 14 }}>
@@ -151,7 +151,7 @@ function RoadmapBuilder() {
               <div style={{ fontWeight: 700, fontSize: 14, color: 'var(--cherry)', marginBottom: 10 }}>
                 Option B · Extend Timeline
               </div>
-              <div style={{ fontSize: 13, color: 'var(--rose)', marginBottom: 6 }}>
+              <div style={{ fontSize: 13, color: 'var(--mute)', marginBottom: 6 }}>
                 New target date: {targetDateFromDays(feasibility.requiredDays)} ({feasibility.requiredDays} days)
               </div>
               <div style={{ fontSize: 24, fontWeight: 800, color: 'var(--cherry)', fontFamily: "'Poppins', sans-serif", marginBottom: 14 }}>
@@ -179,7 +179,7 @@ function RoadmapBuilder() {
       )}
 
       {!feasibility && saved && (
-        <p style={{ marginTop: 20, fontSize: 13.5, color: 'var(--rose)' }}>
+        <p style={{ marginTop: 20, fontSize: 13.5, color: 'var(--mute)' }}>
           Current plan: {saved.targetDays} days at {saved.dailyHours}h/day.
         </p>
       )}

@@ -14,7 +14,7 @@ interface Props {
  * this kind of delight. Springs back to flat on mouse-leave, and does
  * nothing but render flat children when the user prefers reduced motion.
  */
-function TiltCard({ children, className, style, maxTilt = 8 }: Props) {
+function TiltCard({ children, className, style, maxTilt = 6 }: Props) {
   const ref = useRef<HTMLDivElement>(null)
   const reduceMotion = useReducedMotion()
 

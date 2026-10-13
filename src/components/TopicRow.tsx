@@ -24,7 +24,7 @@ function TopicRow({ topic, onToggle }: Props) {
     >
       <AnimatedCheckbox checked={topic.done} onChange={() => onToggle(topic.id)} ariaLabel={topic.name} />
       <motion.div
-        animate={{ color: topic.done ? 'var(--rose)' : 'var(--ink)' }}
+        animate={{ color: topic.done ? 'var(--mute)' : 'var(--cream)' }}
         transition={{ duration: 0.2 }}
         style={{
           flex: 1,
@@ -34,7 +34,7 @@ function TopicRow({ topic, onToggle }: Props) {
       >
         {topic.name}
       </motion.div>
-      <div style={{ fontSize: 12, color: 'var(--rose)' }}>{topic.hours}h</div>
+      <div style={{ fontSize: 12, color: 'var(--mute)' }}>{topic.hours}h</div>
     </div>
   )
 }

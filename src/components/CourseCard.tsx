@@ -27,7 +27,7 @@ function CourseCard({ course, onToggleTopic, onDelete }: Props) {
       >
         <div>
           <h3 style={{ fontSize: 20 }}>{course.name}</h3>
-          <div style={{ fontSize: 13, color: 'var(--rose)', marginTop: 4 }}>
+          <div style={{ fontSize: 13, color: 'var(--mute)', marginTop: 4 }}>
             <CountUp value={done} /> of {total} topics complete
           </div>
         </div>
@@ -91,7 +91,7 @@ function CourseCard({ course, onToggleTopic, onDelete }: Props) {
             <button className="btn btn-danger" style={{ padding: '7px 14px', fontSize: 12.5 }} onClick={() => onDelete(course.id)}>
               Yes, delete
             </button>
-            <button className="btn-outline" style={{ color: 'var(--rose)' }} onClick={() => setConfirmingDelete(false)}>
+            <button className="btn-outline" style={{ color: 'var(--mute)' }} onClick={() => setConfirmingDelete(false)}>
               Cancel
             </button>
           </div>

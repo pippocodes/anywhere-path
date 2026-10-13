@@ -277,7 +277,7 @@ function RoadmapOutline() {
             <code>(2h)</code>, <code>(45m)</code>, <code>(3d)</code> or <code>(2w)</code>.
           </p>
         </div>
-        <p style={{ fontSize: 13, color: 'var(--rose)' }}>
+        <p style={{ fontSize: 13, color: 'var(--mute)' }}>
           Have an existing course? <Link to="/courses" style={{ textDecoration: 'underline' }}>Build its roadmap the classic way</Link>.
         </p>
       </div>
@@ -305,7 +305,7 @@ function RoadmapOutline() {
           className="card"
           style={{ padding: '18px 22px', marginBottom: 16, overflow: 'hidden' }}
         >
-          <div style={{ fontWeight: 600, fontSize: 13.5, color: 'var(--rose)', marginBottom: 10 }}>
+          <div style={{ fontWeight: 600, fontSize: 13.5, color: 'var(--mute)', marginBottom: 10 }}>
             Generate with AI
           </div>
           <p style={{ fontSize: 12.5, color: 'var(--plum)', marginBottom: 12 }}>
@@ -363,7 +363,7 @@ function RoadmapOutline() {
       )}
 
       <div className="card" style={{ padding: '18px 22px', marginBottom: 16 }}>
-        <div style={{ fontWeight: 600, fontSize: 13.5, color: 'var(--rose)', marginBottom: 14 }}>Scheduling</div>
+        <div style={{ fontWeight: 600, fontSize: 13.5, color: 'var(--mute)', marginBottom: 14 }}>Scheduling</div>
         <div style={{ display: 'flex', gap: 20, flexWrap: 'wrap', alignItems: 'flex-end' }}>
           <div className="field" style={{ margin: 0 }}>
             <label htmlFor="roadmap-start-date">Start Date</label>
@@ -404,7 +404,7 @@ function RoadmapOutline() {
                       borderRadius: 9,
                       border: '1px solid var(--pink-pale)',
                       background: active ? 'var(--pink)' : 'var(--card-bg)',
-                      color: active ? 'var(--bg)' : 'var(--rose)',
+                      color: active ? 'var(--bg)' : 'var(--mute)',
                       fontWeight: 700,
                       fontSize: 12.5,
                       transition: 'background 0.15s ease, color 0.15s ease',
@@ -493,16 +493,16 @@ function RoadmapOutline() {
 
         <div className="card outline-preview">
           {parsed.nodes.length === 0 ? (
-            <p style={{ color: 'var(--rose)', fontSize: 14 }}>
+            <p style={{ color: 'var(--mute)', fontSize: 14 }}>
               Start typing on the left — your roadmap will take shape here as you go.
             </p>
           ) : (
             <>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 6 }}>
-                <span style={{ fontSize: 13, color: 'var(--rose)', fontWeight: 600 }}>
+                <span style={{ fontSize: 13, color: 'var(--mute)', fontWeight: 600 }}>
                   {parsed.nodes.length} topic{parsed.nodes.length === 1 ? '' : 's'}
                 </span>
-                <span style={{ fontFamily: "'Poppins', sans-serif", fontWeight: 800, fontSize: 18, color: 'var(--ink)' }}>
+                <span style={{ fontFamily: "'Poppins', sans-serif", fontWeight: 800, fontSize: 18, color: 'var(--cream)' }}>
                   <CountUp value={minutesToHours(totalMinutes)} decimals={totalMinutes % 60 === 0 ? 0 : 1} suffix="h" /> total
                 </span>
               </div>
@@ -517,7 +517,7 @@ function RoadmapOutline() {
                   'Pick at least one study day and hours/day above to see a schedule.'
                 )}
               </div>
-              <p style={{ fontSize: 11.5, color: 'var(--rose)', marginBottom: 10 }}>
+              <p style={{ fontSize: 11.5, color: 'var(--mute)', marginBottom: 10 }}>
                 Click a name or duration to edit it, drag ⠿ to reorder.
               </p>
               <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
@@ -550,7 +550,7 @@ function RoadmapOutline() {
                 <div key={doc.id} className="card outline-doc-card">
                   <div>
                     <div style={{ fontWeight: 700, fontSize: 15 }}>{doc.title}</div>
-                    <div style={{ fontSize: 12.5, color: 'var(--rose)', marginTop: 2 }}>
+                    <div style={{ fontSize: 12.5, color: 'var(--mute)', marginTop: 2 }}>
                       {docParsed.nodes.length} topic{docParsed.nodes.length === 1 ? '' : 's'} · {formatHours(docMinutes)} total
                       {docSchedule.finishDate && <> · finishes {formatDateLabel(docSchedule.finishDate)}</>}
                     </div>
@@ -561,7 +561,7 @@ function RoadmapOutline() {
                       <button className="btn btn-danger" style={{ padding: '7px 14px', fontSize: 12.5 }} onClick={() => handleDelete(doc.id)}>
                         Yes, delete
                       </button>
-                      <button className="btn-outline" style={{ color: 'var(--rose)' }} onClick={() => setConfirmDeleteId(null)}>
+                      <button className="btn-outline" style={{ color: 'var(--mute)' }} onClick={() => setConfirmDeleteId(null)}>
                         Cancel
                       </button>
                     </div>
