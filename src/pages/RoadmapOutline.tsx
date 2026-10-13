@@ -2,6 +2,8 @@ import { useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useApp } from '../hooks/useApp'
 import { parseOutline, computeTotalMinutes, formatHours } from '../utils/outlineParser'
+import { scheduleOutline, buildScheduleIndex, formatDateLabel } from '../utils/scheduler'
+import { toDateStr } from '../utils/habits'
 import OutlineNodeView from '../components/OutlineNodeView'
 
 const SAMPLE_OUTLINE = [
@@ -18,6 +20,9 @@ const SAMPLE_OUTLINE = [
   '    Dynamic Programming (8h)',
 ].join('\n')
 
+const DEFAULT_WEEKDAYS = [0, 1, 2, 3, 4, 5, 6]
+const WEEKDAY_LABELS = ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa']
+
 function RoadmapOutline() {
   const { data, addRoadmapDoc, updateRoadmapDoc, deleteRoadmapDoc } = useApp()
 
@@ -26,17 +31,33 @@ function RoadmapOutline() {
   const [editingId, setEditingId] = useState<string | null>(null)
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null)
 
+  const [startDate, setStartDate] = useState(() => toDateStr(new Date()))
+  const [hoursPerDay, setHoursPerDay] = useState('2')
+  const [weekdays, setWeekdays] = useState<number[]>(DEFAULT_WEEKDAYS)
+
   const parsed = useMemo(() => parseOutline(outlineText), [outlineText])
   const totalMinutes = useMemo(() => computeTotalMinutes(parsed.nodes), [parsed.nodes])
   const canSave = parsed.errors.length === 0 && parsed.nodes.length > 0
 
+  const scheduleOptions = useMemo(
+    () => ({ startDate, hoursPerDay: Number(hoursPerDay) || 0, weekdays }),
+    [startDate, hoursPerDay, weekdays]
+  )
+  const schedule = useMemo(() => scheduleOutline(parsed.nodes, scheduleOptions), [parsed.nodes, scheduleOptions])
+  const scheduleIndex = useMemo(() => buildScheduleIndex(schedule.items), [schedule.items])
+
+  function toggleWeekday(day: number) {
+    setWeekdays((prev) => (prev.includes(day) ? prev.filter((d) => d !== day) : [...prev, day].sort()))
+  }
+
   function handleSave() {
     if (!canSave) return
     const finalTitle = title.trim() || parsed.nodes[0].name
+    const fields = { title: finalTitle, outlineText, startDate, hoursPerDay: Number(hoursPerDay) || 0, weekdays }
     if (editingId) {
-      updateRoadmapDoc(editingId, finalTitle, outlineText)
+      updateRoadmapDoc(editingId, fields)
     } else {
-      const doc = addRoadmapDoc(finalTitle, outlineText)
+      const doc = addRoadmapDoc(fields)
       setEditingId(doc.id)
     }
     setTitle(finalTitle)
@@ -47,6 +68,9 @@ function RoadmapOutline() {
     setOutlineText('')
     setEditingId(null)
     setConfirmDeleteId(null)
+    setStartDate(toDateStr(new Date()))
+    setHoursPerDay('2')
+    setWeekdays(DEFAULT_WEEKDAYS)
   }
 
   function handleEdit(id: string) {
@@ -56,6 +80,9 @@ function RoadmapOutline() {
     setOutlineText(doc.outlineText)
     setEditingId(doc.id)
     setConfirmDeleteId(null)
+    setStartDate(doc.startDate ?? toDateStr(new Date()))
+    setHoursPerDay(String(doc.hoursPerDay ?? 2))
+    setWeekdays(doc.weekdays ?? DEFAULT_WEEKDAYS)
   }
 
   function handleDelete(id: string) {
@@ -93,6 +120,63 @@ function RoadmapOutline() {
           marginBottom: 16,
         }}
       />
+
+      <div className="card" style={{ padding: '18px 22px', marginBottom: 16 }}>
+        <div style={{ fontWeight: 600, fontSize: 13.5, color: 'var(--rose)', marginBottom: 14 }}>Scheduling</div>
+        <div style={{ display: 'flex', gap: 20, flexWrap: 'wrap', alignItems: 'flex-end' }}>
+          <div className="field" style={{ margin: 0 }}>
+            <label htmlFor="roadmap-start-date">Start Date</label>
+            <input
+              id="roadmap-start-date"
+              type="date"
+              value={startDate}
+              onChange={(e) => setStartDate(e.target.value)}
+              style={{ width: 170 }}
+            />
+          </div>
+          <div className="field" style={{ margin: 0 }}>
+            <label htmlFor="roadmap-hours-per-day">Hours Per Day</label>
+            <input
+              id="roadmap-hours-per-day"
+              value={hoursPerDay}
+              onChange={(e) => setHoursPerDay(e.target.value)}
+              placeholder="e.g. 2"
+              style={{ width: 100 }}
+            />
+          </div>
+          <div>
+            <label style={{ display: 'block', fontWeight: 600, fontSize: 13.5, color: 'var(--plum)', marginBottom: 8 }}>
+              Study Days
+            </label>
+            <div style={{ display: 'flex', gap: 6 }} role="group" aria-label="Study days">
+              {WEEKDAY_LABELS.map((label, day) => {
+                const active = weekdays.includes(day)
+                return (
+                  <button
+                    key={day}
+                    type="button"
+                    aria-pressed={active}
+                    onClick={() => toggleWeekday(day)}
+                    style={{
+                      width: 36,
+                      height: 36,
+                      borderRadius: 9,
+                      border: '1px solid var(--pink-pale)',
+                      background: active ? 'var(--pink)' : 'var(--card-bg)',
+                      color: active ? 'var(--bg)' : 'var(--rose)',
+                      fontWeight: 700,
+                      fontSize: 12.5,
+                      transition: 'background 0.15s ease, color 0.15s ease',
+                    }}
+                  >
+                    {label}
+                  </button>
+                )
+              })}
+            </div>
+          </div>
+        </div>
+      </div>
 
       <div className="outline-layout">
         <div>
@@ -142,7 +226,7 @@ function RoadmapOutline() {
             </p>
           ) : (
             <>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 14 }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 6 }}>
                 <span style={{ fontSize: 13, color: 'var(--rose)', fontWeight: 600 }}>
                   {parsed.nodes.length} topic{parsed.nodes.length === 1 ? '' : 's'}
                 </span>
@@ -150,8 +234,18 @@ function RoadmapOutline() {
                   {formatHours(totalMinutes)} total
                 </span>
               </div>
+              <div style={{ marginBottom: 14, fontSize: 12.5, color: 'var(--plum)' }}>
+                {schedule.finishDate ? (
+                  <>
+                    Estimated finish: <strong>{formatDateLabel(schedule.finishDate)}</strong> · {schedule.totalDays} study day
+                    {schedule.totalDays === 1 ? '' : 's'}
+                  </>
+                ) : (
+                  'Pick at least one study day and hours/day above to see a schedule.'
+                )}
+              </div>
               {parsed.nodes.map((node) => (
-                <OutlineNodeView key={node.id} node={node} />
+                <OutlineNodeView key={node.id} node={node} scheduleIndex={scheduleIndex} />
               ))}
             </>
           )}
@@ -165,12 +259,18 @@ function RoadmapOutline() {
             {data.roadmapDocs.map((doc) => {
               const docParsed = parseOutline(doc.outlineText)
               const docMinutes = computeTotalMinutes(docParsed.nodes)
+              const docSchedule = scheduleOutline(docParsed.nodes, {
+                startDate: doc.startDate ?? toDateStr(new Date()),
+                hoursPerDay: doc.hoursPerDay ?? 2,
+                weekdays: doc.weekdays ?? DEFAULT_WEEKDAYS,
+              })
               return (
                 <div key={doc.id} className="card outline-doc-card">
                   <div>
                     <div style={{ fontWeight: 700, fontSize: 15 }}>{doc.title}</div>
                     <div style={{ fontSize: 12.5, color: 'var(--rose)', marginTop: 2 }}>
                       {docParsed.nodes.length} topic{docParsed.nodes.length === 1 ? '' : 's'} · {formatHours(docMinutes)} total
+                      {docSchedule.finishDate && <> · finishes {formatDateLabel(docSchedule.finishDate)}</>}
                     </div>
                   </div>
                   {confirmDeleteId === doc.id ? (

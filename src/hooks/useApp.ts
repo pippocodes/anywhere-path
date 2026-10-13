@@ -49,9 +49,9 @@ export function useApp() {
   )
 
   const addRoadmapDoc = useCallback(
-    (title: string, outlineText: string): RoadmapDoc => {
+    (fields: Omit<RoadmapDoc, 'id' | 'createdAt' | 'updatedAt'>): RoadmapDoc => {
       const now = new Date().toISOString()
-      const doc: RoadmapDoc = { id: makeId('roadmapdoc'), title, outlineText, createdAt: now, updatedAt: now }
+      const doc: RoadmapDoc = { id: makeId('roadmapdoc'), createdAt: now, updatedAt: now, ...fields }
       dispatch({ type: 'ADD_ROADMAP_DOC', doc })
       return doc
     },
@@ -59,8 +59,8 @@ export function useApp() {
   )
 
   const updateRoadmapDoc = useCallback(
-    (id: string, title: string, outlineText: string) =>
-      dispatch({ type: 'UPDATE_ROADMAP_DOC', id, title, outlineText }),
+    (id: string, patch: Partial<Omit<RoadmapDoc, 'id' | 'createdAt'>>) =>
+      dispatch({ type: 'UPDATE_ROADMAP_DOC', id, patch }),
     [dispatch]
   )
 

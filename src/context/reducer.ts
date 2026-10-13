@@ -13,7 +13,7 @@ export type Action =
   | { type: 'CYCLE_HABIT_MARK'; habitId: string; date: string }
   | { type: 'DELETE_HABIT'; habitId: string }
   | { type: 'ADD_ROADMAP_DOC'; doc: RoadmapDoc }
-  | { type: 'UPDATE_ROADMAP_DOC'; id: string; title: string; outlineText: string }
+  | { type: 'UPDATE_ROADMAP_DOC'; id: string; patch: Partial<Omit<RoadmapDoc, 'id' | 'createdAt'>> }
   | { type: 'DELETE_ROADMAP_DOC'; id: string }
 
 export function appReducer(state: AppData, action: Action): AppData {
@@ -83,9 +83,7 @@ export function appReducer(state: AppData, action: Action): AppData {
       return {
         ...state,
         roadmapDocs: state.roadmapDocs.map((d) =>
-          d.id !== action.id
-            ? d
-            : { ...d, title: action.title, outlineText: action.outlineText, updatedAt: new Date().toISOString() }
+          d.id !== action.id ? d : { ...d, ...action.patch, updatedAt: new Date().toISOString() }
         ),
       }
 

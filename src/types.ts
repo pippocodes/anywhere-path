@@ -95,4 +95,10 @@ export interface RoadmapDoc {
   outlineText: string
   createdAt: string
   updatedAt: string
+  // Scheduling settings, saved per roadmap so reopening one keeps its plan.
+  // Optional: older saved roadmaps (or a doc that's never been scheduled)
+  // simply fall back to sensible defaults wherever they're read.
+  startDate?: string // YYYY-MM-DD
+  hoursPerDay?: number
+  weekdays?: number[] // 0=Sun..6=Sat
 }
