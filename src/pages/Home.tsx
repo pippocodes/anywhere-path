@@ -1,4 +1,8 @@
+import { lazy, Suspense } from 'react'
 import { Link } from 'react-router-dom'
+import { motion, useReducedMotion } from 'framer-motion'
+
+const Hero3D = lazy(() => import('../components/home/Hero3D'))
 
 const FEATURES = [
   { title: 'Course Building', desc: 'Break any skill into modules and topics with time estimates for each.', bg: 'var(--pink)' },
@@ -15,6 +19,8 @@ const STEPS = [
 ]
 
 function Home() {
+  const reduceMotion = useReducedMotion()
+
   return (
     <div>
       <div
@@ -40,7 +46,15 @@ function Home() {
             pointerEvents: 'none',
           }}
         />
-        <div
+        {!reduceMotion && (
+          <Suspense fallback={null}>
+            <Hero3D />
+          </Suspense>
+        )}
+        <motion.div
+          initial={{ opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5 }}
           style={{
             position: 'relative',
             display: 'inline-block',
@@ -54,8 +68,11 @@ function Home() {
           }}
         >
           Skill-building, made habitual
-        </div>
-        <div
+        </motion.div>
+        <motion.div
+          initial={{ opacity: 0, y: 16 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.1 }}
           style={{
             position: 'relative',
             fontFamily: "'Poppins', sans-serif",
@@ -67,15 +84,30 @@ function Home() {
           }}
         >
           Anywhere Path
-        </div>
-        <div style={{ position: 'relative', fontSize: 21, fontWeight: 500, maxWidth: 640, margin: '0 auto 12px' }}>
+        </motion.div>
+        <motion.div
+          initial={{ opacity: 0, y: 16 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.18 }}
+          style={{ position: 'relative', fontSize: 21, fontWeight: 500, maxWidth: 640, margin: '0 auto 12px' }}
+        >
           Turn the skills you want to learn into habits you actually keep.
-        </div>
-        <div style={{ position: 'relative', fontSize: 16, maxWidth: 560, margin: '0 auto 44px', opacity: 0.85 }}>
+        </motion.div>
+        <motion.div
+          initial={{ opacity: 0, y: 16 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.24 }}
+          style={{ position: 'relative', fontSize: 16, maxWidth: 560, margin: '0 auto 44px', opacity: 0.85 }}
+        >
           Build a course, get a realistic daily roadmap, and track it one day at a time — so
           progress stops depending on motivation.
-        </div>
-        <div style={{ position: 'relative', display: 'flex', justifyContent: 'center', gap: 16 }}>
+        </motion.div>
+        <motion.div
+          initial={{ opacity: 0, y: 16 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.3 }}
+          style={{ position: 'relative', display: 'flex', justifyContent: 'center', gap: 16 }}
+        >
           <Link
             to="/courses"
             className="btn"
@@ -90,7 +122,7 @@ function Home() {
           >
             Learn More
           </Link>
-        </div>
+        </motion.div>
       </div>
 
       <div style={{ maxWidth: 1080, margin: '0 auto', padding: '90px 48px 20px' }}>
@@ -99,12 +131,19 @@ function Home() {
           Everything you need to go from "I should learn this" to "I did this, every day."
         </p>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(230px,1fr))', gap: 24 }}>
-          {FEATURES.map((f) => (
-            <div key={f.title} className="card">
+          {FEATURES.map((f, i) => (
+            <motion.div
+              key={f.title}
+              className="card"
+              initial={{ opacity: 0, y: 24 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, margin: '-60px' }}
+              transition={{ duration: 0.4, delay: i * 0.08, ease: [0.16, 1, 0.3, 1] }}
+            >
               <div style={{ width: 52, height: 52, borderRadius: 14, background: f.bg, marginBottom: 18 }} />
               <h3 style={{ fontSize: 18, marginBottom: 8 }}>{f.title}</h3>
               <p style={{ fontSize: 14.5, lineHeight: 1.55, color: 'var(--plum)', margin: 0 }}>{f.desc}</p>
-            </div>
+            </motion.div>
           ))}
         </div>
       </div>
@@ -112,8 +151,15 @@ function Home() {
       <div style={{ maxWidth: 1080, margin: '0 auto', padding: '90px 48px 110px' }}>
         <h2 style={{ fontSize: 32, textAlign: 'center', marginBottom: 48 }}>How It Works</h2>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(220px,1fr))', gap: 28 }}>
-          {STEPS.map((s) => (
-            <div key={s.n} style={{ textAlign: 'center' }}>
+          {STEPS.map((s, i) => (
+            <motion.div
+              key={s.n}
+              initial={{ opacity: 0, y: 24 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, margin: '-60px' }}
+              transition={{ duration: 0.4, delay: i * 0.08, ease: [0.16, 1, 0.3, 1] }}
+              style={{ textAlign: 'center' }}
+            >
               <div
                 style={{
                   width: 56,
@@ -134,7 +180,7 @@ function Home() {
               </div>
               <h3 style={{ fontSize: 17, marginBottom: 6 }}>{s.title}</h3>
               <p style={{ fontSize: 14, color: 'var(--plum)', lineHeight: 1.5, margin: 0 }}>{s.desc}</p>
-            </div>
+            </motion.div>
           ))}
         </div>
       </div>
