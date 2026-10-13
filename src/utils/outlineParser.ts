@@ -1,5 +1,4 @@
 import type { Duration, DurationUnit, OutlineError, OutlineNode, OutlineWarning, ParseResult } from '../types'
-import { makeId } from './id'
 
 const MAX_LEVEL = 3 // 0=topic, 1=subtopic, 2=module, 3=sub-module
 
@@ -175,16 +174,24 @@ export function parseOutline(text: string): ParseResult {
       continue
     }
 
-    const node: OutlineNode = { id: makeId('node'), name, level, duration, children: [], line: lineNumber }
+    // Deterministic, position-based id (e.g. "t0.1.0") rather than random —
+    // this keeps a node's identity stable across reparses of unchanged
+    // text, which drag-and-drop, inline editing, and later layout
+    // animations all rely on. It only shifts when sibling order above it
+    // actually changes, which is an acceptable trade-off for that stability.
+    const parent = level === 0 ? null : stack[level - 1]
+    const siblingIndex = parent ? parent.children.length : roots.length
+    const id = parent ? `${parent.id}.${siblingIndex}` : `t${siblingIndex}`
+
+    const node: OutlineNode = { id, name, level, duration, children: [], line: lineNumber }
 
     stack.length = level
     stack[level] = node
 
-    if (level === 0) {
-      roots.push(node)
-    } else {
-      const parent = stack[level - 1]
+    if (parent) {
       parent.children.push(node)
+    } else {
+      roots.push(node)
     }
 
     previousLevel = level

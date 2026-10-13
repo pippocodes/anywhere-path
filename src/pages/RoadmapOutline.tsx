@@ -1,9 +1,22 @@
-import { useMemo, useState } from 'react'
+import { useMemo, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
+import {
+  DndContext,
+  closestCenter,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  type DragEndEvent,
+} from '@dnd-kit/core'
+import { SortableContext, sortableKeyboardCoordinates, verticalListSortingStrategy } from '@dnd-kit/sortable'
 import { useApp } from '../hooks/useApp'
-import { parseOutline, computeTotalMinutes, formatHours } from '../utils/outlineParser'
+import { parseOutline, serializeOutline, computeTotalMinutes, formatHours } from '../utils/outlineParser'
 import { scheduleOutline, buildScheduleIndex, formatDateLabel } from '../utils/scheduler'
+import { renameNode, setNodeDuration, deleteNode, moveSibling } from '../utils/outlineTree'
 import { toDateStr } from '../utils/habits'
+import { OutlineEditorContext, type OutlineEditorApi } from '../context/OutlineEditorContext'
+import type { DurationUnit, OutlineNode } from '../types'
 import OutlineNodeView from '../components/OutlineNodeView'
 
 const SAMPLE_OUTLINE = [
@@ -35,6 +48,19 @@ function RoadmapOutline() {
   const [hoursPerDay, setHoursPerDay] = useState('2')
   const [weekdays, setWeekdays] = useState<number[]>(DEFAULT_WEEKDAYS)
 
+  const [editingNameId, setEditingNameId] = useState<string | null>(null)
+  const [nameDraft, setNameDraft] = useState('')
+  const [editingDurationId, setEditingDurationId] = useState<string | null>(null)
+  const [durationDraftValue, setDurationDraftValue] = useState('1')
+  const [durationDraftUnit, setDurationDraftUnit] = useState<DurationUnit>('h')
+  const [pendingDeleteNodeId, setPendingDeleteNodeId] = useState<string | null>(null)
+
+  const fileInputRef = useRef<HTMLInputElement>(null)
+  const sensors = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { distance: 4 } }),
+    useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates })
+  )
+
   const parsed = useMemo(() => parseOutline(outlineText), [outlineText])
   const totalMinutes = useMemo(() => computeTotalMinutes(parsed.nodes), [parsed.nodes])
   const canSave = parsed.errors.length === 0 && parsed.nodes.length > 0
@@ -48,6 +74,101 @@ function RoadmapOutline() {
 
   function toggleWeekday(day: number) {
     setWeekdays((prev) => (prev.includes(day) ? prev.filter((d) => d !== day) : [...prev, day].sort()))
+  }
+
+  // Visual tree edits (rename/duration/delete/reorder) all funnel through
+  // here: they rewrite the node tree, then serialize it straight back into
+  // outlineText — the textarea stays the single source of truth either way.
+  function applyTreeEdit(nextNodes: OutlineNode[]) {
+    setOutlineText(serializeOutline(nextNodes))
+  }
+
+  function handleDragEnd(event: DragEndEvent) {
+    const { active, over } = event
+    if (!over || active.id === over.id) return
+    applyTreeEdit(moveSibling(parsed.nodes, String(active.id), String(over.id)))
+  }
+
+  const editorApi: OutlineEditorApi = {
+    scheduleIndex,
+
+    editingNameId,
+    nameDraft,
+    startRename(id, currentName) {
+      setEditingNameId(id)
+      setNameDraft(currentName)
+    },
+    changeNameDraft: setNameDraft,
+    commitRename() {
+      const id = editingNameId
+      setEditingNameId(null)
+      if (!id) return
+      const trimmed = nameDraft.trim()
+      if (!trimmed) return
+      applyTreeEdit(renameNode(parsed.nodes, id, trimmed))
+    },
+    cancelRename() {
+      setEditingNameId(null)
+    },
+
+    editingDurationId,
+    durationDraftValue,
+    durationDraftUnit,
+    startDuration(id, value, unit) {
+      setEditingDurationId(id)
+      setDurationDraftValue(String(value))
+      setDurationDraftUnit(unit)
+    },
+    changeDurationDraftValue: setDurationDraftValue,
+    changeDurationDraftUnit: setDurationDraftUnit,
+    commitDuration() {
+      const id = editingDurationId
+      setEditingDurationId(null)
+      if (!id) return
+      const value = Number(durationDraftValue)
+      if (!Number.isFinite(value) || value <= 0) return
+      applyTreeEdit(setNodeDuration(parsed.nodes, id, { value, unit: durationDraftUnit }))
+    },
+    cancelDuration() {
+      setEditingDurationId(null)
+    },
+
+    pendingDeleteId: pendingDeleteNodeId,
+    requestDelete: setPendingDeleteNodeId,
+    confirmDelete() {
+      const id = pendingDeleteNodeId
+      setPendingDeleteNodeId(null)
+      if (!id) return
+      applyTreeEdit(deleteNode(parsed.nodes, id))
+    },
+    cancelDelete() {
+      setPendingDeleteNodeId(null)
+    },
+  }
+
+  function handleExport() {
+    const blob = new Blob([outlineText], { type: 'text/plain;charset=utf-8' })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = `${(title.trim() || parsed.nodes[0]?.name || 'roadmap').replace(/[^\w\- ]+/g, '').trim() || 'roadmap'}.txt`
+    document.body.appendChild(a)
+    a.click()
+    document.body.removeChild(a)
+    URL.revokeObjectURL(url)
+  }
+
+  function handleImportFile(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0]
+    e.target.value = '' // allow re-selecting the same file later
+    if (!file) return
+    const reader = new FileReader()
+    reader.onload = () => {
+      setOutlineText(String(reader.result ?? ''))
+      setEditingId(null)
+      if (!title.trim()) setTitle(file.name.replace(/\.[^.]+$/, ''))
+    }
+    reader.readAsText(file)
   }
 
   function handleSave() {
@@ -71,6 +192,9 @@ function RoadmapOutline() {
     setStartDate(toDateStr(new Date()))
     setHoursPerDay('2')
     setWeekdays(DEFAULT_WEEKDAYS)
+    setEditingNameId(null)
+    setEditingDurationId(null)
+    setPendingDeleteNodeId(null)
   }
 
   function handleEdit(id: string) {
@@ -83,6 +207,9 @@ function RoadmapOutline() {
     setStartDate(doc.startDate ?? toDateStr(new Date()))
     setHoursPerDay(String(doc.hoursPerDay ?? 2))
     setWeekdays(doc.weekdays ?? DEFAULT_WEEKDAYS)
+    setEditingNameId(null)
+    setEditingDurationId(null)
+    setPendingDeleteNodeId(null)
   }
 
   function handleDelete(id: string) {
@@ -201,6 +328,21 @@ function RoadmapOutline() {
                 Start a New Roadmap
               </button>
             )}
+            {outlineText !== '' && (
+              <button className="btn-outline" onClick={handleExport}>
+                Export .txt
+              </button>
+            )}
+            <button className="btn-outline" onClick={() => fileInputRef.current?.click()}>
+              Import .txt
+            </button>
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept=".txt,text/plain"
+              onChange={handleImportFile}
+              style={{ display: 'none' }}
+            />
           </div>
 
           {parsed.errors.length > 0 && (
@@ -244,9 +386,18 @@ function RoadmapOutline() {
                   'Pick at least one study day and hours/day above to see a schedule.'
                 )}
               </div>
-              {parsed.nodes.map((node) => (
-                <OutlineNodeView key={node.id} node={node} scheduleIndex={scheduleIndex} />
-              ))}
+              <p style={{ fontSize: 11.5, color: 'var(--rose)', marginBottom: 10 }}>
+                Click a name or duration to edit it, drag ⠿ to reorder.
+              </p>
+              <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+                <OutlineEditorContext.Provider value={editorApi}>
+                  <SortableContext items={parsed.nodes.map((n) => n.id)} strategy={verticalListSortingStrategy}>
+                    {parsed.nodes.map((node) => (
+                      <OutlineNodeView key={node.id} node={node} scheduleIndex={scheduleIndex} />
+                    ))}
+                  </SortableContext>
+                </OutlineEditorContext.Provider>
+              </DndContext>
             </>
           )}
         </div>
