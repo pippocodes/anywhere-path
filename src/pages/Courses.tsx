@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { AnimatePresence, motion } from 'framer-motion'
 import { useApp } from '../hooks/useApp'
 import CourseCard from '../components/CourseCard'
 import AddCourseForm from '../components/AddCourseForm'
@@ -16,21 +17,42 @@ function Courses() {
         </button>
       </div>
 
-      {showAddCourse && (
-        <AddCourseForm
-          onSave={(course) => {
-            addCourse(course)
-            setShowAddCourse(false)
-          }}
-          onCancel={() => setShowAddCourse(false)}
-        />
-      )}
+      <AnimatePresence initial={false}>
+        {showAddCourse && (
+          <motion.div
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: 'auto', opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
+            style={{ overflow: 'hidden' }}
+          >
+            <AddCourseForm
+              onSave={(course) => {
+                addCourse(course)
+                setShowAddCourse(false)
+              }}
+              onCancel={() => setShowAddCourse(false)}
+            />
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {data.courses.length === 0 && <p style={{ color: 'var(--rose)' }}>No courses yet — add one above.</p>}
 
-      {data.courses.map((course) => (
-        <CourseCard key={course.id} course={course} onToggleTopic={toggleTopic} onDelete={deleteCourse} />
-      ))}
+      <AnimatePresence initial={false}>
+        {data.courses.map((course, index) => (
+          <motion.div
+            key={course.id}
+            layout
+            initial={{ opacity: 0, y: 24 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.96 }}
+            transition={{ duration: 0.3, delay: index * 0.04, ease: [0.16, 1, 0.3, 1] }}
+          >
+            <CourseCard course={course} onToggleTopic={toggleTopic} onDelete={deleteCourse} />
+          </motion.div>
+        ))}
+      </AnimatePresence>
     </div>
   )
 }

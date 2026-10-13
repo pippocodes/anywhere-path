@@ -1,5 +1,7 @@
 import { memo } from 'react'
+import { motion } from 'framer-motion'
 import type { Topic } from '../types'
+import AnimatedCheckbox from './motion/AnimatedCheckbox'
 
 interface Props {
   topic: Topic
@@ -20,22 +22,18 @@ function TopicRow({ topic, onToggle }: Props) {
         borderRadius: 8,
       }}
     >
-      <input
-        type="checkbox"
-        checked={topic.done}
-        onChange={() => onToggle(topic.id)}
-        style={{ width: 17, height: 17, accentColor: 'var(--cherry)', cursor: 'pointer' }}
-      />
-      <div
+      <AnimatedCheckbox checked={topic.done} onChange={() => onToggle(topic.id)} ariaLabel={topic.name} />
+      <motion.div
+        animate={{ color: topic.done ? 'var(--rose)' : 'var(--ink)' }}
+        transition={{ duration: 0.2 }}
         style={{
           flex: 1,
           fontSize: 14,
-          color: topic.done ? 'var(--rose)' : 'var(--ink)',
           textDecoration: topic.done ? 'line-through' : 'none',
         }}
       >
         {topic.name}
-      </div>
+      </motion.div>
       <div style={{ fontSize: 12, color: 'var(--rose)' }}>{topic.hours}h</div>
     </div>
   )

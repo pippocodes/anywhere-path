@@ -1,7 +1,9 @@
 import { useState, useCallback } from 'react'
+import { AnimatePresence, motion } from 'framer-motion'
 import type { CourseModule } from '../types'
 import { useModuleProgress } from '../hooks/useCourseProgress'
 import TopicRow from './TopicRow'
+import CountUp from './motion/CountUp'
 
 interface Props {
   courseModule: CourseModule
@@ -25,19 +27,36 @@ function ModuleCard({ courseModule, onToggleTopic }: Props) {
         onClick={() => setExpanded((e) => !e)}
       >
         <div style={{ fontWeight: 700, fontSize: 15, color: 'var(--plum)' }}>{courseModule.name}</div>
-        <div style={{ fontSize: 13, color: 'var(--cherry)', fontWeight: 600 }}>{percent}%</div>
+        <div style={{ fontSize: 13, color: 'var(--cherry)', fontWeight: 600 }}>
+          <CountUp value={percent} suffix="%" />
+        </div>
       </div>
       <div style={{ height: 6, borderRadius: 4, background: 'var(--pink-paler)', marginTop: 10, overflow: 'hidden' }}>
-        <div style={{ height: '100%', borderRadius: 4, background: 'var(--pink-light)', width: `${percent}%` }} />
+        <motion.div
+          initial={false}
+          animate={{ width: `${percent}%` }}
+          transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
+          style={{ height: '100%', borderRadius: 4, background: 'var(--pink-light)' }}
+        />
       </div>
 
-      {expanded && (
-        <div style={{ marginTop: 12, display: 'flex', flexDirection: 'column', gap: 8 }}>
-          {courseModule.topics.map((topic) => (
-            <TopicRow key={topic.id} topic={topic} onToggle={handleToggle} />
-          ))}
-        </div>
-      )}
+      <AnimatePresence initial={false}>
+        {expanded && (
+          <motion.div
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: 'auto', opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
+            style={{ overflow: 'hidden' }}
+          >
+            <div style={{ marginTop: 12, display: 'flex', flexDirection: 'column', gap: 8 }}>
+              {courseModule.topics.map((topic) => (
+                <TopicRow key={topic.id} topic={topic} onToggle={handleToggle} />
+              ))}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   )
 }

@@ -1,8 +1,11 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
+import { AnimatePresence, motion } from 'framer-motion'
 import type { Course } from '../types'
 import { useCourseProgress } from '../hooks/useCourseProgress'
 import ModuleCard from './ModuleCard'
+import TiltCard from './motion/TiltCard'
+import CountUp from './motion/CountUp'
 
 interface Props {
   course: Course
@@ -16,7 +19,7 @@ function CourseCard({ course, onToggleTopic, onDelete }: Props) {
   const { done, total, percent } = useCourseProgress(course)
 
   return (
-    <div className="card" style={{ marginBottom: 24 }}>
+    <TiltCard className="card" maxTilt={3} style={{ marginBottom: 24 }}>
       <div
         className="expandable-header"
         style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', cursor: 'pointer' }}
@@ -25,27 +28,48 @@ function CourseCard({ course, onToggleTopic, onDelete }: Props) {
         <div>
           <h3 style={{ fontSize: 20 }}>{course.name}</h3>
           <div style={{ fontSize: 13, color: 'var(--rose)', marginTop: 4 }}>
-            {done} of {total} topics complete
+            <CountUp value={done} /> of {total} topics complete
           </div>
         </div>
-        <div style={{ fontSize: 20, color: 'var(--cherry)' }}>{expanded ? '−' : '+'}</div>
+        <motion.div
+          animate={{ rotate: expanded ? 180 : 0 }}
+          transition={{ duration: 0.2 }}
+          style={{ fontSize: 20, color: 'var(--cherry)' }}
+        >
+          {expanded ? '−' : '+'}
+        </motion.div>
       </div>
 
       <div className="progress-track" style={{ marginTop: 16 }}>
-        <div className="progress-fill" style={{ width: `${percent}%` }} />
+        <motion.div
+          className="progress-fill"
+          initial={false}
+          animate={{ width: `${percent}%` }}
+          transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
+        />
       </div>
 
-      {expanded && (
-        <div style={{ marginTop: 22, display: 'flex', flexDirection: 'column', gap: 16 }}>
-          {course.modules.map((mod) => (
-            <ModuleCard
-              key={mod.id}
-              courseModule={mod}
-              onToggleTopic={(moduleId, topicId) => onToggleTopic(course.id, moduleId, topicId)}
-            />
-          ))}
-        </div>
-      )}
+      <AnimatePresence initial={false}>
+        {expanded && (
+          <motion.div
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: 'auto', opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
+            style={{ overflow: 'hidden' }}
+          >
+            <div style={{ marginTop: 22, display: 'flex', flexDirection: 'column', gap: 16 }}>
+              {course.modules.map((mod) => (
+                <ModuleCard
+                  key={mod.id}
+                  courseModule={mod}
+                  onToggleTopic={(moduleId, topicId) => onToggleTopic(course.id, moduleId, topicId)}
+                />
+              ))}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       <div
         style={{
@@ -81,7 +105,7 @@ function CourseCard({ course, onToggleTopic, onDelete }: Props) {
           </button>
         )}
       </div>
-    </div>
+    </TiltCard>
   )
 }
 

@@ -85,6 +85,7 @@ select {
 
 .card:hover {
   box-shadow: 0 10px 26px rgba(89, 13, 34, 0.1);
+  transform: translateY(-3px);
 }
 
 .btn {
@@ -100,6 +101,11 @@ select {
 
 .btn:hover {
   transform: scale(1.04);
+}
+
+.btn:active {
+  transform: scale(0.96);
+  transition-duration: 0.08s;
 }
 
 .btn:disabled {
@@ -125,6 +131,11 @@ select {
 
 .btn-outline:hover {
   opacity: 0.7;
+}
+
+.btn-outline:active {
+  transform: scale(0.94);
+  transition-duration: 0.08s;
 }
 
 .nav-link {
