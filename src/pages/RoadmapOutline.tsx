@@ -12,6 +12,7 @@ import {
 } from '@dnd-kit/core'
 import { SortableContext, sortableKeyboardCoordinates, verticalListSortingStrategy } from '@dnd-kit/sortable'
 import { useApp } from '../hooks/useApp'
+import { useAuth } from '../context/AuthContext'
 import { parseOutline, serializeOutline, computeTotalMinutes, minutesToHours, formatHours } from '../utils/outlineParser'
 import { scheduleOutline, buildScheduleIndex, formatDateLabel } from '../utils/scheduler'
 import { renameNode, setNodeDuration, deleteNode, moveSibling } from '../utils/outlineTree'
@@ -40,11 +41,18 @@ const WEEKDAY_LABELS = ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa']
 
 function RoadmapOutline() {
   const { data, addRoadmapDoc, updateRoadmapDoc, deleteRoadmapDoc } = useApp()
+  const { session } = useAuth()
 
   const [title, setTitle] = useState('')
   const [outlineText, setOutlineText] = useState('')
   const [editingId, setEditingId] = useState<string | null>(null)
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null)
+
+  const [aiOpen, setAiOpen] = useState(false)
+  const [aiGoal, setAiGoal] = useState('')
+  const [aiLoading, setAiLoading] = useState(false)
+  const [aiError, setAiError] = useState<string | null>(null)
+  const [aiConfirmOverwrite, setAiConfirmOverwrite] = useState(false)
 
   const [startDate, setStartDate] = useState(() => toDateStr(new Date()))
   const [hoursPerDay, setHoursPerDay] = useState('2')
@@ -76,6 +84,44 @@ function RoadmapOutline() {
 
   function toggleWeekday(day: number) {
     setWeekdays((prev) => (prev.includes(day) ? prev.filter((d) => d !== day) : [...prev, day].sort()))
+  }
+
+  async function handleGenerate(e: React.FormEvent) {
+    e.preventDefault()
+    if (!aiGoal.trim() || aiLoading) return
+
+    // Typing into a fresh/empty textarea is safe to just overwrite; anything
+    // with real content gets a confirm step first since this isn't undoable.
+    if (outlineText.trim() && !aiConfirmOverwrite) {
+      setAiConfirmOverwrite(true)
+      return
+    }
+    setAiConfirmOverwrite(false)
+    setAiLoading(true)
+    setAiError(null)
+
+    try {
+      const res = await fetch('/api/generate', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(session?.access_token ? { Authorization: `Bearer ${session.access_token}` } : {}),
+        },
+        body: JSON.stringify({ goal: aiGoal.trim() }),
+      })
+      const body = await res.json().catch(() => null)
+      if (!res.ok) {
+        setAiError(body?.message || 'Something went wrong generating the outline.')
+        return
+      }
+      setOutlineText(body.outlineText)
+      setAiOpen(false)
+      setAiGoal('')
+    } catch {
+      setAiError('Could not reach the server — check your connection and try again.')
+    } finally {
+      setAiLoading(false)
+    }
   }
 
   // Visual tree edits (rename/duration/delete/reorder) all funnel through
@@ -249,6 +295,72 @@ function RoadmapOutline() {
           marginBottom: 16,
         }}
       />
+
+      {aiOpen ? (
+        <motion.form
+          onSubmit={handleGenerate}
+          initial={{ opacity: 0, height: 0 }}
+          animate={{ opacity: 1, height: 'auto' }}
+          exit={{ opacity: 0, height: 0 }}
+          className="card"
+          style={{ padding: '18px 22px', marginBottom: 16, overflow: 'hidden' }}
+        >
+          <div style={{ fontWeight: 600, fontSize: 13.5, color: 'var(--rose)', marginBottom: 10 }}>
+            Generate with AI
+          </div>
+          <p style={{ fontSize: 12.5, color: 'var(--plum)', marginBottom: 12 }}>
+            Describe what you want to learn and how much time you have — e.g. "learn data structures in 8 weeks,
+            1h/day". You can edit the result before saving.
+          </p>
+          {aiError && <div className="auth-notice auth-notice-error" style={{ marginBottom: 12 }}>{aiError}</div>}
+          {aiConfirmOverwrite ? (
+            <div className="outline-issues outline-issues-warning" style={{ marginBottom: 12 }}>
+              This will replace what's currently in the editor. Generate anyway?
+              <div style={{ display: 'flex', gap: 10, marginTop: 10 }}>
+                <button type="submit" className="btn" style={{ padding: '7px 16px', fontSize: 12.5 }}>
+                  Yes, replace it
+                </button>
+                <button
+                  type="button"
+                  className="btn-outline"
+                  onClick={() => setAiConfirmOverwrite(false)}
+                >
+                  Cancel
+                </button>
+              </div>
+            </div>
+          ) : (
+            <div style={{ display: 'flex', gap: 10 }}>
+              <input
+                autoFocus
+                value={aiGoal}
+                onChange={(e) => setAiGoal(e.target.value)}
+                placeholder="e.g. learn data structures in 8 weeks, 1h/day"
+                disabled={aiLoading}
+                style={{ flex: 1, padding: '10px 14px', borderRadius: 10, border: '1px solid var(--pink-pale)', fontSize: 14 }}
+              />
+              <button className="btn" type="submit" disabled={aiLoading || !aiGoal.trim()}>
+                {aiLoading ? 'Generating…' : 'Generate'}
+              </button>
+              <button
+                type="button"
+                className="btn-outline"
+                onClick={() => {
+                  setAiOpen(false)
+                  setAiError(null)
+                  setAiConfirmOverwrite(false)
+                }}
+              >
+                Cancel
+              </button>
+            </div>
+          )}
+        </motion.form>
+      ) : (
+        <button className="btn-secondary btn" style={{ marginBottom: 16 }} onClick={() => setAiOpen(true)}>
+          ✨ Generate with AI
+        </button>
+      )}
 
       <div className="card" style={{ padding: '18px 22px', marginBottom: 16 }}>
         <div style={{ fontWeight: 600, fontSize: 13.5, color: 'var(--rose)', marginBottom: 14 }}>Scheduling</div>

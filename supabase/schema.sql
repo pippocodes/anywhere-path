@@ -171,6 +171,24 @@ create policy "habits_delete_own" on public.habits
   for delete using (auth.uid() = user_id);
 
 -- ---------------------------------------------------------------------
+-- ai_generate_log — one row per "Generate with AI" call, used only to
+-- rate-limit /api/generate per user. Written and read exclusively by that
+-- serverless function using the service-role key, which bypasses RLS by
+-- design — RLS is still enabled here with NO policies, so the anon/
+-- authenticated roles the browser actually uses get zero access either way.
+-- ---------------------------------------------------------------------
+create table if not exists public.ai_generate_log (
+  id bigserial primary key,
+  user_id uuid not null references auth.users (id) on delete cascade,
+  created_at timestamptz not null default now()
+);
+
+create index if not exists ai_generate_log_user_created_idx on public.ai_generate_log (user_id, created_at);
+
+alter table public.ai_generate_log enable row level security;
+-- Deliberately no policies: this table is service-role-only.
+
+-- ---------------------------------------------------------------------
 -- Done. Every table above has RLS enabled with policies that scope
 -- every select/insert/update/delete to `auth.uid() = user_id` — a user
 -- can only ever see or change their own rows, enforced by Postgres
