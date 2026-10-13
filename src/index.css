@@ -329,6 +329,22 @@ select {
   transform: scale(0.88);
 }
 
+@keyframes habit-cell-pop {
+  0% {
+    transform: scale(1);
+  }
+  40% {
+    transform: scale(1.35);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+.habit-cell-pop {
+  animation: habit-cell-pop 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
 @media (prefers-reduced-motion: reduce) {
   .confetti-piece {
     animation: none;
@@ -336,11 +352,13 @@ select {
   }
   .habit-cell,
   .habit-tick,
+  .habit-cell-pop,
   .card,
   .btn,
   .btn-outline,
   .expandable-header {
     transition: none !important;
+    animation: none !important;
   }
 }
 

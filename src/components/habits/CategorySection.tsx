@@ -1,9 +1,11 @@
 import { useState } from 'react'
 import { SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable'
+import { AnimatePresence, motion } from 'framer-motion'
 import type { Habit, HabitCategory, HabitMark } from '../../types'
 import { cycleMark, monthCompletionPercent, computeCurrentStreak, isPerfectDay, isPerfectWeek, isPerfectMonth } from '../../utils/habits'
 import { CATEGORY_COLOR_PRESETS } from './colorPresets'
 import HabitGridRow from './HabitGridRow'
+import CountUp from '../motion/CountUp'
 
 export type CelebrationKind = 'day' | 'week' | 'month'
 
@@ -126,13 +128,26 @@ function CategorySection({
               {category.name}
             </h3>
           )}
-          {bestActiveStreak > 0 && (
-            <span style={{ fontSize: 12.5, color: 'var(--cherry)', fontWeight: 700 }}>🔥 {bestActiveStreak}</span>
-          )}
+          <AnimatePresence>
+            {bestActiveStreak > 0 && (
+              <motion.span
+                key={bestActiveStreak}
+                initial={{ opacity: 0, scale: 0.6 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.6 }}
+                transition={{ type: 'spring', stiffness: 400, damping: 15 }}
+                style={{ fontSize: 12.5, color: 'var(--cherry)', fontWeight: 700 }}
+              >
+                🔥 {bestActiveStreak}
+              </motion.span>
+            )}
+          </AnimatePresence>
         </div>
 
         <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
-          <div style={{ fontSize: 12.5, color: 'var(--rose)', fontWeight: 600 }}>{percent}% this month</div>
+          <div style={{ fontSize: 12.5, color: 'var(--rose)', fontWeight: 600 }}>
+            <CountUp value={percent} suffix="% this month" />
+          </div>
           {editable && (
             <button className="btn-outline" style={{ opacity: 0.75 }} onClick={onArchiveCategory}>
               Archive
@@ -165,7 +180,13 @@ function CategorySection({
       )}
 
       <div className="progress-track" style={{ marginTop: 14, marginBottom: 16 }}>
-        <div className="progress-fill" style={{ width: `${percent}%`, background: category.color }} />
+        <motion.div
+          className="progress-fill"
+          initial={false}
+          animate={{ width: `${percent}%` }}
+          transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
+          style={{ background: category.color }}
+        />
       </div>
 
       {habits.length === 0 ? (

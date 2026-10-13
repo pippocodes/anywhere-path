@@ -1,5 +1,6 @@
 import { useMemo, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
+import { AnimatePresence, motion } from 'framer-motion'
 import {
   DndContext,
   closestCenter,
@@ -11,13 +12,14 @@ import {
 } from '@dnd-kit/core'
 import { SortableContext, sortableKeyboardCoordinates, verticalListSortingStrategy } from '@dnd-kit/sortable'
 import { useApp } from '../hooks/useApp'
-import { parseOutline, serializeOutline, computeTotalMinutes, formatHours } from '../utils/outlineParser'
+import { parseOutline, serializeOutline, computeTotalMinutes, minutesToHours, formatHours } from '../utils/outlineParser'
 import { scheduleOutline, buildScheduleIndex, formatDateLabel } from '../utils/scheduler'
 import { renameNode, setNodeDuration, deleteNode, moveSibling } from '../utils/outlineTree'
 import { toDateStr } from '../utils/habits'
 import { OutlineEditorContext, type OutlineEditorApi } from '../context/OutlineEditorContext'
 import type { DurationUnit, OutlineNode } from '../types'
 import OutlineNodeView from '../components/OutlineNodeView'
+import CountUp from '../components/motion/CountUp'
 
 const SAMPLE_OUTLINE = [
   'Data Structures & Algorithms (8w)',
@@ -345,20 +347,36 @@ function RoadmapOutline() {
             />
           </div>
 
-          {parsed.errors.length > 0 && (
-            <div className="outline-issues outline-issues-error">
-              {parsed.errors.map((err, i) => (
-                <div key={i}>⚠ Line {err.line}: {err.message}</div>
-              ))}
-            </div>
-          )}
-          {parsed.warnings.length > 0 && (
-            <div className="outline-issues outline-issues-warning">
-              {parsed.warnings.map((w, i) => (
-                <div key={i}>Line {w.line}: {w.message}</div>
-              ))}
-            </div>
-          )}
+          <AnimatePresence>
+            {parsed.errors.length > 0 && (
+              <motion.div
+                initial={{ opacity: 0, height: 0 }}
+                animate={{ opacity: 1, height: 'auto' }}
+                exit={{ opacity: 0, height: 0 }}
+                transition={{ duration: 0.2 }}
+                className="outline-issues outline-issues-error"
+                style={{ overflow: 'hidden' }}
+              >
+                {parsed.errors.map((err, i) => (
+                  <div key={i}>⚠ Line {err.line}: {err.message}</div>
+                ))}
+              </motion.div>
+            )}
+            {parsed.warnings.length > 0 && (
+              <motion.div
+                initial={{ opacity: 0, height: 0 }}
+                animate={{ opacity: 1, height: 'auto' }}
+                exit={{ opacity: 0, height: 0 }}
+                transition={{ duration: 0.2 }}
+                className="outline-issues outline-issues-warning"
+                style={{ overflow: 'hidden' }}
+              >
+                {parsed.warnings.map((w, i) => (
+                  <div key={i}>Line {w.line}: {w.message}</div>
+                ))}
+              </motion.div>
+            )}
+          </AnimatePresence>
         </div>
 
         <div className="card outline-preview">
@@ -373,13 +391,14 @@ function RoadmapOutline() {
                   {parsed.nodes.length} topic{parsed.nodes.length === 1 ? '' : 's'}
                 </span>
                 <span style={{ fontFamily: "'Poppins', sans-serif", fontWeight: 800, fontSize: 18, color: 'var(--ink)' }}>
-                  {formatHours(totalMinutes)} total
+                  <CountUp value={minutesToHours(totalMinutes)} decimals={totalMinutes % 60 === 0 ? 0 : 1} suffix="h" /> total
                 </span>
               </div>
               <div style={{ marginBottom: 14, fontSize: 12.5, color: 'var(--plum)' }}>
                 {schedule.finishDate ? (
                   <>
-                    Estimated finish: <strong>{formatDateLabel(schedule.finishDate)}</strong> · {schedule.totalDays} study day
+                    Estimated finish: <strong>{formatDateLabel(schedule.finishDate)}</strong> ·{' '}
+                    <CountUp value={schedule.totalDays} /> study day
                     {schedule.totalDays === 1 ? '' : 's'}
                   </>
                 ) : (

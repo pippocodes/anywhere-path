@@ -1,4 +1,4 @@
-import { memo } from 'react'
+import { memo, useState } from 'react'
 import type { HabitMark } from '../types'
 
 interface Props {
@@ -16,16 +16,27 @@ const COLORS: Record<HabitMark, string> = {
 const MARK_LABEL: Record<HabitMark, string> = { 0: 'not done', 1: 'partial', 2: 'done' }
 
 // A month grid can have 30+ cells per habit row, so this is memoized —
-// clicking one cell shouldn't re-render every other day in the row.
+// clicking one cell shouldn't re-render every other day in the row. The
+// pop-on-tick uses a plain CSS keyframe (not framer-motion) for the same
+// reason: a grid can have hundreds of these, and a per-cell motion
+// component would add real overhead at that scale for one small flourish.
 function HabitCell({ date, mark, onClick }: Props) {
+  const [popping, setPopping] = useState(false)
+
+  function activate() {
+    onClick(date)
+    setPopping(true)
+  }
+
   return (
     <div
-      className="habit-cell habit-tick"
-      onClick={() => onClick(date)}
+      className={`habit-cell habit-tick${popping ? ' habit-cell-pop' : ''}`}
+      onAnimationEnd={() => setPopping(false)}
+      onClick={activate}
       onKeyDown={(e) => {
         if (e.key === 'Enter' || e.key === ' ') {
           e.preventDefault()
-          onClick(date)
+          activate()
         }
       }}
       role="button"

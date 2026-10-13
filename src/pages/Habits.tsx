@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react'
+import { AnimatePresence, motion } from 'framer-motion'
 import {
   DndContext,
   closestCenter,
@@ -199,7 +200,14 @@ function Habits() {
       </div>
 
       {activeHabits.length > 0 && (
-        <div className="card" style={{ display: 'flex', gap: 28, alignItems: 'center', flexWrap: 'wrap', marginBottom: 24 }}>
+        <motion.div
+          layout
+          initial={{ opacity: 0, y: 16 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
+          className="card"
+          style={{ display: 'flex', gap: 28, alignItems: 'center', flexWrap: 'wrap', marginBottom: 24 }}
+        >
           <ProgressRing percent={overallPercent} label="this month" />
           <div style={{ display: 'flex', flexDirection: 'column', gap: 6, minWidth: 160 }}>
             <div style={{ fontSize: 13, color: 'var(--plum)' }}>
@@ -220,51 +228,63 @@ function Habits() {
             <div style={{ fontSize: 12, color: 'var(--rose)', fontWeight: 600, marginBottom: 8 }}>{year} at a glance</div>
             <YearlyBars values={overallYearly} activeMonth={year === today.getFullYear() ? today.getMonth() : undefined} />
           </div>
-        </div>
+        </motion.div>
       )}
 
       <SuggestionsPanel suggestions={suggestions} />
 
       <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
-        {activeCategories.map((category) => (
-          <CategorySection
-            key={category.id}
-            category={category}
-            editable
-            habits={habitsByCategory.get(category.id) ?? []}
-            dates={dates}
-            dayNumbers={dayNumbers}
-            month={month}
-            year={year}
-            referenceDate={referenceDate}
-            onCycle={cycleHabitMark}
-            onRenameHabit={renameHabit}
-            onArchiveHabit={(id) => archiveHabit(id)}
-            onAddHabit={(name) => addHabit(name, null, category.id)}
-            onRenameCategory={(name) => renameHabitCategory(category.id, name)}
-            onSetCategoryColor={(color) => setHabitCategoryColor(category.id, color)}
-            onArchiveCategory={() => archiveHabitCategory(category.id)}
-            onCelebrate={setCelebration}
-          />
-        ))}
+        <AnimatePresence initial={false}>
+          {activeCategories.map((category) => (
+            <motion.div
+              key={category.id}
+              layout
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.97 }}
+              transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
+            >
+              <CategorySection
+                category={category}
+                editable
+                habits={habitsByCategory.get(category.id) ?? []}
+                dates={dates}
+                dayNumbers={dayNumbers}
+                month={month}
+                year={year}
+                referenceDate={referenceDate}
+                onCycle={cycleHabitMark}
+                onRenameHabit={renameHabit}
+                onArchiveHabit={(id) => archiveHabit(id)}
+                onAddHabit={(name) => addHabit(name, null, category.id)}
+                onRenameCategory={(name) => renameHabitCategory(category.id, name)}
+                onSetCategoryColor={(color) => setHabitCategoryColor(category.id, color)}
+                onArchiveCategory={() => archiveHabitCategory(category.id)}
+                onCelebrate={setCelebration}
+              />
+            </motion.div>
+          ))}
 
-        {uncategorized.length > 0 && (
-          <CategorySection
-            category={{ id: UNCATEGORIZED_ID, name: 'Uncategorized', color: 'var(--pink-pale)', archived: false, order: -1 }}
-            editable={false}
-            habits={uncategorized}
-            dates={dates}
-            dayNumbers={dayNumbers}
-            month={month}
-            year={year}
-            referenceDate={referenceDate}
-            onCycle={cycleHabitMark}
-            onRenameHabit={renameHabit}
-            onArchiveHabit={(id) => archiveHabit(id)}
-            onAddHabit={(name) => addHabit(name, null, null)}
-            onCelebrate={setCelebration}
-          />
-        )}
+          {uncategorized.length > 0 && (
+            <motion.div key={UNCATEGORIZED_ID} layout initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+              <CategorySection
+                category={{ id: UNCATEGORIZED_ID, name: 'Uncategorized', color: 'var(--pink-pale)', archived: false, order: -1 }}
+                editable={false}
+                habits={uncategorized}
+                dates={dates}
+                dayNumbers={dayNumbers}
+                month={month}
+                year={year}
+                referenceDate={referenceDate}
+                onCycle={cycleHabitMark}
+                onRenameHabit={renameHabit}
+                onArchiveHabit={(id) => archiveHabit(id)}
+                onAddHabit={(name) => addHabit(name, null, null)}
+                onCelebrate={setCelebration}
+              />
+            </motion.div>
+          )}
+        </AnimatePresence>
       </DndContext>
 
       {activeCategories.length === 0 && uncategorized.length === 0 && (

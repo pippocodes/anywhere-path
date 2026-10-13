@@ -1,3 +1,5 @@
+import { motion } from 'framer-motion'
+
 const MONTH_LABELS = ['J', 'F', 'M', 'A', 'M', 'J', 'J', 'A', 'S', 'O', 'N', 'D']
 
 interface Props {
@@ -27,14 +29,11 @@ function YearlyBars({ values, color = 'var(--pink)', activeMonth }: Props) {
               overflow: 'hidden',
             }}
           >
-            <div
-              style={{
-                width: '100%',
-                height: `${Math.max(2, v)}%`,
-                background: color,
-                borderRadius: 4,
-                transition: 'height 0.35s ease',
-              }}
+            <motion.div
+              initial={{ height: 0 }}
+              animate={{ height: `${Math.max(2, v)}%` }}
+              transition={{ duration: 0.5, delay: i * 0.03, ease: [0.16, 1, 0.3, 1] }}
+              style={{ width: '100%', background: color, borderRadius: 4 }}
             />
           </div>
           <span
