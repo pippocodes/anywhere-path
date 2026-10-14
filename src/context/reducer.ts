@@ -14,12 +14,17 @@ export type Action =
   | { type: 'TOGGLE_TOPIC'; courseId: string; moduleId: string; topicId: string }
   | { type: 'ADD_COURSE'; course: Course }
   | { type: 'DELETE_COURSE'; courseId: string }
-  | { type: 'UPDATE_COURSE'; courseId: string; patch: Partial<Pick<Course, 'name' | 'platform' | 'instructor'>> }
+  | {
+      type: 'UPDATE_COURSE'
+      courseId: string
+      patch: Partial<Pick<Course, 'name' | 'platform' | 'instructor' | 'categoryId' | 'startDate' | 'hoursPerDay' | 'weekdays'>>
+    }
   | { type: 'SET_ROADMAP'; courseId: string; plan: RoadmapPlan }
-  | { type: 'ADD_MODULE'; courseId: string; module: CourseModule }
+  // `parentModuleId: null` (or omitted) adds/reorders directly under the course; a module id nests under that module instead.
+  | { type: 'ADD_MODULE'; courseId: string; parentModuleId?: string | null; module: CourseModule }
   | { type: 'RENAME_MODULE'; courseId: string; moduleId: string; name: string }
   | { type: 'DELETE_MODULE'; courseId: string; moduleId: string }
-  | { type: 'REORDER_MODULES'; courseId: string; orderedIds: string[] }
+  | { type: 'REORDER_MODULES'; courseId: string; parentModuleId?: string | null; orderedIds: string[] }
   | { type: 'ADD_TOPICS'; courseId: string; moduleId: string; topics: Topic[] }
   | { type: 'UPDATE_TOPIC'; courseId: string; moduleId: string; topicId: string; patch: Partial<Pick<Topic, 'name' | 'durationSeconds' | 'hours'>> }
   | { type: 'DELETE_TOPIC'; courseId: string; moduleId: string; topicId: string }
@@ -70,8 +75,28 @@ function mapCourse(courses: Course[], courseId: string, fn: (c: Course) => Cours
   return courses.map((c) => (c.id !== courseId ? c : fn(c)))
 }
 
+/**
+ * Finds a module anywhere in a (possibly nested, up to 3 levels under the
+ * course) module tree and applies `fn` to it, leaving every other module
+ * untouched. Replaces the old one-level-only `course.modules.map(...)` now
+ * that `CourseModule.modules` lets sections contain sub-modules.
+ */
+function updateModuleTree(modules: CourseModule[], moduleId: string, fn: (m: CourseModule) => CourseModule): CourseModule[] {
+  return modules.map((m) => {
+    if (m.id === moduleId) return fn(m)
+    if (!m.modules?.length) return m
+    return { ...m, modules: updateModuleTree(m.modules, moduleId, fn) }
+  })
+}
+
+function removeModuleFromTree(modules: CourseModule[], moduleId: string): CourseModule[] {
+  return modules
+    .filter((m) => m.id !== moduleId)
+    .map((m) => (m.modules?.length ? { ...m, modules: removeModuleFromTree(m.modules, moduleId) } : m))
+}
+
 function mapModule(course: Course, moduleId: string, fn: (m: CourseModule) => CourseModule): Course {
-  return { ...course, modules: course.modules.map((m) => (m.id !== moduleId ? m : fn(m))) }
+  return { ...course, modules: updateModuleTree(course.modules, moduleId, fn) }
 }
 
 export function appReducer(state: AppData, action: Action): AppData {
@@ -82,22 +107,11 @@ export function appReducer(state: AppData, action: Action): AppData {
     case 'TOGGLE_TOPIC':
       return {
         ...state,
-        courses: state.courses.map((c) =>
-          c.id !== action.courseId
-            ? c
-            : {
-                ...c,
-                modules: c.modules.map((m) =>
-                  m.id !== action.moduleId
-                    ? m
-                    : {
-                        ...m,
-                        topics: m.topics.map((t) =>
-                          t.id === action.topicId ? { ...t, done: !t.done } : t
-                        ),
-                      }
-                ),
-              }
+        courses: mapCourse(state.courses, action.courseId, (c) =>
+          mapModule(c, action.moduleId, (m) => ({
+            ...m,
+            topics: m.topics.map((t) => (t.id === action.topicId ? { ...t, done: !t.done } : t)),
+          }))
         ),
       }
 
@@ -124,7 +138,17 @@ export function appReducer(state: AppData, action: Action): AppData {
     case 'ADD_MODULE':
       return {
         ...state,
-        courses: mapCourse(state.courses, action.courseId, (c) => ({ ...c, modules: [...c.modules, action.module] })),
+        courses: mapCourse(state.courses, action.courseId, (c) =>
+          action.parentModuleId == null
+            ? { ...c, modules: [...c.modules, action.module] }
+            : {
+                ...c,
+                modules: updateModuleTree(c.modules, action.parentModuleId, (m) => ({
+                  ...m,
+                  modules: [...(m.modules ?? []), action.module],
+                })),
+              }
+        ),
       }
 
     case 'RENAME_MODULE':
@@ -140,17 +164,24 @@ export function appReducer(state: AppData, action: Action): AppData {
         ...state,
         courses: mapCourse(state.courses, action.courseId, (c) => ({
           ...c,
-          modules: c.modules.filter((m) => m.id !== action.moduleId),
+          modules: removeModuleFromTree(c.modules, action.moduleId),
         })),
       }
 
     case 'REORDER_MODULES':
       return {
         ...state,
-        courses: mapCourse(state.courses, action.courseId, (c) => ({
-          ...c,
-          modules: reorderByIds(c.modules, action.orderedIds),
-        })),
+        courses: mapCourse(state.courses, action.courseId, (c) =>
+          action.parentModuleId == null
+            ? { ...c, modules: reorderByIds(c.modules, action.orderedIds) }
+            : {
+                ...c,
+                modules: updateModuleTree(c.modules, action.parentModuleId, (m) => ({
+                  ...m,
+                  modules: reorderByIds(m.modules ?? [], action.orderedIds),
+                })),
+              }
+        ),
       }
 
     case 'ADD_TOPICS':

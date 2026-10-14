@@ -31,15 +31,18 @@ export function useApp() {
   )
 
   const updateCourse = useCallback(
-    (courseId: string, patch: Partial<Pick<Course, 'name' | 'platform' | 'instructor'>>) =>
-      dispatch({ type: 'UPDATE_COURSE', courseId, patch }),
+    (
+      courseId: string,
+      patch: Partial<Pick<Course, 'name' | 'platform' | 'instructor' | 'categoryId' | 'startDate' | 'hoursPerDay' | 'weekdays'>>
+    ) => dispatch({ type: 'UPDATE_COURSE', courseId, patch }),
     [dispatch]
   )
 
+  /** `parentModuleId` nests the new module under an existing one (up to 3 levels under the course); omitted/null adds it as a top-level section. */
   const addModule = useCallback(
-    (courseId: string, name: string): CourseModule => {
+    (courseId: string, name: string, parentModuleId?: string | null): CourseModule => {
       const module: CourseModule = { id: makeId('module'), name, topics: [] }
-      dispatch({ type: 'ADD_MODULE', courseId, module })
+      dispatch({ type: 'ADD_MODULE', courseId, parentModuleId, module })
       return module
     },
     [dispatch]
@@ -56,7 +59,8 @@ export function useApp() {
   )
 
   const reorderModules = useCallback(
-    (courseId: string, orderedIds: string[]) => dispatch({ type: 'REORDER_MODULES', courseId, orderedIds }),
+    (courseId: string, orderedIds: string[], parentModuleId?: string | null) =>
+      dispatch({ type: 'REORDER_MODULES', courseId, parentModuleId, orderedIds }),
     [dispatch]
   )
 

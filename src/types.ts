@@ -16,6 +16,12 @@ export interface CourseModule {
   id: string
   name: string
   topics: Topic[]
+  // Nested sections/sub-modules — optional so the existing flat
+  // CourseModule -> Topic[] shape (every course saved before this) keeps
+  // working unchanged; read as `module.modules ?? []`. Capped at 3 levels
+  // under the course itself (course -> section -> module -> sub-module) by
+  // the UI/parser, not by this type.
+  modules?: CourseModule[]
 }
 
 export interface Course {
@@ -26,6 +32,15 @@ export interface Course {
   // Optional metadata for the Course Tracker — e.g. "Udemy", "YouTube".
   platform?: string
   instructor?: string
+  // References a HabitCategory id — courses and habits share one category
+  // list (AppData.habitCategories). null/undefined = "Other"/uncategorized.
+  categoryId?: string | null
+  // Weekly-planner scheduling, set when a course is created/edited with a
+  // start date + daily pace. Optional: a course with neither just has no
+  // schedule yet (shows no planner section), same as RoadmapDoc's pattern.
+  startDate?: string // YYYY-MM-DD
+  hoursPerDay?: number
+  weekdays?: number[] // 0=Sun..6=Sat
 }
 
 export interface RoadmapPlan {
