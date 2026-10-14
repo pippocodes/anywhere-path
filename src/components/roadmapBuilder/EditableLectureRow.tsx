@@ -95,7 +95,7 @@ function EditableLectureRow({ id, name, seconds, autoFocus, onChangeName, onChan
             onEnter()
           }
         }}
-        placeholder="Lecture title"
+        placeholder="Module title"
         style={{ flex: '1 1 160px', minWidth: 0, fontSize: 14, padding: '7px 10px' }}
       />
 
@@ -135,10 +135,10 @@ function EditableLectureRow({ id, name, seconds, autoFocus, onChangeName, onChan
       </div>
 
       <div style={{ display: 'flex', gap: 6, flexShrink: 0 }}>
-        <button type="button" onClick={onDuplicate} className="btn-outline" style={{ fontSize: 11.5, opacity: 0.75, padding: '6px 10px' }} aria-label="Duplicate lecture">
+        <button type="button" onClick={onDuplicate} className="btn-outline" style={{ fontSize: 11.5, opacity: 0.75, padding: '6px 10px' }} aria-label="Duplicate module">
           Duplicate
         </button>
-        <button type="button" onClick={onDelete} className="btn-outline" style={{ fontSize: 12, opacity: 0.6, padding: '6px 10px' }} aria-label="Delete lecture">
+        <button type="button" onClick={onDelete} className="btn-outline" style={{ fontSize: 12, opacity: 0.6, padding: '6px 10px' }} aria-label="Delete module">
           ✕
         </button>
       </div>

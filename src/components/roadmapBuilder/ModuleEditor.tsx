@@ -18,7 +18,7 @@ import { makeEmptyModule, makeEmptyTopic, cloneModuleWithNewIds } from '../../ut
 import EditableLectureRow from './EditableLectureRow'
 
 const MAX_DEPTH = 3
-const LEVEL_LABEL = ['Section', 'Module', 'Sub-module']
+const LEVEL_LABEL = ['Subtopic', 'Module', 'Sub-module']
 
 interface Props {
   module: CourseModule
@@ -159,12 +159,12 @@ function ModuleEditor({ module, depth, onChange, onDelete, onDuplicate, dragHand
 
         <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexShrink: 0 }}>
           <span className="micro-label" style={{ marginBottom: 0, fontVariantNumeric: 'tabular-nums' }}>
-            {stats.lecturesTotal} lecture{stats.lecturesTotal === 1 ? '' : 's'} · {formatDuration(stats.totalSeconds)}
+            {stats.lecturesTotal} module{stats.lecturesTotal === 1 ? '' : 's'} · {formatDuration(stats.totalSeconds)}
           </span>
           <button type="button" onClick={onDuplicate} className="btn-outline" style={{ fontSize: 11.5, opacity: 0.75, padding: '6px 10px' }}>
             Duplicate
           </button>
-          <button type="button" onClick={onDelete} className="btn-outline" style={{ fontSize: 12, opacity: 0.6, padding: '6px 10px' }} aria-label={`Delete ${module.name || 'section'}`}>
+          <button type="button" onClick={onDelete} className="btn-outline" style={{ fontSize: 12, opacity: 0.6, padding: '6px 10px' }} aria-label={`Delete ${module.name || 'subtopic'}`}>
             ✕
           </button>
         </div>
@@ -205,11 +205,11 @@ function ModuleEditor({ module, depth, onChange, onDelete, onDuplicate, dragHand
 
               <div style={{ display: 'flex', gap: 10, marginTop: 10, flexWrap: 'wrap' }}>
                 <button type="button" onClick={addTopic} className="btn-outline" style={{ fontSize: 12.5 }}>
-                  + Add lecture
+                  + Add module
                 </button>
                 {depth < MAX_DEPTH && (
                   <button type="button" onClick={addChildModule} className="btn-outline" style={{ fontSize: 12.5 }}>
-                    + Add {LEVEL_LABEL[depth] ?? 'sub-module'}
+                    + Add nested {(LEVEL_LABEL[depth] ?? 'module').toLowerCase()}
                   </button>
                 )}
               </div>

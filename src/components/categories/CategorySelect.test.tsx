@@ -51,9 +51,9 @@ describe('CategorySelect', () => {
   it('quick-adds a suggested default category and selects it', () => {
     render(<Harness initialCategories={[]} />)
     fireEvent.click(screen.getByText('Other'))
-    fireEvent.click(screen.getByText('+ Body'))
-    // The trigger button now shows the newly created "Body" category.
-    expect(screen.getAllByText('Body').length).toBeGreaterThan(0)
+    fireEvent.click(screen.getByText('+ Body & Health'))
+    // The trigger button now shows the newly created category.
+    expect(screen.getAllByText('Body & Health').length).toBeGreaterThan(0)
   })
 
   it('creates a free-typed category via the inline "+ New category" field', () => {

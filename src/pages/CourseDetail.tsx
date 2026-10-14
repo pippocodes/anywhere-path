@@ -136,10 +136,10 @@ function CourseDetail() {
             <Button variant="secondary" size="sm" onClick={startEditingMeta}>
               Edit details
             </Button>
-            <Button variant="secondary" size="sm" onClick={() => navigate(`/roadmap?editCourse=${course.id}&mode=form`)}>
+            <Button variant="secondary" size="sm" onClick={() => navigate(`/courses?editCourse=${course.id}&mode=form`)}>
               Edit as form
             </Button>
-            <Button variant="secondary" size="sm" onClick={() => navigate(`/roadmap?editCourse=${course.id}&mode=text`)}>
+            <Button variant="secondary" size="sm" onClick={() => navigate(`/courses?editCourse=${course.id}&mode=text`)}>
               Edit as text
             </Button>
             {confirmDelete ? (

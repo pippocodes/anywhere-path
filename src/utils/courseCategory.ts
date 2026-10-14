@@ -4,15 +4,14 @@ import type { HabitCategory } from '../types'
 // already exist as a real category — not auto-seeded data, so a brand new
 // account starts with an empty category list, same as the habit tracker.
 export const DEFAULT_CATEGORY_SUGGESTIONS = [
-  'Body',
-  'Skincare',
-  'Healthcare',
-  'Mind',
-  'Study',
+  'Body & Health',
+  'Studies / Academics',
   'Career',
   'Finance',
   'Creative',
   'Language',
+  'Mind',
+  'Skincare',
   'Other',
 ]
 

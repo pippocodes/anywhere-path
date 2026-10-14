@@ -106,12 +106,12 @@ describe('courseOutlineNodeToCourse', () => {
     expect(course.modules[0].topics[0]).toMatchObject({ name: 'Bones of the arm', durationSeconds: 5 * 60 + 22 })
   })
 
-  it('wraps lectures typed directly under the course in an implicit "Lectures" section', () => {
-    const { courses } = parseCourseOutline('Course\n  Lecture one (5:22)')
+  it('wraps modules typed directly under the course in an implicit "Modules" subtopic', () => {
+    const { courses } = parseCourseOutline('Course\n  Module one (5:22)')
     const course = courseOutlineNodeToCourse(courses[0])
     expect(course.modules).toHaveLength(1)
-    expect(course.modules[0].name).toBe('Lectures')
-    expect(course.modules[0].topics[0].name).toBe('Lecture one')
+    expect(course.modules[0].name).toBe('Modules')
+    expect(course.modules[0].topics[0].name).toBe('Module one')
   })
 
   it('preserves nested sub-modules on the saved Course', () => {

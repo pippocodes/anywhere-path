@@ -111,7 +111,7 @@ export function parseCourseOutline(text: string): CourseOutlineParseResult {
     if (level > MAX_LEVEL) {
       errors.push({
         line: lineNumber,
-        message: `Too deeply nested (level ${level}) — a course can only go course → section → module → sub-module → lecture.`,
+        message: `Too deeply nested (level ${level}) — a course can only go course → subtopic → module → sub-module.`,
       })
       level = MAX_LEVEL
     }
@@ -210,7 +210,7 @@ function childrenToModules(children: CourseOutlineNode[]): CourseModule[] {
   // no top-level topics list) — give them one, kept first so they read as
   // "the course's own lectures" ahead of its named sections.
   if (leaves.length > 0) {
-    modules.unshift({ id: makeId('module'), name: 'Lectures', topics: leaves.map(nodeToTopic) })
+    modules.unshift({ id: makeId('module'), name: 'Modules', topics: leaves.map(nodeToTopic) })
   }
   return modules
 }

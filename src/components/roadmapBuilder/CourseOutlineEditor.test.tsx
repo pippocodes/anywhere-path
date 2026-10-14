@@ -24,19 +24,19 @@ describe('CourseOutlineEditor (text-outline course builder)', () => {
     const textarea = screen.getByPlaceholderText(/Skeletal System/)
     fireEvent.change(textarea, {
       target: {
-        value: ['Anatomy', '  Section', '    Lecture A (5:22)', '    Lecture B (12:07)', '    Lecture C (1:03:45)'].join('\n'),
+        value: ['Anatomy', '  Skeletal System', '    Module A (5:22)', '    Module B (12:07)', '    Module C (1:03:45)'].join('\n'),
       },
     })
     expect(screen.getByText('1 course will be created')).toBeInTheDocument()
     // 5:22 + 12:07 + 1:03:45 = 1:21:14, shown on the course preview card.
-    expect(screen.getByText('3 lectures · 1:21:14')).toBeInTheDocument()
+    expect(screen.getByText('3 modules · 1:21:14')).toBeInTheDocument()
   })
 
   it('counts multiple unindented roots as separate courses', () => {
     render(<Harness onSave={vi.fn()} />)
     const textarea = screen.getByPlaceholderText(/Skeletal System/)
     fireEvent.change(textarea, {
-      target: { value: ['Course A', '  Section\n    Lecture (2h)', 'Course B', '  Section\n    Lecture (1h)'].join('\n') },
+      target: { value: ['Course A', '  Subtopic\n    Module (2h)', 'Course B', '  Subtopic\n    Module (1h)'].join('\n') },
     })
     expect(screen.getByText('2 courses will be created')).toBeInTheDocument()
   })
@@ -45,7 +45,7 @@ describe('CourseOutlineEditor (text-outline course builder)', () => {
     const onSave = vi.fn()
     render(<Harness onSave={onSave} />)
     const textarea = screen.getByPlaceholderText(/Skeletal System/)
-    fireEvent.change(textarea, { target: { value: 'Course\n  Section\n    Lecture with no duration' } })
+    fireEvent.change(textarea, { target: { value: 'Course\n  Subtopic\n    Module with no duration' } })
     expect(screen.getByText(/needs a duration, like \(5:22\)/)).toBeInTheDocument()
     fireEvent.click(screen.getByText('Save course(s)'))
     expect(onSave).not.toHaveBeenCalled()
@@ -55,12 +55,19 @@ describe('CourseOutlineEditor (text-outline course builder)', () => {
     const onSave = vi.fn()
     render(<Harness onSave={onSave} />)
     const textarea = screen.getByPlaceholderText(/Skeletal System/)
-    fireEvent.change(textarea, { target: { value: 'Course\n  Section\n    Lecture (5:22)' } })
+    fireEvent.change(textarea, { target: { value: 'Course\n  Subtopic\n    Module (5:22)' } })
     fireEvent.click(screen.getByText('Save course(s)'))
     expect(onSave).toHaveBeenCalledTimes(1)
     const [courses] = onSave.mock.calls[0]
     expect(courses).toHaveLength(1)
     expect(courses[0].name).toBe('Course')
-    expect(courses[0].modules[0].topics[0]).toMatchObject({ name: 'Lecture', durationSeconds: 322 })
+    expect(courses[0].modules[0].topics[0]).toMatchObject({ name: 'Module', durationSeconds: 322 })
+  })
+
+  it('never uses the word "lecture" anywhere in its rendered text', () => {
+    render(<Harness onSave={vi.fn()} />)
+    const textarea = screen.getByPlaceholderText(/Skeletal System/)
+    fireEvent.change(textarea, { target: { value: 'Course\n  Subtopic\n    Module (5:22)' } })
+    expect(document.body.textContent?.toLowerCase()).not.toContain('lecture')
   })
 })

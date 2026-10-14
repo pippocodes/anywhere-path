@@ -170,7 +170,7 @@ function CourseForm({
 
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 10, flexWrap: 'wrap', gap: 8 }}>
         <span style={{ fontSize: 13, color: 'var(--mute)', fontWeight: 600 }}>
-          {stats.lecturesTotal} lecture{stats.lecturesTotal === 1 ? '' : 's'}
+          {stats.lecturesTotal} module{stats.lecturesTotal === 1 ? '' : 's'}
         </span>
         <span style={{ fontFamily: "'Poppins', sans-serif", fontWeight: 800, fontSize: 18, color: 'var(--cream)' }}>
           {formatDuration(stats.totalSeconds)} total
@@ -179,7 +179,7 @@ function CourseForm({
 
       {value.modules.length === 0 ? (
         <p style={{ fontSize: 13.5, color: 'var(--mute)', marginBottom: 14 }}>
-          Add a section to start building the course structure.
+          Add a subtopic to start building the course structure.
         </p>
       ) : (
         <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
@@ -202,7 +202,7 @@ function CourseForm({
 
       <div style={{ display: 'flex', gap: 10, marginTop: 10, flexWrap: 'wrap', alignItems: 'center' }}>
         <button type="button" onClick={addSection} className="btn-outline">
-          + Add section
+          + Add subtopic
         </button>
         <Button onClick={handleSaveClick}>{saveLabel}</Button>
       </div>
@@ -210,9 +210,9 @@ function CourseForm({
       {showErrors && !canSave && (
         <div className="outline-issues outline-issues-error" style={{ marginTop: 14 }}>
           {value.name.trim() === '' && <div>⚠ Give the course a title.</div>}
-          {value.modules.length === 0 && <div>⚠ Add at least one section.</div>}
+          {value.modules.length === 0 && <div>⚠ Add at least one subtopic.</div>}
           {value.modules.length > 0 && !isModuleTreeComplete(value.modules) && (
-            <div>⚠ Every section, module and lecture needs a title, and every lecture needs a duration greater than 0.</div>
+            <div>⚠ Every subtopic and module needs a title, and every module needs a duration greater than 0.</div>
           )}
         </div>
       )}

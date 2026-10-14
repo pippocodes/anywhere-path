@@ -87,9 +87,9 @@ function CourseOutlineEditor({
           >
             <p className="page-subtitle" style={{ marginBottom: 16, fontSize: 13.5 }}>
               Indent with 2 spaces or a tab per level. Each line that starts at the very left (no indent) begins a
-              new course. Add a duration at the end of any lecture line, like <code>(5:22)</code>,{' '}
+              new course. Add a duration at the end of any module line, like <code>(5:22)</code>,{' '}
               <code>(1:05:22)</code>, <code>(2h)</code>, <code>(45m)</code>, or <code>(1h 30m)</code>. You can nest
-              sections up to 3 levels deep: section → module → sub-module.
+              subtopics up to 3 levels deep: subtopic → module → sub-module.
             </p>
           </motion.div>
         )}
@@ -192,14 +192,14 @@ function CoursePreviewCard({
           {course.name}
         </span>
         <span style={{ fontSize: 12.5, color: 'var(--mute)', flexShrink: 0 }}>
-          {lectures} lecture{lectures === 1 ? '' : 's'} · {formatDuration(seconds)}
+          {lectures} module{lectures === 1 ? '' : 's'} · {formatDuration(seconds)}
         </span>
       </div>
       <div style={{ marginBottom: 10 }}>
         <CategorySelect value={categoryId} onChange={onChangeCategory} {...categoryProps} />
       </div>
       {course.children.length === 0 ? (
-        <p style={{ fontSize: 12.5, color: 'var(--mute)', margin: 0 }}>No sections yet.</p>
+        <p style={{ fontSize: 12.5, color: 'var(--mute)', margin: 0 }}>No subtopics yet.</p>
       ) : (
         course.children.map((child) => <PreviewNode key={child.id} node={child} />)
       )}
