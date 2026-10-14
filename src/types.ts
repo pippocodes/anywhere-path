@@ -3,6 +3,13 @@ export interface Topic {
   name: string
   hours: number
   done: boolean
+  // Precise lecture duration in whole seconds — the Course Tracker's unit
+  // of record (supports mm:ss / h:mm:ss). Optional so older saved topics
+  // (which only ever had `hours`, a decimal) keep working unchanged: read
+  // duration through `getTopicSeconds()` in utils/duration.ts, which falls
+  // back to `hours * 3600` when this isn't set, rather than migrating
+  // existing data.
+  durationSeconds?: number
 }
 
 export interface CourseModule {
@@ -16,6 +23,9 @@ export interface Course {
   name: string
   modules: CourseModule[]
   isCustom?: boolean
+  // Optional metadata for the Course Tracker — e.g. "Udemy", "YouTube".
+  platform?: string
+  instructor?: string
 }
 
 export interface RoadmapPlan {

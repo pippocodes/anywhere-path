@@ -1,4 +1,4 @@
-import type { AppData, Course, Habit, HabitCategory, RoadmapDoc, RoadmapPlan } from '../types'
+import type { AppData, Course, CourseModule, Habit, HabitCategory, RoadmapDoc, RoadmapPlan, Topic } from '../types'
 import { cycleMark } from '../utils/habits'
 
 export const initialData: AppData = {
@@ -14,7 +14,16 @@ export type Action =
   | { type: 'TOGGLE_TOPIC'; courseId: string; moduleId: string; topicId: string }
   | { type: 'ADD_COURSE'; course: Course }
   | { type: 'DELETE_COURSE'; courseId: string }
+  | { type: 'UPDATE_COURSE'; courseId: string; patch: Partial<Pick<Course, 'name' | 'platform' | 'instructor'>> }
   | { type: 'SET_ROADMAP'; courseId: string; plan: RoadmapPlan }
+  | { type: 'ADD_MODULE'; courseId: string; module: CourseModule }
+  | { type: 'RENAME_MODULE'; courseId: string; moduleId: string; name: string }
+  | { type: 'DELETE_MODULE'; courseId: string; moduleId: string }
+  | { type: 'REORDER_MODULES'; courseId: string; orderedIds: string[] }
+  | { type: 'ADD_TOPICS'; courseId: string; moduleId: string; topics: Topic[] }
+  | { type: 'UPDATE_TOPIC'; courseId: string; moduleId: string; topicId: string; patch: Partial<Pick<Topic, 'name' | 'durationSeconds' | 'hours'>> }
+  | { type: 'DELETE_TOPIC'; courseId: string; moduleId: string; topicId: string }
+  | { type: 'REORDER_TOPICS'; courseId: string; moduleId: string; orderedIds: string[] }
   | { type: 'ADD_HABIT'; habit: Habit }
   | { type: 'RENAME_HABIT'; habitId: string; name: string }
   | { type: 'SET_HABIT_CATEGORY'; habitId: string; categoryId: string | null }
@@ -36,6 +45,33 @@ export type Action =
 function applyOrder<T extends { id: string; order: number }>(items: T[], orderedIds: string[]): T[] {
   const indexById = new Map(orderedIds.map((id, i) => [id, i]))
   return items.map((item) => (indexById.has(item.id) ? { ...item, order: indexById.get(item.id)! } : item))
+}
+
+/**
+ * Course modules/topics don't carry an explicit `order` field — their
+ * array position *is* the order — so reordering them means resorting the
+ * array itself to match `orderedIds`, rather than stamping an order number
+ * on each item the way `applyOrder` does for habits/categories. Anything
+ * not named in `orderedIds` keeps its relative position, appended after.
+ */
+function reorderByIds<T extends { id: string }>(items: T[], orderedIds: string[]): T[] {
+  const indexById = new Map(orderedIds.map((id, i) => [id, i]))
+  return [...items].sort((a, b) => {
+    const ai = indexById.get(a.id)
+    const bi = indexById.get(b.id)
+    if (ai === undefined && bi === undefined) return 0
+    if (ai === undefined) return 1
+    if (bi === undefined) return -1
+    return ai - bi
+  })
+}
+
+function mapCourse(courses: Course[], courseId: string, fn: (c: Course) => Course): Course[] {
+  return courses.map((c) => (c.id !== courseId ? c : fn(c)))
+}
+
+function mapModule(course: Course, moduleId: string, fn: (m: CourseModule) => CourseModule): Course {
+  return { ...course, modules: course.modules.map((m) => (m.id !== moduleId ? m : fn(m))) }
 }
 
 export function appReducer(state: AppData, action: Action): AppData {
@@ -78,6 +114,79 @@ export function appReducer(state: AppData, action: Action): AppData {
         habits: state.habits.filter((h) => h.courseId !== action.courseId),
       }
     }
+
+    case 'UPDATE_COURSE':
+      return {
+        ...state,
+        courses: mapCourse(state.courses, action.courseId, (c) => ({ ...c, ...action.patch })),
+      }
+
+    case 'ADD_MODULE':
+      return {
+        ...state,
+        courses: mapCourse(state.courses, action.courseId, (c) => ({ ...c, modules: [...c.modules, action.module] })),
+      }
+
+    case 'RENAME_MODULE':
+      return {
+        ...state,
+        courses: mapCourse(state.courses, action.courseId, (c) =>
+          mapModule(c, action.moduleId, (m) => ({ ...m, name: action.name }))
+        ),
+      }
+
+    case 'DELETE_MODULE':
+      return {
+        ...state,
+        courses: mapCourse(state.courses, action.courseId, (c) => ({
+          ...c,
+          modules: c.modules.filter((m) => m.id !== action.moduleId),
+        })),
+      }
+
+    case 'REORDER_MODULES':
+      return {
+        ...state,
+        courses: mapCourse(state.courses, action.courseId, (c) => ({
+          ...c,
+          modules: reorderByIds(c.modules, action.orderedIds),
+        })),
+      }
+
+    case 'ADD_TOPICS':
+      return {
+        ...state,
+        courses: mapCourse(state.courses, action.courseId, (c) =>
+          mapModule(c, action.moduleId, (m) => ({ ...m, topics: [...m.topics, ...action.topics] }))
+        ),
+      }
+
+    case 'UPDATE_TOPIC':
+      return {
+        ...state,
+        courses: mapCourse(state.courses, action.courseId, (c) =>
+          mapModule(c, action.moduleId, (m) => ({
+            ...m,
+            topics: m.topics.map((t) => (t.id !== action.topicId ? t : { ...t, ...action.patch })),
+          }))
+        ),
+      }
+
+    case 'DELETE_TOPIC':
+      return {
+        ...state,
+        courses: mapCourse(state.courses, action.courseId, (c) =>
+          mapModule(c, action.moduleId, (m) => ({ ...m, topics: m.topics.filter((t) => t.id !== action.topicId) }))
+        ),
+      }
+
+    case 'REORDER_TOPICS':
+      return {
+        ...state,
+        courses: mapCourse(state.courses, action.courseId, (c) =>
+          mapModule(c, action.moduleId, (m) => ({ ...m, topics: reorderByIds(m.topics, action.orderedIds) }))
+        ),
+      }
 
     case 'SET_ROADMAP':
       return { ...state, roadmaps: { ...state.roadmaps, [action.courseId]: action.plan } }

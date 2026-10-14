@@ -16,6 +16,8 @@ type CourseRow = {
   name: string
   is_custom: boolean
   modules: Course['modules']
+  platform: string | null
+  instructor: string | null
 }
 
 type RoadmapPlanRow = {
@@ -61,7 +63,7 @@ export async function fetchCloudData(userId: string): Promise<AppData> {
   const client = requireClient()
 
   const [coursesRes, plansRes, docsRes, categoriesRes, habitsRes] = await Promise.all([
-    client.from('courses').select('id, name, is_custom, modules').eq('user_id', userId),
+    client.from('courses').select('id, name, is_custom, modules, platform, instructor').eq('user_id', userId),
     client.from('roadmap_plans').select('course_id, target_days, daily_hours, total_hours, option').eq('user_id', userId),
     client
       .from('roadmap_docs')
@@ -79,6 +81,8 @@ export async function fetchCloudData(userId: string): Promise<AppData> {
     name: r.name,
     isCustom: r.is_custom,
     modules: r.modules ?? [],
+    platform: r.platform ?? undefined,
+    instructor: r.instructor ?? undefined,
   }))
 
   const roadmaps: Record<string, RoadmapPlan> = {}
@@ -155,7 +159,15 @@ export async function pushAppDataToCloud(userId: string, data: AppData): Promise
 
   if (data.courses.length > 0) {
     const { error } = await client.from('courses').upsert(
-      data.courses.map((c) => ({ id: c.id, user_id: userId, name: c.name, is_custom: c.isCustom ?? false, modules: c.modules }))
+      data.courses.map((c) => ({
+        id: c.id,
+        user_id: userId,
+        name: c.name,
+        is_custom: c.isCustom ?? false,
+        modules: c.modules,
+        platform: c.platform ?? null,
+        instructor: c.instructor ?? null,
+      }))
     )
     if (error) throw error
   }

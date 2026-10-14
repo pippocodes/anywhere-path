@@ -1,7 +1,8 @@
 import { useCallback, useContext } from 'react'
 import { AppContext } from '../context/AppContext'
-import type { Course, Habit, HabitCategory, RoadmapDoc, RoadmapPlan } from '../types'
+import type { Course, CourseModule, Habit, HabitCategory, RoadmapDoc, RoadmapPlan, Topic } from '../types'
 import { makeId } from '../utils/id'
+import { secondsToTopicFields } from '../utils/duration'
 
 export function useApp() {
   const ctx = useContext(AppContext)
@@ -26,6 +27,76 @@ export function useApp() {
 
   const setRoadmap = useCallback(
     (courseId: string, plan: RoadmapPlan) => dispatch({ type: 'SET_ROADMAP', courseId, plan }),
+    [dispatch]
+  )
+
+  const updateCourse = useCallback(
+    (courseId: string, patch: Partial<Pick<Course, 'name' | 'platform' | 'instructor'>>) =>
+      dispatch({ type: 'UPDATE_COURSE', courseId, patch }),
+    [dispatch]
+  )
+
+  const addModule = useCallback(
+    (courseId: string, name: string): CourseModule => {
+      const module: CourseModule = { id: makeId('module'), name, topics: [] }
+      dispatch({ type: 'ADD_MODULE', courseId, module })
+      return module
+    },
+    [dispatch]
+  )
+
+  const renameModule = useCallback(
+    (courseId: string, moduleId: string, name: string) => dispatch({ type: 'RENAME_MODULE', courseId, moduleId, name }),
+    [dispatch]
+  )
+
+  const deleteModule = useCallback(
+    (courseId: string, moduleId: string) => dispatch({ type: 'DELETE_MODULE', courseId, moduleId }),
+    [dispatch]
+  )
+
+  const reorderModules = useCallback(
+    (courseId: string, orderedIds: string[]) => dispatch({ type: 'REORDER_MODULES', courseId, orderedIds }),
+    [dispatch]
+  )
+
+  /** Adds one or many lectures (topics) to a module at once — the same action backs both the single-add form and bulk-add. */
+  const addTopics = useCallback(
+    (courseId: string, moduleId: string, inputs: { name: string; durationSeconds: number }[]): Topic[] => {
+      const topics: Topic[] = inputs.map((t) => ({
+        id: makeId('topic'),
+        name: t.name,
+        done: false,
+        ...secondsToTopicFields(t.durationSeconds),
+      }))
+      dispatch({ type: 'ADD_TOPICS', courseId, moduleId, topics })
+      return topics
+    },
+    [dispatch]
+  )
+
+  const updateTopic = useCallback(
+    (courseId: string, moduleId: string, topicId: string, patch: { name?: string; durationSeconds?: number }) => {
+      const { durationSeconds, ...rest } = patch
+      dispatch({
+        type: 'UPDATE_TOPIC',
+        courseId,
+        moduleId,
+        topicId,
+        patch: durationSeconds === undefined ? rest : { ...rest, ...secondsToTopicFields(durationSeconds) },
+      })
+    },
+    [dispatch]
+  )
+
+  const deleteTopic = useCallback(
+    (courseId: string, moduleId: string, topicId: string) => dispatch({ type: 'DELETE_TOPIC', courseId, moduleId, topicId }),
+    [dispatch]
+  )
+
+  const reorderTopics = useCallback(
+    (courseId: string, moduleId: string, orderedIds: string[]) =>
+      dispatch({ type: 'REORDER_TOPICS', courseId, moduleId, orderedIds }),
     [dispatch]
   )
 
@@ -130,6 +201,15 @@ export function useApp() {
     toggleTopic,
     addCourse,
     deleteCourse,
+    updateCourse,
+    addModule,
+    renameModule,
+    deleteModule,
+    reorderModules,
+    addTopics,
+    updateTopic,
+    deleteTopic,
+    reorderTopics,
     setRoadmap,
     addHabit,
     renameHabit,

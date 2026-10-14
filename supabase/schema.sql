@@ -19,10 +19,17 @@ create table if not exists public.courses (
   user_id uuid not null references auth.users (id) on delete cascade,
   name text not null,
   is_custom boolean not null default false,
-  modules jsonb not null default '[]'::jsonb, -- CourseModule[] (each with nested Topic[])
+  modules jsonb not null default '[]'::jsonb, -- CourseModule[] (each with nested Topic[] — lecture durationSeconds lives inside here, no column needed)
+  platform text, -- optional, e.g. "Udemy", "YouTube" — Course Tracker metadata
+  instructor text, -- optional
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
 );
+
+-- Adds platform/instructor to a courses table created before the Course
+-- Tracker rebuild — a no-op on a table created fresh from the statement above.
+alter table public.courses add column if not exists platform text;
+alter table public.courses add column if not exists instructor text;
 
 create index if not exists courses_user_id_idx on public.courses (user_id);
 

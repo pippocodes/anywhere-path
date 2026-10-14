@@ -6,6 +6,7 @@ import Button from './ui/Button'
 
 const NAV_ITEMS = [
   { to: '/', label: 'Home', end: true },
+  { to: '/courses', label: 'Course Tracker' },
   { to: '/roadmap', label: 'Roadmap Builder' },
   { to: '/habits', label: 'Habit Tracker' },
   { to: '/about', label: 'About Us' },

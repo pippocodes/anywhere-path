@@ -10,8 +10,11 @@ import ScrollProgress from './components/ui/ScrollProgress'
 import { ToastProvider } from './components/ui/Toast'
 import RoadmapDemo from './components/demo/RoadmapDemo'
 import HabitsDemo from './components/demo/HabitsDemo'
+import CoursesDemo from './components/demo/CoursesDemo'
 
 const Home = lazy(() => import('./pages/Home'))
+const Courses = lazy(() => import('./pages/Courses'))
+const CourseDetail = lazy(() => import('./pages/CourseDetail'))
 const RoadmapOutline = lazy(() => import('./pages/RoadmapOutline'))
 const RoadmapView = lazy(() => import('./pages/RoadmapView'))
 const Habits = lazy(() => import('./pages/Habits'))
@@ -55,6 +58,28 @@ function AnimatedRoutes() {
             <Route path="/forgot-password" element={<ForgotPassword />} />
             <Route path="/reset-password" element={<ResetPassword />} />
             <Route path="/auth/callback" element={<AuthCallback />} />
+            <Route
+              path="/courses"
+              element={
+                <ProtectedRoute
+                  demo={<CoursesDemo />}
+                  demoBody="This is a preview with sample data. Sign up to track your own courses and lectures."
+                >
+                  <Courses />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/courses/:courseId"
+              element={
+                <ProtectedRoute
+                  demo={<CoursesDemo />}
+                  demoBody="This is a preview with sample data. Sign up to track your own courses and lectures."
+                >
+                  <CourseDetail />
+                </ProtectedRoute>
+              }
+            />
             <Route
               path="/roadmap"
               element={
