@@ -24,6 +24,7 @@ import OutlineNodeView from '../components/OutlineNodeView'
 import OutlineTextEditor from '../components/OutlineTextEditor'
 import CountUp from '../components/motion/CountUp'
 import Button from '../components/ui/Button'
+import RevealHeading from '../components/ui/RevealHeading'
 
 const SAMPLE_OUTLINE = [
   'Data Structures & Algorithms (8w)',
@@ -291,7 +292,9 @@ function RoadmapOutline() {
 
   return (
     <div className="page" style={{ maxWidth: 1100 }}>
-      <h1 className="page-title">Roadmap Builder</h1>
+      <RevealHeading as="h1" className="page-title">
+        Roadmap Builder
+      </RevealHeading>
       <p className="page-subtitle" style={{ marginBottom: 16 }}>
         Write your skill as a plain indented outline — the preview builds itself as you type.
       </p>

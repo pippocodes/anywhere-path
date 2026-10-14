@@ -11,6 +11,7 @@ import ProgressRing from '../components/habits/ProgressRing'
 import CountUp from '../components/motion/CountUp'
 import Button from '../components/ui/Button'
 import Card from '../components/ui/Card'
+import RevealHeading from '../components/ui/RevealHeading'
 import NotFound from './NotFound'
 
 const DEFAULT_WEEKDAYS = [0, 1, 2, 3, 4, 5, 6]
@@ -59,9 +60,9 @@ function RoadmapView() {
           <div className="micro-label" style={{ marginBottom: 8 }}>
             Roadmap
           </div>
-          <h1 className="page-title" style={{ marginBottom: 6 }}>
+          <RevealHeading as="h1" className="page-title" style={{ marginBottom: 6 }}>
             {doc.title}
-          </h1>
+          </RevealHeading>
           <p className="page-subtitle" style={{ marginBottom: 0 }}>
             {parsed.nodes.length} topic{parsed.nodes.length === 1 ? '' : 's'} · {formatHours(totalMinutes)} total
             {schedule.finishDate && <> · finishes {formatDateLabel(schedule.finishDate)}</>}

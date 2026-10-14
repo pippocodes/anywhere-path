@@ -3,6 +3,7 @@ import { useAuth } from '../context/AuthContext'
 import { supabase } from '../lib/supabaseClient'
 import Card from '../components/ui/Card'
 import Skeleton from '../components/ui/Skeleton'
+import RevealHeading from '../components/ui/RevealHeading'
 
 function formatDate(iso: string | null) {
   if (!iso) return '—'
@@ -37,7 +38,9 @@ function Profile() {
 
   return (
     <div className="page" style={{ maxWidth: 640 }}>
-      <h1 className="page-title">Profile</h1>
+      <RevealHeading as="h1" className="page-title">
+        Profile
+      </RevealHeading>
       <p className="page-subtitle">Your account, at a glance.</p>
 
       <Card>

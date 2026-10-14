@@ -140,6 +140,8 @@ textarea {
 }
 
 .card {
+  position: relative;
+  isolation: isolate;
   background: var(--surface);
   border: 1px solid var(--line);
   border-radius: 14px;
@@ -154,12 +156,7 @@ textarea {
   border-color: rgba(233, 197, 143, 0.4);
 }
 
-.card-sweep {
-  position: relative;
-  isolation: isolate;
-}
-
-.card-sweep::before {
+.card::before {
   content: '';
   position: absolute;
   inset: 0;
@@ -175,7 +172,7 @@ textarea {
   z-index: -1;
 }
 
-.card-sweep:hover::before {
+.card:hover::before {
   opacity: 1;
 }
 
@@ -638,6 +635,7 @@ textarea {
   .habit-tick,
   .habit-cell-pop,
   .card,
+  .card::before,
   .btn,
   .btn-outline,
   .expandable-header,

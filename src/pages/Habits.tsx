@@ -42,6 +42,7 @@ import WeekdayPatternChart from '../components/habits/charts/WeekdayPatternChart
 import MonthlyBarChart from '../components/habits/charts/MonthlyBarChart'
 import YearHeatmap from '../components/habits/charts/YearHeatmap'
 import Pills from '../components/ui/Pills'
+import RevealHeading from '../components/ui/RevealHeading'
 import CountUp from '../components/motion/CountUp'
 import type { Habit } from '../types'
 
@@ -216,9 +217,9 @@ function Habits() {
 
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 28, flexWrap: 'wrap', gap: 16 }}>
         <div>
-          <h1 className="page-title" style={{ marginBottom: 6 }}>
+          <RevealHeading as="h1" className="page-title" style={{ marginBottom: 6 }}>
             Habit Tracker
-          </h1>
+          </RevealHeading>
           <Pills options={VIEW_OPTIONS} value={view} onChange={(v) => setView(v as 'month' | 'year')} layoutId="habit-view-tab" size="sm" />
         </div>
 

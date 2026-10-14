@@ -4,6 +4,7 @@ import { useToast } from '../components/ui/Toast'
 import Card from '../components/ui/Card'
 import Button from '../components/ui/Button'
 import PasswordField from '../components/auth/PasswordField'
+import RevealHeading from '../components/ui/RevealHeading'
 
 function Settings() {
   const { updatePassword } = useAuth()
@@ -47,7 +48,9 @@ function Settings() {
 
   return (
     <div className="page" style={{ maxWidth: 560 }}>
-      <h1 className="page-title">Settings</h1>
+      <RevealHeading as="h1" className="page-title">
+        Settings
+      </RevealHeading>
       <p className="page-subtitle">Manage your account security.</p>
 
       <Card>
