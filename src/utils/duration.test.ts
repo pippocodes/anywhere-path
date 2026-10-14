@@ -30,6 +30,13 @@ describe('parseDuration', () => {
     expect(parseDuration('1 hour 5 minutes 22 seconds')).toBe(3922)
   })
 
+  it('parses day/week tokens too, for AI-generated outlines that use them', () => {
+    expect(parseDuration('2d')).toBe(2 * 86400)
+    expect(parseDuration('1w')).toBe(604800)
+    expect(parseDuration('1 day')).toBe(86400)
+    expect(parseDuration('2 weeks')).toBe(2 * 604800)
+  })
+
   it('treats a bare number as whole minutes', () => {
     expect(parseDuration('12')).toBe(720)
     expect(parseDuration('0.5')).toBe(30)

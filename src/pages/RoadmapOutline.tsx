@@ -23,9 +23,12 @@ import { OutlineEditorContext, type OutlineEditorApi } from '../context/OutlineE
 import type { Course, DurationUnit, OutlineNode } from '../types'
 import OutlineNodeView from '../components/OutlineNodeView'
 import OutlineTextEditor from '../components/OutlineTextEditor'
-import CourseForm, { emptyFormValue, type CourseFormValue } from '../components/roadmapBuilder/CourseForm'
+import CourseForm, { courseToFormValue, emptyFormValue, type CourseFormValue } from '../components/roadmapBuilder/CourseForm'
+import CourseOutlineEditor from '../components/roadmapBuilder/CourseOutlineEditor'
+import { serializeCourseToOutline } from '../utils/courseOutlineParser'
 import CountUp from '../components/motion/CountUp'
 import Button from '../components/ui/Button'
+import Pills from '../components/ui/Pills'
 import RevealHeading from '../components/ui/RevealHeading'
 
 const SAMPLE_OUTLINE = [
@@ -51,7 +54,17 @@ function RoadmapOutline() {
   const navigate = useNavigate()
   const [searchParams, setSearchParams] = useSearchParams()
 
+  const [courseTab, setCourseTab] = useState<'form' | 'text'>('form')
   const [courseForm, setCourseForm] = useState<CourseFormValue>(emptyFormValue())
+  const [editingCourseId, setEditingCourseId] = useState<string | null>(null)
+  const [courseOutlineText, setCourseOutlineText] = useState('')
+  const [editingTextCourseId, setEditingTextCourseId] = useState<string | null>(null)
+
+  const [courseAiOpen, setCourseAiOpen] = useState(false)
+  const [courseAiGoal, setCourseAiGoal] = useState('')
+  const [courseAiLoading, setCourseAiLoading] = useState(false)
+  const [courseAiError, setCourseAiError] = useState<string | null>(null)
+  const [courseAiConfirmOverwrite, setCourseAiConfirmOverwrite] = useState(false)
 
   const [title, setTitle] = useState('')
   const [outlineText, setOutlineText] = useState('')
@@ -232,18 +245,83 @@ function RoadmapOutline() {
 
   function handleSaveCourse() {
     const hoursPerDay = courseForm.hoursPerDay.trim() === '' ? undefined : Number(courseForm.hoursPerDay) || undefined
-    const newCourse: Course = {
-      id: makeId('course'),
+    const meta = {
       name: courseForm.name.trim(),
-      modules: courseForm.modules,
       platform: courseForm.platform.trim() || undefined,
       instructor: courseForm.instructor.trim() || undefined,
       startDate: courseForm.startDate || undefined,
       hoursPerDay,
     }
+    if (editingCourseId) {
+      updateCourse(editingCourseId, meta)
+      setCourseModules(editingCourseId, courseForm.modules)
+      const id = editingCourseId
+      setEditingCourseId(null)
+      setCourseForm(emptyFormValue())
+      navigate(`/courses/${id}`)
+      return
+    }
+    const newCourse: Course = { id: makeId('course'), modules: courseForm.modules, ...meta }
     addCourse(newCourse)
     setCourseForm(emptyFormValue())
     navigate(`/courses/${newCourse.id}`)
+  }
+
+  function handleSaveCoursesFromText(courses: Pick<Course, 'id' | 'name' | 'modules'>[]) {
+    if (editingTextCourseId && courses.length > 0) {
+      const [first, ...rest] = courses
+      updateCourse(editingTextCourseId, { name: first.name })
+      setCourseModules(editingTextCourseId, first.modules)
+      for (const c of rest) addCourse(c as Course)
+      const id = editingTextCourseId
+      setEditingTextCourseId(null)
+      setCourseOutlineText('')
+      navigate(`/courses/${id}`)
+      return
+    }
+    for (const c of courses) addCourse(c as Course)
+    setCourseOutlineText('')
+    navigate(courses.length === 1 ? `/courses/${courses[0].id}` : '/courses')
+  }
+
+  async function handleGenerateCourse(e: React.FormEvent) {
+    e.preventDefault()
+    if (!courseAiGoal.trim() || courseAiLoading) return
+
+    if (courseOutlineText.trim() && !courseAiConfirmOverwrite) {
+      setCourseAiConfirmOverwrite(true)
+      return
+    }
+    setCourseAiConfirmOverwrite(false)
+    setCourseAiLoading(true)
+    setCourseAiError(null)
+
+    try {
+      const res = await fetch('/api/generate', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(session?.access_token ? { Authorization: `Bearer ${session.access_token}` } : {}),
+        },
+        body: JSON.stringify({ goal: courseAiGoal.trim() }),
+      })
+      const body = await res.json().catch(() => null)
+      if (!res.ok) {
+        setCourseAiError(body?.message || 'Something went wrong generating the outline.')
+        return
+      }
+      // The generator writes the same indentation grammar this tab's parser
+      // reads — only the destination differs (a Course, not a RoadmapDoc) —
+      // so the raw text can be handed straight to the text tab for review.
+      setCourseOutlineText(body.outlineText)
+      setCourseTab('text')
+      setCourseAiOpen(false)
+      setCourseAiGoal('')
+    } catch {
+      setCourseAiError('Could not reach the server — check your connection and try again.')
+    } finally {
+      setCourseAiLoading(false)
+    }
   }
 
   function handleSave() {
@@ -310,6 +388,32 @@ function RoadmapOutline() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [searchParams])
 
+  // Arriving via "Edit as form" / "Edit as text" from a course's own page
+  // (/roadmap?editCourse=<id>&mode=form|text) loads that course into
+  // whichever tab was asked for, round-tripping its saved structure.
+  useEffect(() => {
+    const courseId = searchParams.get('editCourse')
+    if (!courseId) return
+    const course = data.courses.find((c) => c.id === courseId)
+    if (!course) return
+    const mode = searchParams.get('mode') === 'text' ? 'text' : 'form'
+    if (mode === 'text') {
+      setCourseOutlineText(serializeCourseToOutline(course))
+      setEditingTextCourseId(course.id)
+    } else {
+      setCourseForm(courseToFormValue(course))
+      setEditingCourseId(course.id)
+    }
+    setCourseTab(mode)
+    setSearchParams((prev) => {
+      const next = new URLSearchParams(prev)
+      next.delete('editCourse')
+      next.delete('mode')
+      return next
+    }, { replace: true })
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchParams, data.courses])
+
   return (
     <div className="page" style={{ maxWidth: 1100 }}>
       <RevealHeading as="h1" className="page-title">
@@ -321,8 +425,97 @@ function RoadmapOutline() {
       </p>
 
       <div style={{ marginBottom: 44 }}>
-        <h2 style={{ fontSize: 18, marginBottom: 14 }}>Create a course</h2>
-        <CourseForm value={courseForm} onChange={setCourseForm} onSave={handleSaveCourse} saveLabel="Save course" />
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 12, marginBottom: 18 }}>
+          <Pills
+            options={[
+              { value: 'form', label: 'Add course' },
+              { value: 'text', label: 'Write it as text' },
+            ]}
+            value={courseTab}
+            onChange={(v) => setCourseTab(v as 'form' | 'text')}
+            layoutId="course-creation-mode"
+          />
+          {!courseAiOpen && (
+            <button className="btn-secondary btn" onClick={() => setCourseAiOpen(true)}>
+              Generate with AI
+            </button>
+          )}
+        </div>
+
+        {courseAiOpen && (
+          <motion.form
+            onSubmit={handleGenerateCourse}
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: 'auto' }}
+            exit={{ opacity: 0, height: 0 }}
+            className="card"
+            style={{ padding: '18px 22px', marginBottom: 16, overflow: 'hidden' }}
+          >
+            <div style={{ fontWeight: 600, fontSize: 13.5, color: 'var(--mute)', marginBottom: 10 }}>
+              Generate with AI
+            </div>
+            <p style={{ fontSize: 12.5, color: 'var(--mute)', marginBottom: 12 }}>
+              Describe the course you want and it'll fill in the "Write it as text" tab for you to review and edit
+              before saving.
+            </p>
+            {courseAiError && <div className="auth-notice auth-notice-error" style={{ marginBottom: 12 }}>{courseAiError}</div>}
+            {courseAiConfirmOverwrite ? (
+              <div className="outline-issues outline-issues-warning" style={{ marginBottom: 12 }}>
+                This will replace what's currently in the text tab. Generate anyway?
+                <div style={{ display: 'flex', gap: 10, marginTop: 10 }}>
+                  <button type="submit" className="btn" style={{ padding: '7px 16px', fontSize: 12.5 }}>
+                    Yes, replace it
+                  </button>
+                  <button type="button" className="btn-outline" onClick={() => setCourseAiConfirmOverwrite(false)}>
+                    Cancel
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <div style={{ display: 'flex', gap: 10 }}>
+                <input
+                  autoFocus
+                  value={courseAiGoal}
+                  onChange={(e) => setCourseAiGoal(e.target.value)}
+                  placeholder="e.g. a beginner course on data structures"
+                  disabled={courseAiLoading}
+                  style={{ flex: 1, padding: '10px 14px', borderRadius: 10, border: '1px solid var(--line)', fontSize: 14 }}
+                />
+                <button className="btn" type="submit" disabled={courseAiLoading || !courseAiGoal.trim()}>
+                  {courseAiLoading ? 'Generating…' : 'Generate'}
+                </button>
+                <button
+                  type="button"
+                  className="btn-outline"
+                  onClick={() => {
+                    setCourseAiOpen(false)
+                    setCourseAiError(null)
+                    setCourseAiConfirmOverwrite(false)
+                  }}
+                >
+                  Cancel
+                </button>
+              </div>
+            )}
+          </motion.form>
+        )}
+
+        <AnimatePresence mode="wait" initial={false}>
+          {courseTab === 'form' ? (
+            <motion.div key="form" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.18 }}>
+              <CourseForm value={courseForm} onChange={setCourseForm} onSave={handleSaveCourse} saveLabel="Save course" />
+            </motion.div>
+          ) : (
+            <motion.div key="text" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.18 }}>
+              <CourseOutlineEditor
+                value={courseOutlineText}
+                onChange={setCourseOutlineText}
+                onSave={handleSaveCoursesFromText}
+                saveLabel="Save course(s)"
+              />
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
 
       <div style={{ borderTop: '1px solid var(--line)', paddingTop: 36, marginBottom: 20 }}>

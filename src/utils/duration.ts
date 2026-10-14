@@ -38,9 +38,10 @@ export function parseDuration(input: string): number | null {
     return h * 3600 + m * 60 + s
   }
 
-  // "1h 5m 22s", "5m22s", "90s", "2h", "5 min 22 sec", etc. — any
-  // combination of h/hr/hour, m/min/minute, s/sec/second tokens.
-  const unitPattern = /(\d+(?:\.\d+)?)\s*(h|hr|hrs|hour|hours|m|min|mins|minute|minutes|s|sec|secs|second|seconds)\b/g
+  // "1h 5m 22s", "5m22s", "90s", "2h", "5 min 22 sec", "2d", "1w", etc. —
+  // any combination of w/week, d/day, h/hour, m/min, s/sec tokens.
+  const unitPattern =
+    /(\d+(?:\.\d+)?)\s*(w|wk|wks|week|weeks|d|day|days|h|hr|hrs|hour|hours|m|min|mins|minute|minutes|s|sec|secs|second|seconds)\b/g
   let match: RegExpExecArray | null
   let total = 0
   let matchedAny = false
@@ -50,7 +51,9 @@ export function parseDuration(input: string): number | null {
     consumedLength += match[0].length
     const value = parseFloat(match[1])
     const unit = match[2]
-    if (unit.startsWith('h')) total += value * 3600
+    if (unit.startsWith('w')) total += value * 604800
+    else if (unit.startsWith('d')) total += value * 86400
+    else if (unit.startsWith('h')) total += value * 3600
     else if (unit.startsWith('m')) total += value * 60
     else total += value
   }
