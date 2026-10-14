@@ -1,6 +1,6 @@
 import { useCallback, useContext } from 'react'
 import { AppContext } from '../context/AppContext'
-import type { Course, CourseModule, Habit, HabitCategory, RoadmapDoc, RoadmapPlan, Topic } from '../types'
+import type { Course, CourseModule, Habit, HabitCategory, Plan, RoadmapDoc, RoadmapPlan, Topic } from '../types'
 import { makeId } from '../utils/id'
 import { secondsToTopicFields } from '../utils/duration'
 
@@ -206,6 +206,28 @@ export function useApp() {
     [dispatch]
   )
 
+  const addPlan = useCallback(
+    (fields: Omit<Plan, 'id' | 'createdAt' | 'updatedAt'>): Plan => {
+      const now = new Date().toISOString()
+      const plan: Plan = { id: makeId('plan'), createdAt: now, updatedAt: now, ...fields }
+      dispatch({ type: 'ADD_PLAN', plan })
+      return plan
+    },
+    [dispatch]
+  )
+
+  const updatePlan = useCallback(
+    (id: string, patch: Partial<Omit<Plan, 'id' | 'createdAt'>>) => dispatch({ type: 'UPDATE_PLAN', id, patch }),
+    [dispatch]
+  )
+
+  const deletePlan = useCallback((id: string) => dispatch({ type: 'DELETE_PLAN', id }), [dispatch])
+
+  const togglePlanStep = useCallback(
+    (planId: string, stepId: string) => dispatch({ type: 'TOGGLE_PLAN_STEP', planId, stepId }),
+    [dispatch]
+  )
+
   return {
     data,
     toggleTopic,
@@ -238,5 +260,9 @@ export function useApp() {
     addRoadmapDoc,
     updateRoadmapDoc,
     deleteRoadmapDoc,
+    addPlan,
+    updatePlan,
+    deletePlan,
+    togglePlanStep,
   }
 }

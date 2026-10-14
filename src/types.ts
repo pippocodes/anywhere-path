@@ -78,6 +78,48 @@ export interface AppData {
   habits: Habit[]
   roadmapDocs: RoadmapDoc[]
   habitCategories: HabitCategory[]
+  plans: Plan[]
+}
+
+// --- Roadmap Builder "plan how to finish something" (Step 3) ---
+
+export type PlanSourceType = 'course' | 'ai' | 'custom'
+
+/**
+ * One flattened, schedulable unit of work inside a Plan. When the plan's
+ * source is a course, each step is a snapshot of one leaf module's title
+ * (ancestor path joined) and duration at the moment the plan was built or
+ * last resynced — not a live reference, so the plan keeps working even if
+ * the course is later edited or deleted (see Plan.sourceCourseId).
+ */
+export interface PlanStep {
+  id: string
+  title: string
+  estimatedSeconds: number
+  done: boolean
+}
+
+/**
+ * A roadmap for *when/how* to finish something — distinct from the older
+ * RoadmapDoc outline-text system (untouched, still its own saved-roadmap
+ * list) and from the barely-used courseId-keyed RoadmapPlan above. Always
+ * has its own flat `steps` list regardless of source, which is what gets
+ * scheduled day-by-day; `sourceCourseId` is kept only so a course-sourced
+ * plan can later be resynced on request, not for live binding.
+ */
+export interface Plan {
+  id: string
+  title: string
+  categoryId: string | null
+  sourceType: PlanSourceType
+  sourceCourseId: string | null
+  steps: PlanStep[]
+  startDate: string // YYYY-MM-DD
+  days: number
+  hoursPerDay: number
+  weekdays: number[] // 0=Sun..6=Sat
+  createdAt: string
+  updatedAt: string
 }
 
 // --- Outline parser (indented-text roadmap input) ---

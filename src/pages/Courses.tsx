@@ -52,6 +52,7 @@ function Courses() {
 
   const deleteTarget = data.courses.find((c) => c.id === deleteTargetId) ?? null
   const linkedHabitCount = deleteTargetId ? data.habits.filter((h) => h.courseId === deleteTargetId).length : 0
+  const linkedPlanCount = deleteTargetId ? data.plans.filter((p) => p.sourceCourseId === deleteTargetId).length : 0
 
   function categoryUsageCount(categoryId: string) {
     return data.courses.filter((c) => c.categoryId === categoryId).length
@@ -390,6 +391,7 @@ function Courses() {
         onConfirm={handleConfirmDelete}
         courseName={deleteTarget?.name ?? ''}
         linkedHabitCount={linkedHabitCount}
+        linkedPlanCount={linkedPlanCount}
       />
     </div>
   )

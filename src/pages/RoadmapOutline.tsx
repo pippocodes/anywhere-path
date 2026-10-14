@@ -19,12 +19,14 @@ import { renameNode, setNodeDuration, deleteNode, moveSibling } from '../utils/o
 import { computeProgress } from '../utils/roadmapProgress'
 import { toDateStr } from '../utils/habits'
 import { OutlineEditorContext, type OutlineEditorApi } from '../context/OutlineEditorContext'
-import type { DurationUnit, OutlineNode } from '../types'
+import type { DurationUnit, OutlineNode, Plan } from '../types'
 import OutlineNodeView from '../components/OutlineNodeView'
 import OutlineTextEditor from '../components/OutlineTextEditor'
 import CountUp from '../components/motion/CountUp'
 import Button from '../components/ui/Button'
 import RevealHeading from '../components/ui/RevealHeading'
+import PlanBuilder from '../components/roadmapPlanner/PlanBuilder'
+import SavedPlansList from '../components/roadmapPlanner/SavedPlansList'
 
 const DEFAULT_WEEKDAYS = [0, 1, 2, 3, 4, 5, 6]
 const WEEKDAY_LABELS = ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa']
@@ -46,6 +48,9 @@ function RoadmapOutline() {
   const [aiLoading, setAiLoading] = useState(false)
   const [aiError, setAiError] = useState<string | null>(null)
   const [aiConfirmOverwrite, setAiConfirmOverwrite] = useState(false)
+
+  const [editingPlan, setEditingPlan] = useState<Plan | null>(null)
+  const [legacyOpen, setLegacyOpen] = useState(false)
 
   const [startDate, setStartDate] = useState(() => toDateStr(new Date()))
   const [hoursPerDay, setHoursPerDay] = useState('2')
@@ -282,9 +287,39 @@ function RoadmapOutline() {
         Roadmap Builder
       </RevealHeading>
       <p className="page-subtitle" style={{ marginBottom: 24 }}>
-        Write or generate an indented outline and schedule it week by week.
+        Plan how and when to finish something — from a course, with AI, or on your own.
       </p>
 
+      <PlanBuilder
+        key={editingPlan?.id ?? 'new'}
+        editingPlan={editingPlan}
+        onDoneEditing={() => setEditingPlan(null)}
+      />
+      <SavedPlansList plans={data.plans} onEdit={setEditingPlan} />
+
+      <div style={{ marginTop: 48, paddingTop: 24, borderTop: '1px solid var(--line)' }}>
+        <button
+          type="button"
+          onClick={() => setLegacyOpen((v) => !v)}
+          className="btn-outline"
+          style={{ fontSize: 13, marginBottom: legacyOpen ? 16 : 0, display: 'inline-flex', alignItems: 'center', gap: 6 }}
+        >
+          <motion.span animate={{ rotate: legacyOpen ? 90 : 0 }} transition={{ duration: 0.2 }} style={{ display: 'inline-block' }}>
+            ›
+          </motion.span>
+          Or write a free-form outline instead
+        </button>
+      </div>
+
+      <AnimatePresence initial={false}>
+        {legacyOpen && (
+          <motion.div
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: 'auto' }}
+            exit={{ opacity: 0, height: 0 }}
+            transition={{ duration: 0.25, ease: [0.2, 0.8, 0.2, 1] }}
+            style={{ overflow: 'hidden' }}
+          >
       <button
         type="button"
         onClick={() => setHowToOpen((v) => !v)}
@@ -621,6 +656,9 @@ function RoadmapOutline() {
           </div>
         </div>
       )}
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   )
 }

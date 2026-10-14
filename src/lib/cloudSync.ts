@@ -1,5 +1,5 @@
 import { supabase } from './supabaseClient'
-import type { AppData, Course, Habit, HabitCategory, RoadmapDoc, RoadmapPlan } from '../types'
+import type { AppData, Course, Habit, HabitCategory, Plan, RoadmapDoc, RoadmapPlan } from '../types'
 import { normalizeAppData } from '../utils/normalizeAppData'
 
 function requireClient() {
@@ -44,6 +44,21 @@ type RoadmapDocRow = {
   updated_at: string
 }
 
+type PlanRow = {
+  id: string
+  title: string
+  category_id: string | null
+  source_type: Plan['sourceType']
+  source_course_id: string | null
+  steps: Plan['steps']
+  start_date: string
+  days: number
+  hours_per_day: number
+  weekdays: number[]
+  created_at: string
+  updated_at: string
+}
+
 type HabitCategoryRow = {
   id: string
   name: string
@@ -66,7 +81,7 @@ type HabitRow = {
 export async function fetchCloudData(userId: string): Promise<AppData> {
   const client = requireClient()
 
-  const [coursesRes, plansRes, docsRes, categoriesRes, habitsRes] = await Promise.all([
+  const [coursesRes, plansRes, docsRes, categoriesRes, habitsRes, myPlansRes] = await Promise.all([
     client
       .from('courses')
       .select('id, name, is_custom, modules, platform, instructor, category_id, start_date, hours_per_day, weekdays')
@@ -78,9 +93,13 @@ export async function fetchCloudData(userId: string): Promise<AppData> {
       .eq('user_id', userId),
     client.from('habit_categories').select('id, name, color, archived, sort_order').eq('user_id', userId),
     client.from('habits').select('id, name, course_id, category_id, marks, archived, sort_order').eq('user_id', userId),
+    client
+      .from('plans')
+      .select('id, title, category_id, source_type, source_course_id, steps, start_date, days, hours_per_day, weekdays, created_at, updated_at')
+      .eq('user_id', userId),
   ])
 
-  const firstError = [coursesRes, plansRes, docsRes, categoriesRes, habitsRes].find((r) => r.error)?.error
+  const firstError = [coursesRes, plansRes, docsRes, categoriesRes, habitsRes, myPlansRes].find((r) => r.error)?.error
   if (firstError) throw firstError
 
   const courses: Course[] = ((coursesRes.data ?? []) as CourseRow[]).map((r) => ({
@@ -137,7 +156,22 @@ export async function fetchCloudData(userId: string): Promise<AppData> {
     order: r.sort_order,
   }))
 
-  return normalizeAppData({ courses, roadmaps, roadmapDocs, habitCategories, habits })
+  const plans: Plan[] = ((myPlansRes.data ?? []) as PlanRow[]).map((r) => ({
+    id: r.id,
+    title: r.title,
+    categoryId: r.category_id,
+    sourceType: r.source_type,
+    sourceCourseId: r.source_course_id,
+    steps: r.steps ?? [],
+    startDate: r.start_date,
+    days: r.days,
+    hoursPerDay: r.hours_per_day,
+    weekdays: r.weekdays ?? [],
+    createdAt: r.created_at,
+    updatedAt: r.updated_at,
+  }))
+
+  return normalizeAppData({ courses, roadmaps, roadmapDocs, habitCategories, habits, plans })
 }
 
 /** True once this account has saved anything at all — used to tell "empty new account" apart from "has data". */
@@ -155,7 +189,14 @@ export async function cloudHasAnyData(userId: string): Promise<boolean> {
     .select('id', { count: 'exact', head: true })
     .eq('user_id', userId)
   if (habitError) throw habitError
-  return (habitCount ?? 0) > 0
+  if ((habitCount ?? 0) > 0) return true
+
+  const { count: planCount, error: planError } = await client
+    .from('plans')
+    .select('id', { count: 'exact', head: true })
+    .eq('user_id', userId)
+  if (planError) throw planError
+  return (planCount ?? 0) > 0
 }
 
 /**
@@ -206,6 +247,31 @@ export async function pushAppDataToCloud(userId: string, data: AppData): Promise
     if (error) throw error
   }
   await deleteMissing(client, 'courses', userId, data.courses.map((c) => c.id))
+
+  // plans goes after courses/habit_categories (it can reference either via
+  // source_course_id/category_id) and before roadmap_plans/roadmap_docs —
+  // order doesn't matter relative to those, neither references plans.
+  if (data.plans.length > 0) {
+    const { error } = await client.from('plans').upsert(
+      data.plans.map((p) => ({
+        id: p.id,
+        user_id: userId,
+        title: p.title,
+        category_id: p.categoryId,
+        source_type: p.sourceType,
+        source_course_id: p.sourceCourseId,
+        steps: p.steps,
+        start_date: p.startDate,
+        days: p.days,
+        hours_per_day: p.hoursPerDay,
+        weekdays: p.weekdays,
+        created_at: p.createdAt,
+        updated_at: p.updatedAt,
+      }))
+    )
+    if (error) throw error
+  }
+  await deleteMissing(client, 'plans', userId, data.plans.map((p) => p.id))
 
   const planEntries = Object.values(data.roadmaps)
   if (planEntries.length > 0) {

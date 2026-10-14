@@ -307,6 +307,50 @@ $$;
 grant execute on function public.email_for_username(text) to anon;
 
 -- ---------------------------------------------------------------------
+-- plans — "plan how/when to finish something" (Roadmap Builder Step 3).
+-- Distinct from roadmap_docs (the older outline-text saved-roadmap
+-- system, untouched) and from roadmap_plans (the older courseId-keyed
+-- scheduler result). A plan's `steps` is always its own flattened,
+-- schedulable snapshot regardless of source — source_course_id is kept
+-- only so a course-sourced plan can be resynced on request later, not for
+-- a live foreign-key-style binding to the course's current structure.
+-- ---------------------------------------------------------------------
+create table if not exists public.plans (
+  id text primary key,
+  user_id uuid not null references auth.users (id) on delete cascade,
+  title text not null,
+  category_id text references public.habit_categories (id) on delete set null,
+  source_type text not null check (source_type in ('course', 'ai', 'custom')),
+  source_course_id text references public.courses (id) on delete set null,
+  steps jsonb not null default '[]'::jsonb, -- PlanStep[]: { id, title, estimatedSeconds, done }
+  start_date date not null,
+  days integer not null,
+  hours_per_day numeric not null,
+  weekdays jsonb not null default '[0,1,2,3,4,5,6]'::jsonb, -- number[] (0=Sun..6=Sat)
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+
+create index if not exists plans_user_id_idx on public.plans (user_id);
+create index if not exists plans_source_course_id_idx on public.plans (source_course_id);
+
+alter table public.plans enable row level security;
+
+drop policy if exists "plans_select_own" on public.plans;
+drop policy if exists "plans_insert_own" on public.plans;
+drop policy if exists "plans_update_own" on public.plans;
+drop policy if exists "plans_delete_own" on public.plans;
+
+create policy "plans_select_own" on public.plans
+  for select using (auth.uid() = user_id);
+create policy "plans_insert_own" on public.plans
+  for insert with check (auth.uid() = user_id);
+create policy "plans_update_own" on public.plans
+  for update using (auth.uid() = user_id) with check (auth.uid() = user_id);
+create policy "plans_delete_own" on public.plans
+  for delete using (auth.uid() = user_id);
+
+-- ---------------------------------------------------------------------
 -- Done. Every table above has RLS enabled with policies that scope
 -- every select/insert/update/delete to `auth.uid() = user_id` — a user
 -- can only ever see or change their own rows, enforced by Postgres

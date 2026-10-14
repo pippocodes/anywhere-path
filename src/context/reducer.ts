@@ -1,4 +1,4 @@
-import type { AppData, Course, CourseModule, Habit, HabitCategory, RoadmapDoc, RoadmapPlan, Topic } from '../types'
+import type { AppData, Course, CourseModule, Habit, HabitCategory, Plan, RoadmapDoc, RoadmapPlan, Topic } from '../types'
 import { cycleMark } from '../utils/habits'
 
 export const initialData: AppData = {
@@ -7,6 +7,7 @@ export const initialData: AppData = {
   habits: [],
   roadmapDocs: [],
   habitCategories: [],
+  plans: [],
 }
 
 export type Action =
@@ -49,6 +50,10 @@ export type Action =
   | { type: 'ADD_ROADMAP_DOC'; doc: RoadmapDoc }
   | { type: 'UPDATE_ROADMAP_DOC'; id: string; patch: Partial<Omit<RoadmapDoc, 'id' | 'createdAt'>> }
   | { type: 'DELETE_ROADMAP_DOC'; id: string }
+  | { type: 'ADD_PLAN'; plan: Plan }
+  | { type: 'UPDATE_PLAN'; id: string; patch: Partial<Omit<Plan, 'id' | 'createdAt'>> }
+  | { type: 'DELETE_PLAN'; id: string }
+  | { type: 'TOGGLE_PLAN_STEP'; planId: string; stepId: string }
 
 /** Reassigns `order` to each item's index in `orderedIds`, leaving items not listed untouched. */
 function applyOrder<T extends { id: string; order: number }>(items: T[], orderedIds: string[]): T[] {
@@ -129,9 +134,10 @@ export function appReducer(state: AppData, action: Action): AppData {
         ...state,
         courses: state.courses.filter((c) => c.id !== action.courseId),
         roadmaps,
-        // Habits linked to the deleted course are unlinked, not deleted —
-        // the delete-course confirmation promises this explicitly.
+        // Habits and plans linked to the deleted course are unlinked, not
+        // deleted — the delete-course confirmation promises this explicitly.
         habits: state.habits.map((h) => (h.courseId !== action.courseId ? h : { ...h, courseId: null })),
+        plans: state.plans.map((p) => (p.sourceCourseId !== action.courseId ? p : { ...p, sourceCourseId: null })),
       }
     }
 
@@ -331,6 +337,28 @@ export function appReducer(state: AppData, action: Action): AppData {
 
     case 'DELETE_ROADMAP_DOC':
       return { ...state, roadmapDocs: state.roadmapDocs.filter((d) => d.id !== action.id) }
+
+    case 'ADD_PLAN':
+      return { ...state, plans: [...state.plans, action.plan] }
+
+    case 'UPDATE_PLAN':
+      return {
+        ...state,
+        plans: state.plans.map((p) => (p.id !== action.id ? p : { ...p, ...action.patch, updatedAt: new Date().toISOString() })),
+      }
+
+    case 'DELETE_PLAN':
+      return { ...state, plans: state.plans.filter((p) => p.id !== action.id) }
+
+    case 'TOGGLE_PLAN_STEP':
+      return {
+        ...state,
+        plans: state.plans.map((p) =>
+          p.id !== action.planId
+            ? p
+            : { ...p, steps: p.steps.map((s) => (s.id !== action.stepId ? s : { ...s, done: !s.done })) }
+        ),
+      }
 
     default:
       return state
