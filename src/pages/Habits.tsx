@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react'
+import { createPortal } from 'react-dom'
 import { AnimatePresence, motion } from 'framer-motion'
 import {
   DndContext,
@@ -185,35 +186,50 @@ function Habits() {
 
   return (
     <div className="page" style={{ maxWidth: 1100 }}>
-      {celebration && (
-        <>
-          <Confetti onDone={() => setCelebration(null)} />
-          <motion.div
-            role="status"
-            initial={{ opacity: 0, y: -10, scale: 0.95 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0 }}
-            style={{
-              position: 'fixed',
-              top: 90,
-              left: '50%',
-              transform: 'translateX(-50%)',
-              background: 'var(--ink-2)',
-              border: '1px solid var(--line)',
-              color: 'var(--cream)',
-              padding: '10px 22px',
-              borderRadius: 999,
-              fontWeight: 700,
-              fontSize: 13.5,
-              zIndex: 1000,
-              boxShadow: '0 12px 32px rgba(0,0,0,0.5)',
-            }}
-          >
-            <span style={{ color: 'var(--gold)', marginRight: 6 }}>✦</span>
-            {CELEBRATION_MESSAGE[celebration]}
-          </motion.div>
-        </>
-      )}
+      {celebration &&
+        createPortal(
+          <>
+            <Confetti onDone={() => setCelebration(null)} />
+            {/* Centering (left:50% + translateX(-50%)) lives on this plain,
+                non-animated div — Framer Motion owns `transform` on the
+                motion.div below for its y/scale entrance, so a translate set
+                there directly gets overwritten the moment it animates.
+                Portalled to document.body so position:fixed is relative to
+                the real viewport, not the animated route-transition
+                wrapper in App.tsx (which sets its own `transform` on `y`). */}
+            <div
+              role="status"
+              style={{
+                position: 'fixed',
+                top: 90,
+                left: '50%',
+                transform: 'translateX(-50%)',
+                zIndex: 1000,
+              }}
+            >
+              <motion.div
+                initial={{ opacity: 0, y: -10, scale: 0.95 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                exit={{ opacity: 0 }}
+                style={{
+                  background: 'var(--ink-2)',
+                  border: '1px solid var(--line)',
+                  color: 'var(--cream)',
+                  padding: '10px 22px',
+                  borderRadius: 999,
+                  fontWeight: 700,
+                  fontSize: 13.5,
+                  boxShadow: '0 12px 32px rgba(0,0,0,0.5)',
+                  whiteSpace: 'nowrap',
+                }}
+              >
+                <span style={{ color: 'var(--gold)', marginRight: 6 }}>✦</span>
+                {CELEBRATION_MESSAGE[celebration]}
+              </motion.div>
+            </div>
+          </>,
+          document.body
+        )}
 
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 28, flexWrap: 'wrap', gap: 16 }}>
         <div>
