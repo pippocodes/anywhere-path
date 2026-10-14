@@ -2,11 +2,20 @@ import { describe, it, expect, vi } from 'vitest'
 import { render, screen, fireEvent } from '@testing-library/react'
 import { useState } from 'react'
 import CourseOutlineEditor from './CourseOutlineEditor'
-import type { Course } from '../../types'
+import type { Course, HabitCategory } from '../../types'
 
-function Harness({ onSave }: { onSave: (courses: Pick<Course, 'id' | 'name' | 'modules'>[]) => void }) {
+const noCategoryProps = {
+  categories: [] as HabitCategory[],
+  usageCount: () => 0,
+  onCreateCategory: vi.fn((name: string, color: string) => ({ id: 'cat-1', name, color, archived: false, order: 0 })),
+  onRenameCategory: vi.fn(),
+  onSetCategoryColor: vi.fn(),
+  onDeleteCategory: vi.fn(),
+}
+
+function Harness({ onSave }: { onSave: (courses: Pick<Course, 'id' | 'name' | 'modules' | 'categoryId'>[]) => void }) {
   const [value, setValue] = useState('')
-  return <CourseOutlineEditor value={value} onChange={setValue} onSave={onSave} saveLabel="Save course(s)" />
+  return <CourseOutlineEditor value={value} onChange={setValue} onSave={onSave} saveLabel="Save course(s)" {...noCategoryProps} />
 }
 
 describe('CourseOutlineEditor (text-outline course builder)', () => {

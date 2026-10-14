@@ -305,9 +305,14 @@ export function appReducer(state: AppData, action: Action): AppData {
       return {
         ...state,
         habitCategories: state.habitCategories.filter((c) => c.id !== action.categoryId),
-        // Habits in a deleted category fall back to uncategorized rather than vanishing.
+        // Habits and courses in a deleted category both fall back to
+        // uncategorized/"Other" rather than vanishing — the two features
+        // share this one category list.
         habits: state.habits.map((h) =>
           h.categoryId !== action.categoryId ? h : { ...h, categoryId: null }
+        ),
+        courses: state.courses.map((c) =>
+          c.categoryId !== action.categoryId ? c : { ...c, categoryId: null }
         ),
       }
 

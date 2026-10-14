@@ -49,7 +49,19 @@ const DEFAULT_WEEKDAYS = [0, 1, 2, 3, 4, 5, 6]
 const WEEKDAY_LABELS = ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa']
 
 function RoadmapOutline() {
-  const { data, addRoadmapDoc, updateRoadmapDoc, deleteRoadmapDoc, addCourse, updateCourse, setCourseModules } = useApp()
+  const {
+    data,
+    addRoadmapDoc,
+    updateRoadmapDoc,
+    deleteRoadmapDoc,
+    addCourse,
+    updateCourse,
+    setCourseModules,
+    addHabitCategory,
+    renameHabitCategory,
+    setHabitCategoryColor,
+    deleteHabitCategory,
+  } = useApp()
   const { session } = useAuth()
   const navigate = useNavigate()
   const [searchParams, setSearchParams] = useSearchParams()
@@ -251,6 +263,7 @@ function RoadmapOutline() {
       instructor: courseForm.instructor.trim() || undefined,
       startDate: courseForm.startDate || undefined,
       hoursPerDay,
+      categoryId: courseForm.categoryId,
     }
     if (editingCourseId) {
       updateCourse(editingCourseId, meta)
@@ -267,10 +280,14 @@ function RoadmapOutline() {
     navigate(`/courses/${newCourse.id}`)
   }
 
-  function handleSaveCoursesFromText(courses: Pick<Course, 'id' | 'name' | 'modules'>[]) {
+  function categoryUsageCount(categoryId: string) {
+    return data.courses.filter((c) => c.categoryId === categoryId).length
+  }
+
+  function handleSaveCoursesFromText(courses: Pick<Course, 'id' | 'name' | 'modules' | 'categoryId'>[]) {
     if (editingTextCourseId && courses.length > 0) {
       const [first, ...rest] = courses
-      updateCourse(editingTextCourseId, { name: first.name })
+      updateCourse(editingTextCourseId, { name: first.name, categoryId: first.categoryId })
       setCourseModules(editingTextCourseId, first.modules)
       for (const c of rest) addCourse(c as Course)
       const id = editingTextCourseId
@@ -503,7 +520,18 @@ function RoadmapOutline() {
         <AnimatePresence mode="wait" initial={false}>
           {courseTab === 'form' ? (
             <motion.div key="form" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.18 }}>
-              <CourseForm value={courseForm} onChange={setCourseForm} onSave={handleSaveCourse} saveLabel="Save course" />
+              <CourseForm
+                value={courseForm}
+                onChange={setCourseForm}
+                onSave={handleSaveCourse}
+                saveLabel="Save course"
+                categories={data.habitCategories}
+                usageCount={categoryUsageCount}
+                onCreateCategory={addHabitCategory}
+                onRenameCategory={renameHabitCategory}
+                onSetCategoryColor={setHabitCategoryColor}
+                onDeleteCategory={deleteHabitCategory}
+              />
             </motion.div>
           ) : (
             <motion.div key="text" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.18 }}>
@@ -512,6 +540,12 @@ function RoadmapOutline() {
                 onChange={setCourseOutlineText}
                 onSave={handleSaveCoursesFromText}
                 saveLabel="Save course(s)"
+                categories={data.habitCategories}
+                usageCount={categoryUsageCount}
+                onCreateCategory={addHabitCategory}
+                onRenameCategory={renameHabitCategory}
+                onSetCategoryColor={setHabitCategoryColor}
+                onDeleteCategory={deleteHabitCategory}
               />
             </motion.div>
           )}

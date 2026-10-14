@@ -31,6 +31,15 @@ create table if not exists public.courses (
 alter table public.courses add column if not exists platform text;
 alter table public.courses add column if not exists instructor text;
 
+-- Roadmap Builder unification: courses get a category (shared with
+-- habit_categories — see below) and optional weekly-planner scheduling,
+-- same shape as roadmap_docs already has. The actual ALTER TABLE for
+-- category_id (it references habit_categories, so it has to come after
+-- that table exists) is further down, right after habit_categories.
+alter table public.courses add column if not exists start_date date;
+alter table public.courses add column if not exists hours_per_day numeric;
+alter table public.courses add column if not exists weekdays jsonb; -- number[] (0=Sun..6=Sat)
+
 create index if not exists courses_user_id_idx on public.courses (user_id);
 
 alter table public.courses enable row level security;
@@ -132,6 +141,15 @@ create table if not exists public.habit_categories (
 );
 
 create index if not exists habit_categories_user_id_idx on public.habit_categories (user_id);
+
+-- Now that habit_categories exists, courses can reference it — a course's
+-- category_id is shared with the habit tracker's own categories (one list,
+-- two features). Deleting a category sets this null (app-level cleanup
+-- also does this explicitly so cross-device syncs agree, but the FK is a
+-- backstop); a null category_id reads as "Other" in the app, not a
+-- missing/broken row — no data loss for courses that predate categories.
+alter table public.courses add column if not exists category_id text references public.habit_categories (id) on delete set null;
+create index if not exists courses_category_id_idx on public.courses (category_id);
 
 alter table public.habit_categories enable row level security;
 

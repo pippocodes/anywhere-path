@@ -1,7 +1,17 @@
-import { describe, it, expect, beforeAll } from 'vitest'
+import { describe, it, expect, beforeAll, vi } from 'vitest'
 import { render, screen, fireEvent } from '@testing-library/react'
 import { useState } from 'react'
 import CourseForm, { emptyFormValue, type CourseFormValue } from './CourseForm'
+import type { HabitCategory } from '../../types'
+
+const noCategoryProps = {
+  categories: [] as HabitCategory[],
+  usageCount: () => 0,
+  onCreateCategory: vi.fn((name: string, color: string) => ({ id: 'cat-1', name, color, archived: false, order: 0 })),
+  onRenameCategory: vi.fn(),
+  onSetCategoryColor: vi.fn(),
+  onDeleteCategory: vi.fn(),
+}
 
 // dnd-kit's useSortable measures elements via ResizeObserver, which jsdom
 // doesn't implement — stub it so rendering the sortable lecture/section
@@ -22,7 +32,7 @@ function Harness() {
   const [saved, setSaved] = useState<CourseFormValue | null>(null)
   return (
     <>
-      <CourseForm value={value} onChange={setValue} onSave={() => setSaved(value)} saveLabel="Save course" />
+      <CourseForm value={value} onChange={setValue} onSave={() => setSaved(value)} saveLabel="Save course" {...noCategoryProps} />
       {saved && <div data-testid="saved-total">{saved.modules.length}</div>}
     </>
   )

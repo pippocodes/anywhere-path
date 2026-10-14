@@ -10,11 +10,12 @@ import {
   type DragEndEvent,
 } from '@dnd-kit/core'
 import { SortableContext, arrayMove, sortableKeyboardCoordinates, verticalListSortingStrategy } from '@dnd-kit/sortable'
-import type { Course, CourseModule } from '../../types'
+import type { Course, CourseModule, HabitCategory } from '../../types'
 import { computeCourseStats } from '../../utils/courseStats'
 import { formatDuration } from '../../utils/duration'
 import { makeEmptyModule, cloneModuleWithNewIds, isModuleTreeComplete } from '../../utils/courseDraft'
 import { SortableModuleEditor } from './ModuleEditor'
+import CategorySelect from '../categories/CategorySelect'
 import Button from '../ui/Button'
 
 export interface CourseFormValue {
@@ -23,6 +24,7 @@ export interface CourseFormValue {
   instructor: string
   startDate: string
   hoursPerDay: string
+  categoryId: string | null
   modules: CourseModule[]
 }
 
@@ -33,15 +35,25 @@ export function courseToFormValue(course: Course): CourseFormValue {
     instructor: course.instructor ?? '',
     startDate: course.startDate ?? '',
     hoursPerDay: course.hoursPerDay != null ? String(course.hoursPerDay) : '',
+    categoryId: course.categoryId ?? null,
     modules: course.modules,
   }
 }
 
 export function emptyFormValue(): CourseFormValue {
-  return { name: '', platform: '', instructor: '', startDate: '', hoursPerDay: '', modules: [] }
+  return { name: '', platform: '', instructor: '', startDate: '', hoursPerDay: '', categoryId: null, modules: [] }
 }
 
-interface Props {
+interface CategoryProps {
+  categories: HabitCategory[]
+  usageCount: (categoryId: string) => number
+  onCreateCategory: (name: string, color: string) => HabitCategory
+  onRenameCategory: (id: string, name: string) => void
+  onSetCategoryColor: (id: string, color: string) => void
+  onDeleteCategory: (id: string) => void
+}
+
+interface Props extends CategoryProps {
   value: CourseFormValue
   onChange: (value: CourseFormValue) => void
   onSave: () => void
@@ -49,7 +61,18 @@ interface Props {
 }
 
 /** Tab 1 of the Roadmap Builder — the direct-entry form: course fields plus a nested section/module/lecture builder with fast entry, drag reorder, and live totals. */
-function CourseForm({ value, onChange, onSave, saveLabel }: Props) {
+function CourseForm({
+  value,
+  onChange,
+  onSave,
+  saveLabel,
+  categories,
+  usageCount,
+  onCreateCategory,
+  onRenameCategory,
+  onSetCategoryColor,
+  onDeleteCategory,
+}: Props) {
   const [showErrors, setShowErrors] = useState(false)
   const stats = computeCourseStats({ modules: value.modules })
   const sensors = useSensors(
@@ -109,6 +132,19 @@ function CourseForm({ value, onChange, onSave, saveLabel }: Props) {
         <div className="field">
           <label htmlFor="course-form-title">Course title</label>
           <input id="course-form-title" value={value.name} onChange={(e) => patch({ name: e.target.value })} placeholder="e.g. Data Structures & Algorithms" />
+        </div>
+        <div style={{ marginBottom: 16 }}>
+          <CategorySelect
+            label="Category"
+            categories={categories}
+            value={value.categoryId}
+            onChange={(categoryId) => patch({ categoryId })}
+            usageCount={usageCount}
+            onCreateCategory={onCreateCategory}
+            onRenameCategory={onRenameCategory}
+            onSetCategoryColor={onSetCategoryColor}
+            onDeleteCategory={onDeleteCategory}
+          />
         </div>
         <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap' }}>
           <div className="field" style={{ flex: '1 1 180px' }}>

@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
-import type { Course } from '../../types'
+import type { Course, HabitCategory } from '../../types'
 import {
   parseCourseOutline,
   courseOutlineNodeToCourse,
@@ -12,6 +12,7 @@ import {
 } from '../../utils/courseOutlineParser'
 import { formatDuration } from '../../utils/duration'
 import OutlineTextEditor from '../OutlineTextEditor'
+import CategorySelect from '../categories/CategorySelect'
 import Button from '../ui/Button'
 
 const SAMPLE_TEXT = [
@@ -23,22 +24,52 @@ const SAMPLE_TEXT = [
   '    Major muscle groups (12:40)',
 ].join('\n')
 
+type SavedCourse = Pick<Course, 'id' | 'name' | 'modules' | 'categoryId'>
+
 interface Props {
   value: string
   onChange: (value: string) => void
-  onSave: (courses: Pick<Course, 'id' | 'name' | 'modules'>[]) => void
+  onSave: (courses: SavedCourse[]) => void
   saveLabel?: string
+  categories: HabitCategory[]
+  usageCount: (categoryId: string) => number
+  onCreateCategory: (name: string, color: string) => HabitCategory
+  onRenameCategory: (id: string, name: string) => void
+  onSetCategoryColor: (id: string, color: string) => void
+  onDeleteCategory: (id: string) => void
 }
 
 /** Tab 2 of the Roadmap Builder — write one or more courses as an indented outline, with a live preview and friendly inline errors. */
-function CourseOutlineEditor({ value, onChange, onSave, saveLabel = 'Save' }: Props) {
+function CourseOutlineEditor({
+  value,
+  onChange,
+  onSave,
+  saveLabel = 'Save',
+  categories,
+  usageCount,
+  onCreateCategory,
+  onRenameCategory,
+  onSetCategoryColor,
+  onDeleteCategory,
+}: Props) {
   const [howToOpen, setHowToOpen] = useState(false)
+  const [defaultCategoryId, setDefaultCategoryId] = useState<string | null>(null)
+  const [categoryOverrides, setCategoryOverrides] = useState<Record<string, string | null>>({})
   const parsed = useMemo(() => parseCourseOutline(value), [value])
   const canSave = parsed.errors.length === 0 && parsed.courses.length > 0
 
+  const categoryProps = { categories, usageCount, onCreateCategory, onRenameCategory, onSetCategoryColor, onDeleteCategory }
+
+  function categoryFor(rootId: string): string | null {
+    return rootId in categoryOverrides ? categoryOverrides[rootId] : defaultCategoryId
+  }
+
   function handleSave() {
     if (!canSave) return
-    onSave(parsed.courses.map(courseOutlineNodeToCourse))
+    onSave(
+      parsed.courses.map((root) => ({ ...courseOutlineNodeToCourse(root), categoryId: categoryFor(root.id) }))
+    )
+    setCategoryOverrides({})
   }
 
   return (
@@ -72,6 +103,15 @@ function CourseOutlineEditor({ value, onChange, onSave, saveLabel = 'Save' }: Pr
           </motion.div>
         )}
       </AnimatePresence>
+
+      <div style={{ marginBottom: 16 }}>
+        <CategorySelect
+          label="Category (applied to every course below — change a course's own category in the preview)"
+          value={defaultCategoryId}
+          onChange={setDefaultCategoryId}
+          {...categoryProps}
+        />
+      </div>
 
       <div className="outline-layout">
         <div>
@@ -121,7 +161,13 @@ function CourseOutlineEditor({ value, onChange, onSave, saveLabel = 'Save' }: Pr
                 {parsed.courses.length} course{parsed.courses.length === 1 ? '' : 's'} will be created
               </div>
               {parsed.courses.map((course) => (
-                <CoursePreviewCard key={course.id} course={course} />
+                <CoursePreviewCard
+                  key={course.id}
+                  course={course}
+                  categoryId={categoryFor(course.id)}
+                  onChangeCategory={(id) => setCategoryOverrides((prev) => ({ ...prev, [course.id]: id }))}
+                  categoryProps={categoryProps}
+                />
               ))}
             </>
           )}
@@ -131,18 +177,40 @@ function CourseOutlineEditor({ value, onChange, onSave, saveLabel = 'Save' }: Pr
   )
 }
 
-function CoursePreviewCard({ course }: { course: CourseOutlineNode }) {
+interface CoursePreviewCategoryProps {
+  categories: HabitCategory[]
+  usageCount: (categoryId: string) => number
+  onCreateCategory: (name: string, color: string) => HabitCategory
+  onRenameCategory: (id: string, name: string) => void
+  onSetCategoryColor: (id: string, color: string) => void
+  onDeleteCategory: (id: string) => void
+}
+
+function CoursePreviewCard({
+  course,
+  categoryId,
+  onChangeCategory,
+  categoryProps,
+}: {
+  course: CourseOutlineNode
+  categoryId: string | null
+  onChangeCategory: (id: string | null) => void
+  categoryProps: CoursePreviewCategoryProps
+}) {
   const seconds = totalSecondsForCourse(course)
   const lectures = totalLecturesForCourse(course)
   return (
     <div className="card" style={{ marginBottom: 14, padding: '14px 16px' }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 8, gap: 10 }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 8, gap: 10, flexWrap: 'wrap' }}>
         <span style={{ fontFamily: 'var(--font-display)', fontStyle: 'italic', fontWeight: 600, fontSize: 16 }}>
           {course.name}
         </span>
         <span style={{ fontSize: 12.5, color: 'var(--mute)', flexShrink: 0 }}>
           {lectures} lecture{lectures === 1 ? '' : 's'} · {formatDuration(seconds)}
         </span>
+      </div>
+      <div style={{ marginBottom: 10 }}>
+        <CategorySelect value={categoryId} onChange={onChangeCategory} {...categoryProps} />
       </div>
       {course.children.length === 0 ? (
         <p style={{ fontSize: 12.5, color: 'var(--mute)', margin: 0 }}>No sections yet.</p>
