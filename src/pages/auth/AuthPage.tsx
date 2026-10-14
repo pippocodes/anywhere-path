@@ -52,7 +52,7 @@ function AuthPage({ initialTab }: Props) {
 }
 
 function LoginForm({ onSwitchToRegister }: { onSwitchToRegister: () => void }) {
-  const { signIn, configured } = useAuth()
+  const { signIn, resendConfirmationEmail, configured } = useAuth()
   const navigate = useNavigate()
   const location = useLocation()
   const redirectTo = (location.state as { from?: string } | null)?.from ?? '/roadmap'
@@ -60,19 +60,39 @@ function LoginForm({ onSwitchToRegister }: { onSwitchToRegister: () => void }) {
   const [identifier, setIdentifier] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState<string | null>(null)
+  const [errorCode, setErrorCode] = useState<string | undefined>(undefined)
+  const [unconfirmedEmail, setUnconfirmedEmail] = useState<string | undefined>(undefined)
   const [submitting, setSubmitting] = useState(false)
+  const [resending, setResending] = useState(false)
+  const [resendSent, setResendSent] = useState(false)
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault()
     setError(null)
+    setErrorCode(undefined)
+    setResendSent(false)
     setSubmitting(true)
-    const { error } = await signIn(identifier, password)
+    const { error, code, resolvedEmail } = await signIn(identifier, password)
     setSubmitting(false)
+    if (error) {
+      setError(error)
+      setErrorCode(code)
+      setUnconfirmedEmail(code === 'email_not_confirmed' ? resolvedEmail : undefined)
+      return
+    }
+    navigate(redirectTo, { replace: true })
+  }
+
+  async function handleResend() {
+    if (!unconfirmedEmail || resending) return
+    setResending(true)
+    const { error } = await resendConfirmationEmail(unconfirmedEmail)
+    setResending(false)
     if (error) {
       setError(error)
       return
     }
-    navigate(redirectTo, { replace: true })
+    setResendSent(true)
   }
 
   return (
@@ -86,7 +106,23 @@ function LoginForm({ onSwitchToRegister }: { onSwitchToRegister: () => void }) {
           <code>VITE_SUPABASE_ANON_KEY</code> — see <code>supabase/SETUP.md</code>.
         </div>
       )}
-      {error && <div className="auth-notice auth-notice-error">{error}</div>}
+      {error && (
+        <div className="auth-notice auth-notice-error">
+          {error}
+          {errorCode === 'email_not_confirmed' && unconfirmedEmail && (
+            <div style={{ marginTop: 10 }}>
+              <button
+                type="button"
+                onClick={handleResend}
+                disabled={resending || resendSent}
+                style={{ background: 'none', border: 'none', color: 'var(--gold)', fontWeight: 700, cursor: 'pointer', padding: 0, fontSize: 13 }}
+              >
+                {resendSent ? 'Confirmation email sent — check your inbox' : resending ? 'Sending…' : 'Resend confirmation email'}
+              </button>
+            </div>
+          )}
+        </div>
+      )}
 
       <form onSubmit={handleSubmit}>
         <Input

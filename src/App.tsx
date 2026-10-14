@@ -24,6 +24,7 @@ const Login = lazy(() => import('./pages/auth/Login'))
 const SignUp = lazy(() => import('./pages/auth/SignUp'))
 const ForgotPassword = lazy(() => import('./pages/auth/ForgotPassword'))
 const ResetPassword = lazy(() => import('./pages/auth/ResetPassword'))
+const AuthCallback = lazy(() => import('./pages/auth/AuthCallback'))
 
 const PAGE_VARIANTS = {
   initial: { opacity: 0, y: 10 },
@@ -53,6 +54,7 @@ function AnimatedRoutes() {
             <Route path="/signup" element={<SignUp />} />
             <Route path="/forgot-password" element={<ForgotPassword />} />
             <Route path="/reset-password" element={<ResetPassword />} />
+            <Route path="/auth/callback" element={<AuthCallback />} />
             <Route
               path="/roadmap"
               element={

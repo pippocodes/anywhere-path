@@ -53,18 +53,46 @@ fine without this configured — the auth pages just show a setup notice instead
    ```
 3. Restart `npm run dev` if it was already running (Vite only reads env vars at startup).
 
-## 5. Configure email auth (recommended defaults)
+## 5. Configure email auth (required — this is what "localhost refused to connect" means)
 
-Supabase email/password auth works out of the box, but two settings are worth checking:
+Every email Supabase sends (signup confirmation, password reset) builds its link from two things:
+a **Site URL** / **Redirect URLs** allowlist set in the dashboard, and an `emailRedirectTo` /
+`redirectTo` value the app passes when it calls `signUp()` / `resetPasswordForEmail()`. The app
+side is already correct — it's built from `src/lib/siteUrl.ts`, which uses the real page origin
+(or `VITE_SITE_URL` if you set it) and **never hardcodes `localhost`**. But Supabase only honors
+that app-supplied URL if it's in the allowlist below; otherwise it silently falls back to the
+Site URL instead, with no error — which is exactly how a confirmation link ends up pointing at
+`localhost` in a production email. You must set this in the dashboard; there's no SQL equivalent:
 
-1. **Authentication** → **URL Configuration**: set **Site URL** to your deployed app's URL (e.g.
-   `https://your-app.vercel.app`), and add it (plus `http://localhost:5173` for local dev) under
-   **Redirect URLs** — this is where the "reset password" email link sends people back to
-   (`/reset-password`, handled by `src/pages/auth/ResetPassword.tsx`).
-2. **Authentication** → **Providers** → **Email**: "Confirm email" is on by default, meaning new
-   sign-ups get a confirmation email before they can log in (matches the "check your email"
-   screen after Sign Up in this app). Turn it off here if you'd rather skip email confirmation
-   during development.
+1. **Authentication** → **URL Configuration**:
+   - **Site URL**: `https://anywhere-path.vercel.app` (swap in your own domain if different —
+     this is the fallback used whenever a redirect isn't in the allowlist below, so it should
+     always be your real production URL, never `localhost`).
+   - **Redirect URLs** — add every origin/pattern this app can run from:
+     ```
+     https://anywhere-path.vercel.app/**
+     http://localhost:5173/**
+     ```
+     Add a Vercel preview-deployment pattern too if you test those (e.g.
+     `https://anywhere-path-*-pippo-codes.vercel.app/**`). The app links into three paths under
+     whichever origin matches: `/auth/callback` (email confirmation, handled by
+     `src/pages/auth/AuthCallback.tsx`), `/reset-password` (password reset, handled by
+     `src/pages/auth/ResetPassword.tsx`), and `/login` as a fallback.
+2. **Authentication** → **Providers** → **Email**: "Confirm email" — **on** means new sign-ups
+   must click the confirmation link before they can log in (matches the "check your email" screen
+   after Sign Up in this app, and the "Resend confirmation email" button that appears on a login
+   attempt against an unconfirmed account); **off** skips that and signs them in immediately after
+   registering. Either is fine; just know which one is active, since it changes what a new user
+   sees.
+3. **Rate limits — read this before testing in production.** Supabase's *built-in* email sender
+   (the one active by default, no setup required) is aggressively rate-limited — on the order of a
+   few emails per hour project-wide — specifically to push you toward a real provider before
+   launch. It's fine for the handful of test signups while you're setting this up, but it **will**
+   start silently failing to send (no error surfaced to the user — they just never get the email)
+   under any real signup volume. Before relying on this for actual users: **Project Settings** →
+   **Authentication** → **SMTP Settings** → enable **Custom SMTP** and point it at a transactional
+   email provider (Resend, Postmark, SendGrid, AWS SES, etc.) with your own domain. This also gets
+   you out from under Supabase's shared sending reputation, which matters for inbox deliverability.
 
 ## 6. Set the Vercel env vars (for deployment)
 
@@ -83,6 +111,14 @@ vercel env pull --yes   # syncs them back into .env.local for local dev
 `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY` with the values from step 3, for whichever
 environments (Production / Preview / Development) you want. Redeploy afterward — env var changes
 don't apply to already-built deployments.
+
+**Optional: `VITE_SITE_URL`.** Auth redirect links (`src/lib/siteUrl.ts`) already fall back to
+`window.location.origin`, which is correct for both local dev and production without any extra
+config. Set `VITE_SITE_URL` only if you specifically want every redirect link to point at one
+fixed domain regardless of where the app happened to be running when the email was sent — e.g.
+pinning it to `https://anywhere-path.vercel.app` so a signup started from a preview-deployment URL
+still emails a production link. If set, it must also be covered by the **Redirect URLs** allowlist
+from step 5.
 
 ## 7. Set up "Generate with AI" (optional)
 
@@ -119,14 +155,25 @@ is never exposed to visitors. It needs four environment variables, none of them 
 - `src/lib/supabaseClient.ts` creates the client from the two `VITE_` env vars;
   `isSupabaseConfigured` is `false` (and `supabase` is `null`) if either is missing, which is
   what drives the setup notices instead of a crash.
-- `src/context/AuthContext.tsx` wraps `supabase.auth` (sign up, log in, log out, password reset).
-  Sign up passes the chosen username in `options.data.username`, which the `handle_new_user`
-  trigger reads to create the matching `profiles` row. Log in accepts an email *or* a username —
-  if what's typed doesn't contain `@`, it's resolved to an email first via the
-  `email_for_username` RPC, then signed in normally; a username that doesn't resolve falls
-  through to the same generic "invalid credentials" error as a wrong password, so login never
-  reveals whether a given username exists.
-- `src/components/ProtectedRoute.tsx` guards `/courses`, `/roadmap`, and `/habits`.
+- `src/context/AuthContext.tsx` wraps `supabase.auth` (sign up, log in, log out, password reset,
+  resend-confirmation). Sign up passes the chosen username in `options.data.username`, which the
+  `handle_new_user` trigger reads to create the matching `profiles` row, plus
+  `emailRedirectTo: ${getSiteUrl()}/auth/callback`. Log in accepts an email *or* a username — if
+  what's typed doesn't contain `@`, it's resolved to an email first via the `email_for_username`
+  RPC, then signed in normally; a username that doesn't resolve falls through to the same generic
+  "that email/username or password is incorrect" error as a wrong password, so login never reveals
+  whether a given username exists. The one error that *is* shown specifically is an unconfirmed
+  email (Supabase's `email_not_confirmed`), with a button to resend the confirmation link — every
+  other failure (wrong password, rate limiting, network errors) gets its own distinct message too;
+  in dev builds the real `error.message`/`status`/`code` from Supabase is also logged to the
+  console for debugging (`import.meta.env.DEV` gate, see `devLog` in `AuthContext.tsx`).
+- `src/pages/auth/AuthCallback.tsx` (`/auth/callback`) is where the signup-confirmation email
+  link lands. `detectSessionInUrl: true` on the Supabase client (`src/lib/supabaseClient.ts`)
+  means supabase-js picks up the session from the URL automatically on load; this page just waits
+  for that to produce a signed-in user, shows a welcome toast, and sends them into the app — or,
+  if the link was invalid/expired (Supabase appends `error`/`error_description` instead of a
+  session), shows that plainly with a way back to sign up again.
+- `src/components/ProtectedRoute.tsx` guards `/roadmap`, `/habits`, `/profile`, and `/settings`.
 - `src/context/AppContext.tsx` loads/saves data from the 5 data tables above once signed in (via
   `src/lib/cloudSync.ts`), and falls back to `localStorage` while signed out.
 - On first login, if there's data on that device from before signing in (and the account is

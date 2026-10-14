@@ -1,8 +1,10 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, type FormEvent } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext'
 import { supabase } from '../../lib/supabaseClient'
 import AuthLayout from './AuthLayout'
+import Button from '../../components/ui/Button'
+import PasswordField from '../../components/auth/PasswordField'
 
 function ResetPassword() {
   const { updatePassword, configured } = useAuth()
@@ -11,9 +13,12 @@ function ResetPassword() {
   const [ready, setReady] = useState(false) // true once Supabase has processed the recovery link
   const [password, setPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
+  const [confirmTouched, setConfirmTouched] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [submitting, setSubmitting] = useState(false)
   const [done, setDone] = useState(false)
+
+  const confirmError = confirmTouched && password !== confirmPassword ? "Passwords don't match." : undefined
 
   // The reset-password email link lands here with a recovery token in the
   // URL; supabase-js exchanges it for a session and fires this event.
@@ -28,7 +33,7 @@ function ResetPassword() {
     return () => subscription.subscription.unsubscribe()
   }, [])
 
-  async function handleSubmit(e: React.FormEvent) {
+  async function handleSubmit(e: FormEvent) {
     e.preventDefault()
     setError(null)
 
@@ -37,6 +42,7 @@ function ResetPassword() {
       return
     }
     if (password !== confirmPassword) {
+      setConfirmTouched(true)
       setError("Passwords don't match.")
       return
     }
@@ -63,14 +69,14 @@ function ResetPassword() {
 
   if (configured && !ready) {
     return (
-      <AuthLayout title="Reset your password">
+      <AuthLayout title="That link didn't work">
         <div className="auth-notice auth-notice-error">
-          This link looks invalid or has expired. Request a new one from{' '}
-          <Link to="/forgot-password" style={{ color: 'var(--mute)', fontWeight: 700 }}>
-            the password reset page
-          </Link>
-          .
+          This password reset link is invalid or has expired. Links only work once, and only for a little
+          while after they're sent.
         </div>
+        <Link to="/forgot-password" className="btn" style={{ width: '100%', padding: 14, display: 'block', textAlign: 'center' }}>
+          Request a new link
+        </Link>
       </AuthLayout>
     )
   }
@@ -86,34 +92,30 @@ function ResetPassword() {
       {error && <div className="auth-notice auth-notice-error">{error}</div>}
 
       <form onSubmit={handleSubmit}>
-        <div className="field">
-          <label htmlFor="reset-password">New Password</label>
-          <input
-            id="reset-password"
-            type="password"
-            autoComplete="new-password"
-            required
-            minLength={6}
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            disabled={!configured}
-          />
-        </div>
-        <div className="field">
-          <label htmlFor="reset-confirm">Confirm New Password</label>
-          <input
-            id="reset-confirm"
-            type="password"
-            autoComplete="new-password"
-            required
-            value={confirmPassword}
-            onChange={(e) => setConfirmPassword(e.target.value)}
-            disabled={!configured}
-          />
-        </div>
-        <button className="btn" type="submit" style={{ width: '100%', padding: 14 }} disabled={!configured || submitting}>
-          {submitting ? 'Updating…' : 'Update Password'}
-        </button>
+        <PasswordField
+          id="reset-password"
+          label="New password"
+          value={password}
+          onChange={setPassword}
+          autoComplete="new-password"
+          disabled={!configured}
+          showStrength
+        />
+        <PasswordField
+          id="reset-confirm"
+          label="Confirm new password"
+          value={confirmPassword}
+          onChange={(v) => {
+            setConfirmPassword(v)
+            setConfirmTouched(true)
+          }}
+          autoComplete="new-password"
+          disabled={!configured}
+          error={confirmError}
+        />
+        <Button type="submit" style={{ width: '100%' }} disabled={!configured} loading={submitting}>
+          Update password
+        </Button>
       </form>
     </AuthLayout>
   )
