@@ -2,11 +2,13 @@ import { useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { AnimatePresence, motion } from 'framer-motion'
 import { useApp } from '../hooks/useApp'
-import { makeId } from '../utils/id'
 import { computeCourseStats } from '../utils/courseStats'
+import { findModuleById } from '../utils/courseDraft'
 import CourseStats from '../components/courses/CourseStats'
 import ModuleSection from '../components/courses/ModuleSection'
 import AddLectureSheet from '../components/courses/AddLectureSheet'
+import CourseSchedule from '../components/courses/CourseSchedule'
+import CategorySelect from '../components/categories/CategorySelect'
 import Button from '../components/ui/Button'
 import RevealHeading from '../components/ui/RevealHeading'
 import NotFound from './NotFound'
@@ -16,17 +18,22 @@ function CourseDetail() {
   const navigate = useNavigate()
   const {
     data,
-    toggleTopic,
     updateCourse,
     deleteCourse,
     addModule,
-    renameModule,
-    deleteModule,
-    reorderModules,
     addTopics,
+    toggleTopic,
     deleteTopic,
     reorderTopics,
+    renameModule,
+    deleteModule,
+    addHabitCategory,
+    renameHabitCategory,
+    setHabitCategoryColor,
+    deleteHabitCategory,
   } = useApp()
+
+  const moduleActions = { toggleTopic, deleteTopic, reorderTopics, renameModule, deleteModule, addModule }
 
   const course = data.courses.find((c) => c.id === courseId)
 
@@ -42,7 +49,7 @@ function CourseDetail() {
   if (!course) return <NotFound />
 
   const stats = computeCourseStats(course)
-  const activeModule = course.modules.find((m) => m.id === lectureSheetModuleId)
+  const activeModule = lectureSheetModuleId ? findModuleById(course.modules, lectureSheetModuleId) : null
 
   function startEditingMeta() {
     setNameDraft(course!.name)
@@ -109,7 +116,17 @@ function CourseDetail() {
               <RevealHeading as="h1" className="page-title" style={{ marginBottom: 6 }}>
                 {course.name}
               </RevealHeading>
-              {meta && <p className="page-subtitle" style={{ marginBottom: 0 }}>{meta}</p>}
+              {meta && <p className="page-subtitle" style={{ marginBottom: 10 }}>{meta}</p>}
+              <CategorySelect
+                categories={data.habitCategories}
+                value={course.categoryId ?? null}
+                onChange={(categoryId) => updateCourse(course.id, { categoryId })}
+                usageCount={(id) => data.courses.filter((c) => c.categoryId === id).length}
+                onCreateCategory={addHabitCategory}
+                onRenameCategory={renameHabitCategory}
+                onSetCategoryColor={setHabitCategoryColor}
+                onDeleteCategory={deleteHabitCategory}
+              />
             </>
           )}
         </div>
@@ -147,17 +164,20 @@ function CourseDetail() {
         <CourseStats stats={stats} />
       </div>
 
+      {course.startDate && course.hoursPerDay ? (
+        <div style={{ marginTop: 20 }}>
+          <CourseSchedule course={course} categories={data.habitCategories} />
+        </div>
+      ) : null}
+
       <AnimatePresence initial={false}>
         {course.modules.map((module) => (
           <motion.div key={module.id} layout initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}>
             <ModuleSection
+              courseId={course.id}
               module={module}
-              onToggleTopic={(topicId) => toggleTopic(course.id, module.id, topicId)}
-              onDeleteTopic={(topicId) => deleteTopic(course.id, module.id, topicId)}
-              onReorderTopics={(orderedIds) => reorderTopics(course.id, module.id, orderedIds)}
-              onAddLectures={() => setLectureSheetModuleId(module.id)}
-              onRename={(name) => renameModule(course.id, module.id, name)}
-              onDeleteModule={() => deleteModule(course.id, module.id)}
+              onAddLectures={(moduleId) => setLectureSheetModuleId(moduleId)}
+              actions={moduleActions}
             />
           </motion.div>
         ))}

@@ -19,6 +19,16 @@ export function cloneModuleWithNewIds(module: CourseModule): CourseModule {
   }
 }
 
+/** Finds a module anywhere in a (possibly nested) module tree by id. */
+export function findModuleById(modules: CourseModule[], moduleId: string): CourseModule | null {
+  for (const m of modules) {
+    if (m.id === moduleId) return m
+    const found = findModuleById(m.modules ?? [], moduleId)
+    if (found) return found
+  }
+  return null
+}
+
 /** True once every module in the tree has a non-empty title and every topic has a title and a positive duration — the bar for "ready to save". */
 export function isModuleTreeComplete(modules: CourseModule[]): boolean {
   return modules.every(
