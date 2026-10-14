@@ -18,6 +18,10 @@ type CourseRow = {
   modules: Course['modules']
   platform: string | null
   instructor: string | null
+  category_id: string | null
+  start_date: string | null
+  hours_per_day: number | null
+  weekdays: number[] | null
 }
 
 type RoadmapPlanRow = {
@@ -63,7 +67,10 @@ export async function fetchCloudData(userId: string): Promise<AppData> {
   const client = requireClient()
 
   const [coursesRes, plansRes, docsRes, categoriesRes, habitsRes] = await Promise.all([
-    client.from('courses').select('id, name, is_custom, modules, platform, instructor').eq('user_id', userId),
+    client
+      .from('courses')
+      .select('id, name, is_custom, modules, platform, instructor, category_id, start_date, hours_per_day, weekdays')
+      .eq('user_id', userId),
     client.from('roadmap_plans').select('course_id, target_days, daily_hours, total_hours, option').eq('user_id', userId),
     client
       .from('roadmap_docs')
@@ -83,6 +90,10 @@ export async function fetchCloudData(userId: string): Promise<AppData> {
     modules: r.modules ?? [],
     platform: r.platform ?? undefined,
     instructor: r.instructor ?? undefined,
+    categoryId: r.category_id ?? null,
+    startDate: r.start_date ?? undefined,
+    hoursPerDay: r.hours_per_day ?? undefined,
+    weekdays: r.weekdays ?? undefined,
   }))
 
   const roadmaps: Record<string, RoadmapPlan> = {}
@@ -167,6 +178,10 @@ export async function pushAppDataToCloud(userId: string, data: AppData): Promise
         modules: c.modules,
         platform: c.platform ?? null,
         instructor: c.instructor ?? null,
+        category_id: c.categoryId ?? null,
+        start_date: c.startDate ?? null,
+        hours_per_day: c.hoursPerDay ?? null,
+        weekdays: c.weekdays ?? null,
       }))
     )
     if (error) throw error
