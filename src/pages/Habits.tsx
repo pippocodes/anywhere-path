@@ -16,17 +16,33 @@ import {
   monthDates,
   monthCompletionPercent,
   yearlyCompletion,
-  compareToLastMonth,
   computeBestStreak,
   computeCurrentStreak,
 } from '../utils/habits'
+import {
+  dailyCompletionSeries,
+  perHabitCompletion,
+  weekdayPattern,
+  countPerfectDays,
+  yearHeatmapData,
+  bestMonthOfYear,
+  totalTicksInYear,
+} from '../utils/habitStats'
 import { generateSuggestions } from '../utils/suggestions'
-import { CATEGORY_COLOR_PRESETS } from '../components/habits/colorPresets'
 import CategorySection, { type CelebrationKind } from '../components/habits/CategorySection'
 import ProgressRing from '../components/habits/ProgressRing'
-import YearlyBars from '../components/habits/YearlyBars'
 import SuggestionsPanel from '../components/habits/SuggestionsPanel'
 import Confetti from '../components/habits/Confetti'
+import HabitManageSheet from '../components/habits/HabitManageSheet'
+import MonthStats from '../components/habits/MonthStats'
+import CategoryYearRings from '../components/habits/CategoryYearRings'
+import DailyCompletionChart from '../components/habits/charts/DailyCompletionChart'
+import PerHabitBarChart from '../components/habits/charts/PerHabitBarChart'
+import WeekdayPatternChart from '../components/habits/charts/WeekdayPatternChart'
+import MonthlyBarChart from '../components/habits/charts/MonthlyBarChart'
+import YearHeatmap from '../components/habits/charts/YearHeatmap'
+import Pills from '../components/ui/Pills'
+import CountUp from '../components/motion/CountUp'
 import type { Habit } from '../types'
 
 const MONTH_NAMES = [
@@ -35,10 +51,15 @@ const MONTH_NAMES = [
 ]
 
 const CELEBRATION_MESSAGE: Record<CelebrationKind, string> = {
-  day: 'Perfect day! 🎉',
-  week: 'Perfect week! 🎉',
-  month: 'Perfect month! 🎉',
+  day: 'Perfect day',
+  week: 'Perfect week',
+  month: 'Perfect month',
 }
+
+const VIEW_OPTIONS = [
+  { value: 'month', label: 'Month' },
+  { value: 'year', label: 'Year' },
+]
 
 const UNCATEGORIZED_ID = '__uncategorized__'
 
@@ -64,16 +85,11 @@ function Habits() {
 
   const referenceDate = useMemo(() => new Date(), [])
   const today = referenceDate
+  const [view, setView] = useState<'month' | 'year'>('month')
   const [month, setMonth] = useState(today.getMonth())
   const [year, setYear] = useState(today.getFullYear())
-
-  const [addingCategory, setAddingCategory] = useState(false)
-  const [newCategoryName, setNewCategoryName] = useState('')
-  const [newCategoryColor, setNewCategoryColor] = useState<string>(CATEGORY_COLOR_PRESETS[0])
   const [celebration, setCelebration] = useState<CelebrationKind | null>(null)
-  const [showArchived, setShowArchived] = useState(false)
-  const [confirmDeleteCategoryId, setConfirmDeleteCategoryId] = useState<string | null>(null)
-  const [confirmDeleteHabitId, setConfirmDeleteHabitId] = useState<string | null>(null)
+  const [manageOpen, setManageOpen] = useState(false)
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 4 } }),
@@ -109,14 +125,29 @@ function Habits() {
   const uncategorized = habitsByCategory.get(UNCATEGORIZED_ID) ?? []
 
   const overallPercent = monthCompletionPercent(activeHabits, month, year)
-  const overallYearly = useMemo(() => yearlyCompletion(activeHabits, year), [activeHabits, year])
-  const comparison = useMemo(() => compareToLastMonth(activeHabits, referenceDate), [activeHabits, referenceDate])
   const bestStreakEver = activeHabits.reduce((max, h) => Math.max(max, computeBestStreak(h)), 0)
   const bestCurrentStreak = activeHabits.reduce((max, h) => Math.max(max, computeCurrentStreak(h, referenceDate)), 0)
+  const perfectDays = countPerfectDays(activeHabits, month, year)
+
   const suggestions = useMemo(
     () => generateSuggestions(data.habits, data.habitCategories, referenceDate),
     [data.habits, data.habitCategories, referenceDate]
   )
+
+  const dailySeries = useMemo(() => dailyCompletionSeries(activeHabits, month, year), [activeHabits, month, year])
+  const perHabitSeries = useMemo(
+    () =>
+      perHabitCompletion(activeHabits, month, year)
+        .sort((a, b) => b.percent - a.percent)
+        .map((d) => ({ name: d.habit.name, percent: d.percent })),
+    [activeHabits, month, year]
+  )
+  const weekdaySeries = useMemo(() => weekdayPattern(activeHabits, month, year), [activeHabits, month, year])
+
+  const yearlyMonthly = useMemo(() => yearlyCompletion(activeHabits, year), [activeHabits, year])
+  const heatmap = useMemo(() => yearHeatmapData(activeHabits, year), [activeHabits, year])
+  const bestMonth = useMemo(() => bestMonthOfYear(activeHabits, year), [activeHabits, year])
+  const totalTicks = useMemo(() => totalTicksInYear(activeHabits, year), [activeHabits, year])
 
   function prevMonth() {
     if (month === 0) {
@@ -134,16 +165,6 @@ function Habits() {
     } else {
       setMonth((m) => m + 1)
     }
-  }
-
-  function handleAddCategory(e: React.FormEvent) {
-    e.preventDefault()
-    const trimmed = newCategoryName.trim()
-    if (!trimmed) return
-    addHabitCategory(trimmed, newCategoryColor)
-    setNewCategoryName('')
-    setNewCategoryColor(CATEGORY_COLOR_PRESETS[0])
-    setAddingCategory(false)
   }
 
   function handleDragEnd(event: DragEndEvent) {
@@ -166,234 +187,217 @@ function Habits() {
       {celebration && (
         <>
           <Confetti onDone={() => setCelebration(null)} />
-          <div
+          <motion.div
             role="status"
+            initial={{ opacity: 0, y: -10, scale: 0.95 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0 }}
             style={{
               position: 'fixed',
               top: 90,
               left: '50%',
               transform: 'translateX(-50%)',
-              background: 'var(--ink)',
-              color: '#fff',
-              padding: '10px 20px',
+              background: 'var(--ink-2)',
+              border: '1px solid var(--line)',
+              color: 'var(--cream)',
+              padding: '10px 22px',
               borderRadius: 999,
               fontWeight: 700,
-              fontSize: 14,
+              fontSize: 13.5,
               zIndex: 1000,
-              boxShadow: '0 8px 24px rgba(89,13,34,0.25)',
+              boxShadow: '0 12px 32px rgba(0,0,0,0.5)',
             }}
           >
+            <span style={{ color: 'var(--gold)', marginRight: 6 }}>✦</span>
             {CELEBRATION_MESSAGE[celebration]}
-          </div>
+          </motion.div>
         </>
       )}
 
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 28, flexWrap: 'wrap', gap: 16 }}>
-        <h1 className="page-title">Habit Tracker</h1>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 12, background: 'var(--card-bg)', borderRadius: 12, padding: '8px 14px', boxShadow: '0 4px 14px rgba(89,13,34,0.06)' }}>
-          <button className="btn-outline" style={{ fontSize: 18 }} onClick={prevMonth} aria-label="Previous month">‹</button>
-          <div style={{ fontWeight: 700, fontSize: 15, minWidth: 130, textAlign: 'center' }}>
-            {MONTH_NAMES[month]} {year}
-          </div>
-          <button className="btn-outline" style={{ fontSize: 18 }} onClick={nextMonth} aria-label="Next month">›</button>
+        <div>
+          <h1 className="page-title" style={{ marginBottom: 6 }}>
+            Habit Tracker
+          </h1>
+          <Pills options={VIEW_OPTIONS} value={view} onChange={(v) => setView(v as 'month' | 'year')} layoutId="habit-view-tab" size="sm" />
+        </div>
+
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+          {view === 'month' ? (
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10, background: 'var(--surface)', border: '1px solid var(--line)', borderRadius: 12, padding: '8px 14px' }}>
+              <button className="btn-outline" style={{ fontSize: 18 }} onClick={prevMonth} aria-label="Previous month">‹</button>
+              <div style={{ fontWeight: 700, fontSize: 14, minWidth: 130, textAlign: 'center' }}>
+                {MONTH_NAMES[month]} {year}
+              </div>
+              <button className="btn-outline" style={{ fontSize: 18 }} onClick={nextMonth} aria-label="Next month">›</button>
+            </div>
+          ) : (
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10, background: 'var(--surface)', border: '1px solid var(--line)', borderRadius: 12, padding: '8px 14px' }}>
+              <button className="btn-outline" style={{ fontSize: 18 }} onClick={() => setYear((y) => y - 1)} aria-label="Previous year">‹</button>
+              <div style={{ fontWeight: 700, fontSize: 14, minWidth: 60, textAlign: 'center' }}>{year}</div>
+              <button className="btn-outline" style={{ fontSize: 18 }} onClick={() => setYear((y) => y + 1)} aria-label="Next year">›</button>
+            </div>
+          )}
+          <button className="btn" onClick={() => setManageOpen(true)}>
+            Manage
+          </button>
         </div>
       </div>
 
-      {activeHabits.length > 0 && (
-        <motion.div
-          layout
-          initial={{ opacity: 0, y: 16 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
-          className="card"
-          style={{ display: 'flex', gap: 28, alignItems: 'center', flexWrap: 'wrap', marginBottom: 24 }}
-        >
-          <ProgressRing percent={overallPercent} label="this month" />
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 6, minWidth: 160 }}>
-            <div style={{ fontSize: 13, color: 'var(--plum)' }}>
-              🔥 Current best streak: <strong>{bestCurrentStreak}</strong>
-            </div>
-            <div style={{ fontSize: 13, color: 'var(--plum)' }}>
-              🏆 Longest ever: <strong>{bestStreakEver}</strong>
-            </div>
-            {comparison.lastMonthPercent > 0 && (
-              <div style={{ fontSize: 13, color: comparison.deltaPercent >= 0 ? 'var(--cherry)' : 'var(--rose)', fontWeight: 600 }}>
-                {comparison.deltaPercent >= 0
-                  ? `You're ${comparison.deltaPercent}% ahead of last month`
-                  : `${Math.abs(comparison.deltaPercent)}% behind last month`}
+      <AnimatePresence mode="wait" initial={false}>
+        {view === 'month' ? (
+          <motion.div key="month" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} transition={{ duration: 0.25 }}>
+            {activeHabits.length > 0 && (
+              <>
+                <MonthStats completionPercent={overallPercent} currentStreak={bestCurrentStreak} bestStreak={bestStreakEver} perfectDays={perfectDays} />
+
+                <div style={{ display: 'grid', gridTemplateColumns: 'minmax(180px, 280px) 1fr', gap: 20, marginBottom: 24 }}>
+                  <div className="card" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 10 }}>
+                    <ProgressRing percent={overallPercent} label="this month" />
+                  </div>
+                  <div className="card">
+                    <DailyCompletionChart data={dailySeries} />
+                  </div>
+                </div>
+
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: 20, marginBottom: 24 }}>
+                  <div className="card">
+                    <PerHabitBarChart data={perHabitSeries} />
+                  </div>
+                  <div className="card">
+                    <WeekdayPatternChart data={weekdaySeries} />
+                  </div>
+                </div>
+              </>
+            )}
+
+            <SuggestionsPanel suggestions={suggestions} />
+
+            <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+              <AnimatePresence initial={false}>
+                {activeCategories.map((category) => (
+                  <motion.div
+                    key={category.id}
+                    layout
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, scale: 0.97 }}
+                    transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
+                  >
+                    <CategorySection
+                      category={category}
+                      habits={habitsByCategory.get(category.id) ?? []}
+                      dates={dates}
+                      dayNumbers={dayNumbers}
+                      month={month}
+                      year={year}
+                      referenceDate={referenceDate}
+                      onCycle={cycleHabitMark}
+                      onCelebrate={setCelebration}
+                      onManage={() => setManageOpen(true)}
+                    />
+                  </motion.div>
+                ))}
+
+                {uncategorized.length > 0 && (
+                  <motion.div key={UNCATEGORIZED_ID} layout initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+                    <CategorySection
+                      category={{ id: UNCATEGORIZED_ID, name: 'Uncategorized', color: 'var(--mute)', archived: false, order: -1 }}
+                      habits={uncategorized}
+                      dates={dates}
+                      dayNumbers={dayNumbers}
+                      month={month}
+                      year={year}
+                      referenceDate={referenceDate}
+                      onCycle={cycleHabitMark}
+                      onCelebrate={setCelebration}
+                      onManage={() => setManageOpen(true)}
+                    />
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </DndContext>
+
+            {activeCategories.length === 0 && uncategorized.length === 0 && (
+              <div className="card" style={{ textAlign: 'center', padding: '40px 24px', marginBottom: 24 }}>
+                <p style={{ color: 'var(--mute)', marginBottom: 16 }}>
+                  No categories yet — add one to start tracking (e.g. Body, Mind, Study, Sleep).
+                </p>
+                <button className="btn" onClick={() => setManageOpen(true)}>
+                  Manage habits
+                </button>
               </div>
             )}
-          </div>
-          <div style={{ flex: 1, minWidth: 260 }}>
-            <div style={{ fontSize: 12, color: 'var(--rose)', fontWeight: 600, marginBottom: 8 }}>{year} at a glance</div>
-            <YearlyBars values={overallYearly} activeMonth={year === today.getFullYear() ? today.getMonth() : undefined} />
-          </div>
-        </motion.div>
-      )}
 
-      <SuggestionsPanel suggestions={suggestions} />
-
-      <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
-        <AnimatePresence initial={false}>
-          {activeCategories.map((category) => (
-            <motion.div
-              key={category.id}
-              layout
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.97 }}
-              transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
-            >
-              <CategorySection
-                category={category}
-                editable
-                habits={habitsByCategory.get(category.id) ?? []}
-                dates={dates}
-                dayNumbers={dayNumbers}
-                month={month}
-                year={year}
-                referenceDate={referenceDate}
-                onCycle={cycleHabitMark}
-                onRenameHabit={renameHabit}
-                onArchiveHabit={(id) => archiveHabit(id)}
-                onAddHabit={(name) => addHabit(name, null, category.id)}
-                onRenameCategory={(name) => renameHabitCategory(category.id, name)}
-                onSetCategoryColor={(color) => setHabitCategoryColor(category.id, color)}
-                onArchiveCategory={() => archiveHabitCategory(category.id)}
-                onCelebrate={setCelebration}
-              />
-            </motion.div>
-          ))}
-
-          {uncategorized.length > 0 && (
-            <motion.div key={UNCATEGORIZED_ID} layout initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
-              <CategorySection
-                category={{ id: UNCATEGORIZED_ID, name: 'Uncategorized', color: 'var(--pink-pale)', archived: false, order: -1 }}
-                editable={false}
-                habits={uncategorized}
-                dates={dates}
-                dayNumbers={dayNumbers}
-                month={month}
-                year={year}
-                referenceDate={referenceDate}
-                onCycle={cycleHabitMark}
-                onRenameHabit={renameHabit}
-                onArchiveHabit={(id) => archiveHabit(id)}
-                onAddHabit={(name) => addHabit(name, null, null)}
-                onCelebrate={setCelebration}
-              />
-            </motion.div>
-          )}
-        </AnimatePresence>
-      </DndContext>
-
-      {activeCategories.length === 0 && uncategorized.length === 0 && (
-        <p style={{ color: 'var(--rose)', marginBottom: 20 }}>
-          No categories yet — add one below (e.g. Body, Skincare, Mind, Study, Sleep) and start tracking.
-        </p>
-      )}
-
-      {addingCategory ? (
-        <form onSubmit={handleAddCategory} className="card" style={{ marginBottom: 24 }}>
-          <div style={{ fontWeight: 600, fontSize: 13.5, color: 'var(--rose)', marginBottom: 12 }}>New Category</div>
-          <input
-            autoFocus
-            value={newCategoryName}
-            onChange={(e) => setNewCategoryName(e.target.value)}
-            placeholder="Category name (e.g. Study)"
-            style={{ width: '100%', padding: '10px 14px', borderRadius: 10, border: '1px solid var(--pink-pale)', fontSize: 14, marginBottom: 14 }}
-          />
-          <div style={{ display: 'flex', gap: 8, marginBottom: 16 }}>
-            {CATEGORY_COLOR_PRESETS.map((c) => (
-              <button
-                key={c}
-                type="button"
-                onClick={() => setNewCategoryColor(c)}
-                aria-label={`Use color ${c}`}
-                style={{
-                  width: 24,
-                  height: 24,
-                  borderRadius: '50%',
-                  background: c,
-                  border: c === newCategoryColor ? '2px solid var(--ink)' : '2px solid transparent',
-                  cursor: 'pointer',
-                }}
-              />
-            ))}
-          </div>
-          <div style={{ display: 'flex', gap: 10 }}>
-            <button className="btn" type="submit">Add Category</button>
-            <button type="button" className="btn btn-secondary" onClick={() => setAddingCategory(false)}>Cancel</button>
-          </div>
-        </form>
-      ) : (
-        <button className="btn" style={{ marginBottom: 32 }} onClick={() => setAddingCategory(true)}>
-          + Add Category
-        </button>
-      )}
-
-      <div style={{ display: 'flex', gap: 20, alignItems: 'center', background: 'var(--card-bg)', borderRadius: 12, padding: '12px 18px', boxShadow: '0 4px 14px rgba(89,13,34,0.06)', marginBottom: 24, flexWrap: 'wrap' }}>
-        <Legend color="var(--bg)" label="Not done" />
-        <Legend color="var(--pink-light)" label="Partial" />
-        <Legend color="var(--rose)" label="Done" />
-      </div>
-
-      {(archivedCategories.length > 0 || archivedHabits.length > 0) && (
-        <div style={{ marginBottom: 24 }}>
-          <button className="btn-outline" onClick={() => setShowArchived((v) => !v)}>
-            {showArchived ? 'Hide' : 'Show'} Archived ({archivedCategories.length + archivedHabits.length})
-          </button>
-          {showArchived && (
-            <div style={{ marginTop: 16, display: 'flex', flexDirection: 'column', gap: 10 }}>
-              {archivedCategories.map((c) => (
-                <div key={c.id} className="card" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '14px 20px' }}>
-                  <span style={{ fontSize: 13.5 }}>
-                    <span style={{ display: 'inline-block', width: 10, height: 10, borderRadius: '50%', background: c.color, marginRight: 8 }} />
-                    {c.name} <span style={{ color: 'var(--rose)' }}>(category)</span>
-                  </span>
-                  {confirmDeleteCategoryId === c.id ? (
-                    <span style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
-                      <span style={{ fontSize: 12.5, color: 'var(--plum)' }}>Delete permanently?</span>
-                      <button className="btn btn-danger" style={{ padding: '6px 12px', fontSize: 12 }} onClick={() => { deleteHabitCategory(c.id); setConfirmDeleteCategoryId(null) }}>Yes</button>
-                      <button className="btn-outline" onClick={() => setConfirmDeleteCategoryId(null)}>Cancel</button>
-                    </span>
-                  ) : (
-                    <span style={{ display: 'flex', gap: 14 }}>
-                      <button className="btn-outline" onClick={() => archiveHabitCategory(c.id, false)}>Unarchive</button>
-                      <button className="btn-outline" style={{ opacity: 0.75 }} onClick={() => setConfirmDeleteCategoryId(c.id)}>Delete</button>
-                    </span>
-                  )}
-                </div>
-              ))}
-              {archivedHabits.map((h) => (
-                <div key={h.id} className="card" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '14px 20px' }}>
-                  <span style={{ fontSize: 13.5 }}>{h.name} <span style={{ color: 'var(--rose)' }}>(habit)</span></span>
-                  {confirmDeleteHabitId === h.id ? (
-                    <span style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
-                      <span style={{ fontSize: 12.5, color: 'var(--plum)' }}>Delete permanently?</span>
-                      <button className="btn btn-danger" style={{ padding: '6px 12px', fontSize: 12 }} onClick={() => { deleteHabit(h.id); setConfirmDeleteHabitId(null) }}>Yes</button>
-                      <button className="btn-outline" onClick={() => setConfirmDeleteHabitId(null)}>Cancel</button>
-                    </span>
-                  ) : (
-                    <span style={{ display: 'flex', gap: 14 }}>
-                      <button className="btn-outline" onClick={() => archiveHabit(h.id, false)}>Unarchive</button>
-                      <button className="btn-outline" style={{ opacity: 0.75 }} onClick={() => setConfirmDeleteHabitId(h.id)}>Delete</button>
-                    </span>
-                  )}
-                </div>
-              ))}
+            <div style={{ display: 'flex', gap: 20, alignItems: 'center', background: 'var(--surface)', border: '1px solid var(--line)', borderRadius: 12, padding: '12px 18px', marginBottom: 24, flexWrap: 'wrap' }}>
+              <Legend swatch="transparent" border label="Not done" />
+              <Legend swatch="rgba(233,197,143,0.25)" label="Partial" />
+              <Legend swatch="var(--gradient-primary)" label="Done" />
             </div>
-          )}
-        </div>
-      )}
+          </motion.div>
+        ) : (
+          <motion.div key="year" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} transition={{ duration: 0.25 }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: 20, marginBottom: 24 }}>
+              <StatCard value={totalTicks} label="Total Ticks" />
+              {bestMonth && <StatCard value={bestMonth.percent} suffix="%" label={`Best Month: ${MONTH_NAMES[bestMonth.month]}`} />}
+              <StatCard value={activeCategories.length} label="Categories" />
+              <StatCard value={activeHabits.length} label="Active Habits" />
+            </div>
+
+            <div className="card" style={{ marginBottom: 24 }}>
+              <YearHeatmap days={heatmap} year={year} />
+            </div>
+
+            <div className="card" style={{ marginBottom: 24 }}>
+              <MonthlyBarChart values={yearlyMonthly} activeMonth={year === today.getFullYear() ? today.getMonth() : undefined} />
+            </div>
+
+            <div className="card" style={{ marginBottom: 24 }}>
+              <CategoryYearRings categories={activeCategories} habitsByCategory={habitsByCategory} year={year} />
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      <HabitManageSheet
+        open={manageOpen}
+        onClose={() => setManageOpen(false)}
+        categories={activeCategories}
+        archivedCategories={archivedCategories}
+        habitsByCategory={habitsByCategory}
+        uncategorizedHabits={uncategorized}
+        archivedHabits={archivedHabits}
+        addHabit={(name, categoryId) => addHabit(name, null, categoryId)}
+        renameHabit={renameHabit}
+        archiveHabit={archiveHabit}
+        deleteHabit={deleteHabit}
+        addHabitCategory={addHabitCategory}
+        renameHabitCategory={renameHabitCategory}
+        setHabitCategoryColor={setHabitCategoryColor}
+        archiveHabitCategory={archiveHabitCategory}
+        deleteHabitCategory={deleteHabitCategory}
+      />
     </div>
   )
 }
 
-function Legend({ color, label }: { color: string; label: string }) {
+function StatCard({ value, suffix, label }: { value: number; suffix?: string; label: string }) {
   return (
-    <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12.5, color: 'var(--plum)' }}>
-      <div style={{ width: 14, height: 14, borderRadius: 4, background: color, border: '1px solid var(--pink-pale)' }} />
+    <div className="card" style={{ padding: '18px 20px' }}>
+      <div style={{ fontFamily: 'var(--font-display)', fontStyle: 'italic', fontWeight: 600, fontSize: 28 }}>
+        <CountUp value={value} suffix={suffix ?? ''} />
+      </div>
+      <div className="micro-label" style={{ marginTop: 6 }}>
+        {label}
+      </div>
+    </div>
+  )
+}
+
+function Legend({ swatch, border, label }: { swatch: string; border?: boolean; label: string }) {
+  return (
+    <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12.5, color: 'var(--mute)' }}>
+      <div style={{ width: 14, height: 14, borderRadius: '50%', background: swatch, border: border ? '1px solid var(--line)' : 'none' }} />
       {label}
     </div>
   )

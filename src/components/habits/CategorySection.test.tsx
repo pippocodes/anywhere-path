@@ -26,7 +26,6 @@ function Harness({
   return (
     <CategorySection
       category={category}
-      editable
       habits={habits}
       dates={['2024-01-01']}
       dayNumbers={[1]}
@@ -34,9 +33,6 @@ function Harness({
       year={2024}
       referenceDate={new Date(2024, 0, 1)}
       onCycle={handleCycle}
-      onRenameHabit={() => {}}
-      onArchiveHabit={() => {}}
-      onAddHabit={() => {}}
       onCelebrate={onCelebrate}
     />
   )

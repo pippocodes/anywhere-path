@@ -5,12 +5,7 @@ interface Props {
   date: string
   mark: HabitMark
   onClick: (date: string) => void
-}
-
-const COLORS: Record<HabitMark, string> = {
-  0: 'var(--bg)',
-  1: 'var(--pink-light)',
-  2: 'var(--rose)',
+  today?: boolean
 }
 
 const MARK_LABEL: Record<HabitMark, string> = { 0: 'not done', 1: 'partial', 2: 'done' }
@@ -20,7 +15,7 @@ const MARK_LABEL: Record<HabitMark, string> = { 0: 'not done', 1: 'partial', 2: 
 // pop-on-tick uses a plain CSS keyframe (not framer-motion) for the same
 // reason: a grid can have hundreds of these, and a per-cell motion
 // component would add real overhead at that scale for one small flourish.
-function HabitCell({ date, mark, onClick }: Props) {
+function HabitCell({ date, mark, onClick, today }: Props) {
   const [popping, setPopping] = useState(false)
 
   function activate() {
@@ -44,16 +39,24 @@ function HabitCell({ date, mark, onClick }: Props) {
       title={date}
       aria-label={`${date}: ${MARK_LABEL[mark]}`}
       style={{
-        width: 20,
-        height: 20,
-        borderRadius: 5,
-        background: COLORS[mark],
-        border: '1px solid var(--pink-pale)',
+        width: 22,
+        height: 22,
+        borderRadius: '50%',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        background: mark === 2 ? 'var(--gradient-primary)' : mark === 1 ? 'rgba(233,197,143,0.25)' : 'transparent',
+        border: mark === 0 ? `1px solid ${today ? 'var(--gold)' : 'var(--line)'}` : 'none',
+        boxShadow: today && mark === 0 ? '0 0 0 2px rgba(233,197,143,0.15)' : 'none',
         cursor: 'pointer',
         margin: '0 auto',
-        transition: 'background 0.15s ease, transform 0.1s ease',
+        fontSize: 10,
+        color: 'var(--ink)',
+        transition: 'background 0.15s ease, transform 0.1s ease, border-color 0.15s ease',
       }}
-    />
+    >
+      {mark === 2 && '✦'}
+    </div>
   )
 }
 

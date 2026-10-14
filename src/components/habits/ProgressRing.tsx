@@ -9,7 +9,7 @@ interface Props {
 }
 
 /** An animated progress ring — SVG stroke-dashoffset (not conic-gradient, which can't be smoothly transitioned across browsers) so it genuinely animates whenever `percent` changes, not just snaps. */
-function ProgressRing({ percent, size = 96, color = 'var(--pink)', label }: Props) {
+function ProgressRing({ percent, size = 96, color = 'var(--gold)', label }: Props) {
   const clamped = Math.max(0, Math.min(100, percent))
   const strokeWidth = size * 0.11
   const radius = (size - strokeWidth) / 2
@@ -22,7 +22,7 @@ function ProgressRing({ percent, size = 96, color = 'var(--pink)', label }: Prop
       aria-label={`${label ? label + ': ' : ''}${Math.round(clamped)}% complete`}
     >
       <svg width={size} height={size} style={{ transform: 'rotate(-90deg)' }}>
-        <circle cx={size / 2} cy={size / 2} r={radius} fill="none" stroke="var(--pink-pale)" strokeWidth={strokeWidth} />
+        <circle cx={size / 2} cy={size / 2} r={radius} fill="none" stroke="var(--line)" strokeWidth={strokeWidth} />
         <motion.circle
           cx={size / 2}
           cy={size / 2}
@@ -48,10 +48,10 @@ function ProgressRing({ percent, size = 96, color = 'var(--pink)', label }: Prop
           textAlign: 'center',
         }}
       >
-        <div style={{ fontFamily: "'Poppins', sans-serif", fontWeight: 800, fontSize: size / 4.2, color: 'var(--ink)' }}>
+        <div style={{ fontFamily: 'var(--font-display)', fontStyle: 'italic', fontWeight: 600, fontSize: size / 4, color: 'var(--cream)' }}>
           <CountUp value={Math.round(clamped)} suffix="%" />
         </div>
-        {label && <div style={{ fontSize: 10.5, color: 'var(--rose)', fontWeight: 600 }}>{label}</div>}
+        {label && <div className="micro-label" style={{ marginTop: 2, fontSize: 9.5 }}>{label}</div>}
       </div>
     </div>
   )

@@ -1,8 +1,7 @@
-import { useState } from 'react'
 import { useSortable } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
 import type { Habit } from '../../types'
-import { computeCurrentStreak } from '../../utils/habits'
+import { computeCurrentStreak, toDateStr } from '../../utils/habits'
 import HabitCell from '../HabitCell'
 
 interface Props {
@@ -10,26 +9,17 @@ interface Props {
   dates: string[]
   referenceDate: Date
   onCycle: (habitId: string, date: string) => void
-  onRename: (habitId: string, name: string) => void
-  onArchive: (habitId: string) => void
 }
 
-function HabitGridRow({ habit, dates, referenceDate, onCycle, onRename, onArchive }: Props) {
-  const [editing, setEditing] = useState(false)
-  const [draft, setDraft] = useState(habit.name)
+function HabitGridRow({ habit, dates, referenceDate, onCycle }: Props) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: habit.id })
   const streak = computeCurrentStreak(habit, referenceDate)
-
-  function commit() {
-    const trimmed = draft.trim()
-    setEditing(false)
-    if (trimmed && trimmed !== habit.name) onRename(habit.id, trimmed)
-    else setDraft(habit.name)
-  }
+  const todayStr = toDateStr(referenceDate)
 
   return (
     <tr
       ref={setNodeRef}
+      className="habit-grid-row"
       style={{ transform: CSS.Transform.toString(transform), transition, opacity: isDragging ? 0.6 : 1 }}
     >
       <td
@@ -37,57 +27,32 @@ function HabitGridRow({ habit, dates, referenceDate, onCycle, onRename, onArchiv
           padding: '8px 12px',
           fontSize: 13,
           fontWeight: 600,
-          color: 'var(--ink)',
+          color: 'var(--cream)',
           whiteSpace: 'nowrap',
           position: 'sticky',
           left: 0,
-          background: 'var(--card-bg)',
+          background: 'var(--ink-2)',
         }}
       >
         <span
           {...attributes}
           {...listeners}
           title="Drag to reorder"
-          style={{ cursor: 'grab', color: 'var(--pink-pale)', marginRight: 6, touchAction: 'none' }}
+          style={{ cursor: 'grab', color: 'var(--line)', marginRight: 6, touchAction: 'none' }}
         >
           ⠿
         </span>
-        {editing ? (
-          <input
-            autoFocus
-            value={draft}
-            onChange={(e) => setDraft(e.target.value)}
-            onBlur={commit}
-            onKeyDown={(e) => {
-              if (e.key === 'Enter') commit()
-              if (e.key === 'Escape') {
-                setDraft(habit.name)
-                setEditing(false)
-              }
-            }}
-            style={{ fontSize: 13, padding: '2px 6px', borderRadius: 6, border: '1px solid var(--pink)', width: 110 }}
-          />
-        ) : (
-          <span onClick={() => setEditing(true)} style={{ cursor: 'text' }}>
-            {habit.name}
-          </span>
-        )}
+        {habit.name}
         {streak > 0 && (
-          <span style={{ marginLeft: 6, fontSize: 11.5, color: 'var(--cherry)', fontWeight: 700 }}>🔥{streak}</span>
+          <span style={{ marginLeft: 8, fontSize: 11, color: 'var(--gold)', fontWeight: 700 }}>{streak}d</span>
         )}
-        <button
-          onClick={() => onArchive(habit.id)}
-          className="btn-outline"
-          style={{ marginLeft: 8, color: 'var(--plum)', fontSize: 11, opacity: 0.7 }}
-          aria-label={`Archive ${habit.name}`}
-          title="Archive habit"
-        >
-          ⤵
-        </button>
       </td>
       {dates.map((date) => (
-        <td key={date} style={{ padding: 2 }}>
-          <HabitCell date={date} mark={habit.marks[date] ?? 0} onClick={(d) => onCycle(habit.id, d)} />
+        <td
+          key={date}
+          style={{ padding: 2, background: date === todayStr ? 'rgba(233,197,143,0.06)' : 'transparent' }}
+        >
+          <HabitCell date={date} mark={habit.marks[date] ?? 0} onClick={(d) => onCycle(habit.id, d)} today={date === todayStr} />
         </td>
       ))}
     </tr>

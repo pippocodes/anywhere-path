@@ -1,12 +1,10 @@
-// Curated swatches for category colors — stays legible against the app's
-// rose/blush background instead of letting any arbitrary hex clash with it.
+// Curated swatches for category colors — muted, premium tones that sit
+// quietly against the dark "Vision Board" theme instead of competing with it.
 export const CATEGORY_COLOR_PRESETS = [
-  '#ff4d6d', // brand pink
-  '#c9184a', // cherry
-  '#800f2f', // plum
-  '#ff8fa3', // pink light
-  '#f4845f', // amber
-  '#6a4c93', // violet
-  '#4d908e', // teal
-  '#577590', // slate blue
+  '#e8799b', // rose
+  '#e9c58f', // gold
+  '#8a5bd6', // violet
+  '#5fa8a0', // teal
+  '#c97b9b', // muted mauve
+  '#b9a9bd', // mute
 ] as const

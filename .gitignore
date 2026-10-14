@@ -12,4 +12,5 @@ dist
 make-test-user.cjs
 seed-audit-data.cjs
 screenshot-audit.cjs
+screenshot-year-view.cjs
 .test-user-id
