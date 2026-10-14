@@ -1,11 +1,17 @@
 import type { ReactNode } from 'react'
-import { Navigate, useLocation } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import PageLoading from './PageLoading'
+import DemoGate from './DemoGate'
 
-function ProtectedRoute({ children }: { children: ReactNode }) {
+interface Props {
+  children: ReactNode
+  demo?: ReactNode
+  demoHeading?: string
+  demoBody?: string
+}
+
+function ProtectedRoute({ children, demo, demoHeading, demoBody }: Props) {
   const { user, loading, configured } = useAuth()
-  const location = useLocation()
 
   if (!configured) {
     return (
@@ -22,7 +28,11 @@ function ProtectedRoute({ children }: { children: ReactNode }) {
   if (loading) return <PageLoading />
 
   if (!user) {
-    return <Navigate to="/login" replace state={{ from: location.pathname }} />
+    return (
+      <DemoGate heading={demoHeading} body={demoBody}>
+        {demo}
+      </DemoGate>
+    )
   }
 
   return <>{children}</>

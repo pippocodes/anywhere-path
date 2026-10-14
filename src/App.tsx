@@ -8,6 +8,8 @@ import AmbientBackground from './components/ui/AmbientBackground'
 import Spotlight from './components/ui/Spotlight'
 import ScrollProgress from './components/ui/ScrollProgress'
 import { ToastProvider } from './components/ui/Toast'
+import RoadmapDemo from './components/demo/RoadmapDemo'
+import HabitsDemo from './components/demo/HabitsDemo'
 
 const Home = lazy(() => import('./pages/Home'))
 const Courses = lazy(() => import('./pages/Courses'))
@@ -16,6 +18,8 @@ const RoadmapBuilder = lazy(() => import('./pages/RoadmapBuilder'))
 const Habits = lazy(() => import('./pages/Habits'))
 const About = lazy(() => import('./pages/About'))
 const Help = lazy(() => import('./pages/Help'))
+const Profile = lazy(() => import('./pages/Profile'))
+const Settings = lazy(() => import('./pages/Settings'))
 const NotFound = lazy(() => import('./pages/NotFound'))
 const Login = lazy(() => import('./pages/auth/Login'))
 const SignUp = lazy(() => import('./pages/auth/SignUp'))
@@ -57,7 +61,7 @@ function AnimatedRoutes() {
             <Route
               path="/courses"
               element={
-                <ProtectedRoute>
+                <ProtectedRoute demoHeading="Create a free account to manage your courses">
                   <Courses />
                 </ProtectedRoute>
               }
@@ -65,7 +69,10 @@ function AnimatedRoutes() {
             <Route
               path="/roadmap"
               element={
-                <ProtectedRoute>
+                <ProtectedRoute
+                  demo={<RoadmapDemo />}
+                  demoBody="This is a preview with sample data. Sign up to write your own outline and save it."
+                >
                   <RoadmapLayout />
                 </ProtectedRoute>
               }
@@ -76,13 +83,32 @@ function AnimatedRoutes() {
             <Route
               path="/habits"
               element={
-                <ProtectedRoute>
+                <ProtectedRoute
+                  demo={<HabitsDemo />}
+                  demoBody="This is a preview with sample data. Sign up to start tracking your own habits."
+                >
                   <Habits />
                 </ProtectedRoute>
               }
             />
             <Route path="/about" element={<About />} />
             <Route path="/help" element={<Help />} />
+            <Route
+              path="/profile"
+              element={
+                <ProtectedRoute demoHeading="Create a free account to see your profile">
+                  <Profile />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/settings"
+              element={
+                <ProtectedRoute demoHeading="Create a free account to manage settings">
+                  <Settings />
+                </ProtectedRoute>
+              }
+            />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </Suspense>

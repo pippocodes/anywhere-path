@@ -16,13 +16,21 @@ fine without this configured — the auth pages just show a setup notice instead
 
 1. In the project dashboard, open **SQL Editor** → **New query**.
 2. Paste the entire contents of [`supabase/schema.sql`](./schema.sql) from this repo and click
-   **Run**.
-3. This creates 6 tables: `courses`, `roadmap_plans`, `roadmap_docs`, `habit_categories`, and
+   **Run**. If you set this project up before the username/profile feature was added, just
+   re-run the whole file again — every statement is idempotent (`create table if not exists`,
+   `drop policy if exists` before `create policy`, etc.), so running it again only adds what's
+   missing.
+3. This creates 7 tables: `courses`, `roadmap_plans`, `roadmap_docs`, `habit_categories`, and
    `habits` each have Row Level Security with a policy that only ever lets a signed-in user see
    or change rows where `user_id` matches their own `auth.uid()` — enforced by Postgres itself,
-   not by the app. The sixth, `ai_generate_log`, has RLS on with *no* policies at all (used only
+   not by the app. `ai_generate_log` has RLS on with *no* policies at all (used only
    by `/api/generate` via the service-role key, which bypasses RLS by design — see step 7).
-4. Check **Table Editor** in the sidebar — you should see all 6 tables, empty, each with a
+   `profiles` holds each account's username — RLS lets a user read/update only their own row,
+   rows are created automatically by a trigger on signup (never inserted by the app directly),
+   and two small SQL functions (`username_available`, `email_for_username`) back the live
+   "is this username taken?" check and "log in with username" — see **How the app uses this**
+   below for exactly what each returns.
+4. Check **Table Editor** in the sidebar — you should see all 7 tables, each with a
    padlock icon (RLS enabled).
 
 ## 3. Get your API keys
@@ -112,6 +120,12 @@ is never exposed to visitors. It needs four environment variables, none of them 
   `isSupabaseConfigured` is `false` (and `supabase` is `null`) if either is missing, which is
   what drives the setup notices instead of a crash.
 - `src/context/AuthContext.tsx` wraps `supabase.auth` (sign up, log in, log out, password reset).
+  Sign up passes the chosen username in `options.data.username`, which the `handle_new_user`
+  trigger reads to create the matching `profiles` row. Log in accepts an email *or* a username —
+  if what's typed doesn't contain `@`, it's resolved to an email first via the
+  `email_for_username` RPC, then signed in normally; a username that doesn't resolve falls
+  through to the same generic "invalid credentials" error as a wrong password, so login never
+  reveals whether a given username exists.
 - `src/components/ProtectedRoute.tsx` guards `/courses`, `/roadmap`, and `/habits`.
 - `src/context/AppContext.tsx` loads/saves data from the 5 data tables above once signed in (via
   `src/lib/cloudSync.ts`), and falls back to `localStorage` while signed out.

@@ -331,6 +331,21 @@ textarea {
   }
 }
 
+@media (max-width: 860px) {
+  nav .navbar-links,
+  nav .navbar-auth-buttons,
+  nav .navbar-account {
+    display: none !important;
+  }
+  nav .navbar-hamburger {
+    display: flex !important;
+  }
+  nav {
+    padding-left: 20px !important;
+    padding-right: 20px !important;
+  }
+}
+
 .outline-layout {
   display: grid;
   grid-template-columns: 1fr 1fr;

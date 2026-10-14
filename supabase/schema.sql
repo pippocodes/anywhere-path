@@ -189,6 +189,94 @@ alter table public.ai_generate_log enable row level security;
 -- Deliberately no policies: this table is service-role-only.
 
 -- ---------------------------------------------------------------------
+-- profiles — one row per account, holding the public username used for
+-- display ("logged in as ...") and for "log in with username" (see the
+-- email_for_username() function below). Created automatically by the
+-- on_auth_user_created trigger right after a row lands in auth.users —
+-- the app never inserts into this table directly.
+-- ---------------------------------------------------------------------
+create table if not exists public.profiles (
+  id uuid primary key references auth.users (id) on delete cascade,
+  username text not null,
+  created_at timestamptz not null default now()
+);
+
+-- Case-insensitive uniqueness: "Alex" and "alex" are the same username.
+create unique index if not exists profiles_username_lower_idx on public.profiles (lower(username));
+
+alter table public.profiles enable row level security;
+
+drop policy if exists "profiles_select_own" on public.profiles;
+drop policy if exists "profiles_update_own" on public.profiles;
+
+create policy "profiles_select_own" on public.profiles
+  for select using (auth.uid() = id);
+create policy "profiles_update_own" on public.profiles
+  for update using (auth.uid() = id) with check (auth.uid() = id);
+-- Deliberately no insert/delete policy: rows are created only by the
+-- trigger below (SECURITY DEFINER, bypasses RLS) and removed only via the
+-- auth.users cascade when an account is deleted.
+
+-- Reads the "username" field passed in supabase.auth.signUp()'s
+-- options.data (see AuthContext.signUp) and creates the matching profile
+-- row. Runs as SECURITY DEFINER so it can insert despite RLS.
+create or replace function public.handle_new_user()
+returns trigger
+language plpgsql
+security definer set search_path = public
+as $$
+begin
+  insert into public.profiles (id, username)
+  values (new.id, new.raw_user_meta_data ->> 'username');
+  return new;
+end;
+$$;
+
+drop trigger if exists on_auth_user_created on auth.users;
+create trigger on_auth_user_created
+  after insert on auth.users
+  for each row execute function public.handle_new_user();
+
+-- Safe availability check for the live "is this username taken?" indicator
+-- on the register form — returns ONLY a boolean, never any row data, so it
+-- can't be used to pull anyone's profile. Callable while signed out (the
+-- visitor has no session yet mid-signup).
+create or replace function public.username_available(check_username text)
+returns boolean
+language sql
+security definer set search_path = public
+stable
+as $$
+  select not exists (
+    select 1 from public.profiles where lower(username) = lower(check_username)
+  );
+$$;
+
+grant execute on function public.username_available(text) to anon, authenticated;
+
+-- Lets the login form accept a username instead of an email: resolves the
+-- exact username being logged in with to its account's email, so the
+-- browser can call supabase.auth.signInWithPassword() as usual. Returns a
+-- single email for a single exact username match (or null) — never a list,
+-- never any other profile field — so it can't be used to browse or harvest
+-- the user directory, only to complete a login someone is already
+-- attempting with a username they already know.
+create or replace function public.email_for_username(check_username text)
+returns text
+language sql
+security definer set search_path = public
+stable
+as $$
+  select u.email
+  from public.profiles p
+  join auth.users u on u.id = p.id
+  where lower(p.username) = lower(check_username)
+  limit 1;
+$$;
+
+grant execute on function public.email_for_username(text) to anon;
+
+-- ---------------------------------------------------------------------
 -- Done. Every table above has RLS enabled with policies that scope
 -- every select/insert/update/delete to `auth.uid() = user_id` — a user
 -- can only ever see or change their own rows, enforced by Postgres

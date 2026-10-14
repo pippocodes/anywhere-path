@@ -50,13 +50,13 @@ function ResetPassword() {
       return
     }
     setDone(true)
-    setTimeout(() => navigate('/courses', { replace: true }), 1500)
+    setTimeout(() => navigate('/roadmap', { replace: true }), 1500)
   }
 
   if (done) {
     return (
       <AuthLayout title="Password updated">
-        <div className="auth-notice auth-notice-success">You're all set — taking you to your courses…</div>
+        <div className="auth-notice auth-notice-success">You're all set — taking you to your roadmap…</div>
       </AuthLayout>
     )
   }
@@ -66,7 +66,7 @@ function ResetPassword() {
       <AuthLayout title="Reset your password">
         <div className="auth-notice auth-notice-error">
           This link looks invalid or has expired. Request a new one from{' '}
-          <Link to="/forgot-password" style={{ color: 'var(--plum)', fontWeight: 700 }}>
+          <Link to="/forgot-password" style={{ color: 'var(--mute)', fontWeight: 700 }}>
             the password reset page
           </Link>
           .

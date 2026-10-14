@@ -9,19 +9,24 @@ export interface AuthResult {
 export interface AuthContextValue {
   user: User | null
   session: Session | null
+  username: string | null
   loading: boolean // still resolving the initial session on first load
   configured: boolean
-  signUp: (email: string, password: string) => Promise<AuthResult>
-  signIn: (email: string, password: string) => Promise<AuthResult>
+  signUp: (email: string, password: string, username: string) => Promise<AuthResult>
+  signIn: (identifier: string, password: string) => Promise<AuthResult>
   signOut: () => Promise<void>
   sendPasswordReset: (email: string) => Promise<AuthResult>
   updatePassword: (newPassword: string) => Promise<AuthResult>
+  checkUsernameAvailable: (username: string) => Promise<boolean | null>
 }
+
+const GENERIC_LOGIN_ERROR = 'Invalid email/username or password.'
 
 const AuthContext = createContext<AuthContextValue | null>(null)
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [session, setSession] = useState<Session | null>(null)
+  const [username, setUsername] = useState<string | null>(null)
   const [loading, setLoading] = useState(isSupabaseConfigured)
 
   useEffect(() => {
@@ -40,16 +45,78 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return () => subscription.subscription.unsubscribe()
   }, [])
 
-  async function signUp(email: string, password: string): Promise<AuthResult> {
+  // The username lives in `profiles`, not in the auth session — fetch it
+  // whenever the signed-in user changes, and clear it on sign-out.
+  useEffect(() => {
+    const userId = session?.user?.id
+    if (!supabase || !userId) {
+      setUsername(null)
+      return
+    }
+    let cancelled = false
+    supabase
+      .from('profiles')
+      .select('username')
+      .eq('id', userId)
+      .single()
+      .then(({ data }) => {
+        if (!cancelled) setUsername(data?.username ?? null)
+      })
+    return () => {
+      cancelled = true
+    }
+  }, [session?.user?.id])
+
+  async function signUp(email: string, password: string, username: string): Promise<AuthResult> {
     if (!supabase) return { error: 'Supabase is not configured.' }
-    const { error } = await supabase.auth.signUp({ email, password })
-    return { error: error?.message ?? null }
+    const { error } = await supabase.auth.signUp({
+      email,
+      password,
+      options: { data: { username } },
+    })
+    if (error) {
+      // Postgres raises a unique-violation from the profiles trigger if the
+      // username was claimed by someone else between the last availability
+      // check and this submit — surface that as a friendly message instead
+      // of the raw constraint error.
+      if (/duplicate key|unique constraint/i.test(error.message)) {
+        return { error: 'That username was just taken — try another.' }
+      }
+      return { error: error.message }
+    }
+    return { error: null }
   }
 
-  async function signIn(email: string, password: string): Promise<AuthResult> {
+  async function signIn(identifier: string, password: string): Promise<AuthResult> {
     if (!supabase) return { error: 'Supabase is not configured.' }
+
+    let email = identifier.trim()
+    if (!email.includes('@')) {
+      const { data, error: rpcError } = await supabase.rpc('email_for_username', {
+        check_username: email,
+      })
+      if (rpcError || !data) {
+        // Don't distinguish "no such username" from "wrong password" — the
+        // login attempt still takes the same amount of time either way,
+        // and returns the exact same generic error.
+        await supabase.auth.signInWithPassword({
+          email: `${crypto.randomUUID()}@invalid.anywhere-path.local`,
+          password,
+        })
+        return { error: GENERIC_LOGIN_ERROR }
+      }
+      email = data
+    }
+
     const { error } = await supabase.auth.signInWithPassword({ email, password })
-    return { error: error?.message ?? null }
+    return { error: error ? GENERIC_LOGIN_ERROR : null }
+  }
+
+  async function checkUsernameAvailable(candidate: string): Promise<boolean | null> {
+    if (!supabase) return null
+    const { data, error } = await supabase.rpc('username_available', { check_username: candidate })
+    if (error) return null
+    return data ?? null
   }
 
   async function signOut(): Promise<void> {
@@ -74,6 +141,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const value: AuthContextValue = {
     user: session?.user ?? null,
     session,
+    username,
     loading,
     configured: isSupabaseConfigured,
     signUp,
@@ -81,6 +149,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     signOut,
     sendPasswordReset,
     updatePassword,
+    checkUsernameAvailable,
   }
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>

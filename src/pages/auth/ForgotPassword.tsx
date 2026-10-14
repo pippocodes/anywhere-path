@@ -42,8 +42,8 @@ function ForgotPassword() {
       title="Reset your password"
       subtitle="Enter your email and we'll send you a link to set a new password."
       footer={
-        <div style={{ color: 'var(--plum)' }}>
-          <Link to="/login" style={{ color: 'var(--cherry)', fontWeight: 600 }}>
+        <div style={{ color: 'var(--mute)' }}>
+          <Link to="/login" style={{ color: 'var(--gold)', fontWeight: 600 }}>
             Back to Login
           </Link>
         </div>
