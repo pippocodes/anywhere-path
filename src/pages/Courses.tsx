@@ -5,13 +5,28 @@ import { makeId } from '../utils/id'
 import CourseCard from '../components/courses/CourseCard'
 import CategoryChip from '../components/categories/CategoryChip'
 import AddCourseSheet from '../components/courses/AddCourseSheet'
+import DeleteCourseModal from '../components/courses/DeleteCourseModal'
 import Button from '../components/ui/Button'
 import RevealHeading from '../components/ui/RevealHeading'
+import EmptyState from '../components/ui/EmptyState'
+import { useToast } from '../components/ui/Toast'
 
 function Courses() {
-  const { data, addCourse } = useApp()
+  const { data, addCourse, deleteCourse, toggleTopic } = useApp()
+  const { show: showToast } = useToast()
   const [sheetOpen, setSheetOpen] = useState(false)
   const [categoryFilter, setCategoryFilter] = useState<string | null | 'all'>('all')
+  const [deleteTargetId, setDeleteTargetId] = useState<string | null>(null)
+
+  const deleteTarget = data.courses.find((c) => c.id === deleteTargetId) ?? null
+  const linkedHabitCount = deleteTargetId ? data.habits.filter((h) => h.courseId === deleteTargetId).length : 0
+
+  function handleConfirmDelete() {
+    if (!deleteTarget) return
+    deleteCourse(deleteTarget.id)
+    showToast(`Deleted "${deleteTarget.name}"`, 'success')
+    setDeleteTargetId(null)
+  }
 
   function handleAdd(fields: { name: string; platform: string; instructor: string }) {
     addCourse({
@@ -45,7 +60,7 @@ function Courses() {
             Course Tracker
           </RevealHeading>
           <p className="page-subtitle" style={{ marginBottom: 0 }}>
-            Track lectures and watched progress for courses you're taking elsewhere.
+            Track subtopics, modules and progress for courses you're taking elsewhere.
           </p>
         </div>
         <Button onClick={() => setSheetOpen(true)}>+ New course</Button>
@@ -70,23 +85,37 @@ function Courses() {
       )}
 
       {data.courses.length === 0 ? (
-        <div className="card" style={{ textAlign: 'center', padding: '48px 24px' }}>
-          <p style={{ color: 'var(--mute)', marginBottom: 18 }}>
-            No courses yet — add one to start tracking lectures and progress.
-          </p>
-          <Button onClick={() => setSheetOpen(true)}>+ New course</Button>
-        </div>
+        <EmptyState
+          title="No courses yet"
+          description="Add your first course to start tracking progress, subtopics and modules."
+          actionLabel="Add your first course"
+          onAction={() => setSheetOpen(true)}
+        />
       ) : visibleCourses.length === 0 ? (
         <p style={{ color: 'var(--mute)', fontSize: 14 }}>No courses in this category.</p>
       ) : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
           <AnimatePresence initial={false}>
             {visibleCourses.map((course) => (
-              <CourseCard key={course.id} course={course} categories={data.habitCategories} />
+              <CourseCard
+                key={course.id}
+                course={course}
+                categories={data.habitCategories}
+                onToggleTopic={toggleTopic}
+                onRequestDelete={() => setDeleteTargetId(course.id)}
+              />
             ))}
           </AnimatePresence>
         </div>
       )}
+
+      <DeleteCourseModal
+        open={!!deleteTarget}
+        onClose={() => setDeleteTargetId(null)}
+        onConfirm={handleConfirmDelete}
+        courseName={deleteTarget?.name ?? ''}
+        linkedHabitCount={linkedHabitCount}
+      />
 
       <AddCourseSheet open={sheetOpen} onClose={() => setSheetOpen(false)} onAdd={handleAdd} />
     </div>

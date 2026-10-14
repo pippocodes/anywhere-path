@@ -129,7 +129,9 @@ export function appReducer(state: AppData, action: Action): AppData {
         ...state,
         courses: state.courses.filter((c) => c.id !== action.courseId),
         roadmaps,
-        habits: state.habits.filter((h) => h.courseId !== action.courseId),
+        // Habits linked to the deleted course are unlinked, not deleted —
+        // the delete-course confirmation promises this explicitly.
+        habits: state.habits.map((h) => (h.courseId !== action.courseId ? h : { ...h, courseId: null })),
       }
     }
 

@@ -15,15 +15,6 @@ import OutlineTextEditor from '../OutlineTextEditor'
 import CategorySelect from '../categories/CategorySelect'
 import Button from '../ui/Button'
 
-const SAMPLE_TEXT = [
-  'Anatomy Basics',
-  '  Skeletal System',
-  '    Bones of the arm (5:22)',
-  '    Bones of the leg (7:10)',
-  '  Muscular System',
-  '    Major muscle groups (12:40)',
-].join('\n')
-
 type SavedCourse = Pick<Course, 'id' | 'name' | 'modules' | 'categoryId'>
 
 interface Props {
@@ -125,11 +116,6 @@ function CourseOutlineEditor({
             <Button disabled={!canSave} onClick={handleSave}>
               {saveLabel}
             </Button>
-            {value === '' && (
-              <Button variant="secondary" onClick={() => onChange(SAMPLE_TEXT)}>
-                Insert example
-              </Button>
-            )}
           </div>
 
           <AnimatePresence>

@@ -44,6 +44,7 @@ import MonthlyBarChart from '../components/habits/charts/MonthlyBarChart'
 import YearHeatmap from '../components/habits/charts/YearHeatmap'
 import Pills from '../components/ui/Pills'
 import RevealHeading from '../components/ui/RevealHeading'
+import EmptyState from '../components/ui/EmptyState'
 import CountUp from '../components/motion/CountUp'
 import type { Habit } from '../types'
 
@@ -336,13 +337,13 @@ function Habits() {
             </DndContext>
 
             {activeCategories.length === 0 && uncategorized.length === 0 && (
-              <div className="card" style={{ textAlign: 'center', padding: '40px 24px', marginBottom: 24 }}>
-                <p style={{ color: 'var(--mute)', marginBottom: 16 }}>
-                  No categories yet — add one to start tracking (e.g. Body, Mind, Study, Sleep).
-                </p>
-                <button className="btn" onClick={() => setManageOpen(true)}>
-                  Manage habits
-                </button>
+              <div style={{ marginBottom: 24 }}>
+                <EmptyState
+                  title="Nothing to track yet"
+                  description="Add your first habit — pick a category like Body, Mind, Study, or Sleep, and start ticking days off."
+                  actionLabel="Add your first habit"
+                  onAction={() => setManageOpen(true)}
+                />
               </div>
             )}
 

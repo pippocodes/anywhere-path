@@ -31,20 +31,6 @@ import Button from '../components/ui/Button'
 import Pills from '../components/ui/Pills'
 import RevealHeading from '../components/ui/RevealHeading'
 
-const SAMPLE_OUTLINE = [
-  'Data Structures & Algorithms (8w)',
-  '  Linear Structures',
-  '    Arrays (5h)',
-  '    Linked Lists (6h)',
-  '    Stacks & Queues (5h)',
-  '  Algorithms',
-  '    Sorting',
-  '      Bubble & Insertion Sort (2h)',
-  '      Merge & Quick Sort (3h)',
-  '    Searching (4h)',
-  '    Dynamic Programming (8h)',
-].join('\n')
-
 const DEFAULT_WEEKDAYS = [0, 1, 2, 3, 4, 5, 6]
 const WEEKDAY_LABELS = ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa']
 
@@ -738,11 +724,6 @@ function RoadmapOutline() {
             <Button disabled={!canSave} onClick={handleSave}>
               {editingId ? 'Update Roadmap' : 'Save Roadmap'}
             </Button>
-            {outlineText === '' && (
-              <Button variant="secondary" onClick={() => setOutlineText(SAMPLE_OUTLINE)}>
-                Example
-              </Button>
-            )}
             {(outlineText !== '' || editingId) && (
               <button className="btn-outline" style={{ color: 'var(--mute)' }} onClick={handleNew}>
                 Start a New Roadmap
