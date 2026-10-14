@@ -84,9 +84,14 @@ create table if not exists public.roadmap_docs (
   start_date date,
   hours_per_day numeric,
   weekdays jsonb, -- number[] (0=Sun..6=Sat)
+  completed_paths jsonb not null default '[]'::jsonb, -- string[] of checked-off leaf node ids, read-only view
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
 );
+
+-- Adds completed_paths to a roadmap_docs table created before this column
+-- existed — a no-op on a table created fresh from the statement above.
+alter table public.roadmap_docs add column if not exists completed_paths jsonb not null default '[]'::jsonb;
 
 create index if not exists roadmap_docs_user_id_idx on public.roadmap_docs (user_id);
 

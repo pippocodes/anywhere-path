@@ -33,6 +33,7 @@ type RoadmapDocRow = {
   start_date: string | null
   hours_per_day: number | null
   weekdays: number[] | null
+  completed_paths: string[] | null
   created_at: string
   updated_at: string
 }
@@ -64,7 +65,7 @@ export async function fetchCloudData(userId: string): Promise<AppData> {
     client.from('roadmap_plans').select('course_id, target_days, daily_hours, total_hours, option').eq('user_id', userId),
     client
       .from('roadmap_docs')
-      .select('id, title, outline_text, start_date, hours_per_day, weekdays, created_at, updated_at')
+      .select('id, title, outline_text, start_date, hours_per_day, weekdays, completed_paths, created_at, updated_at')
       .eq('user_id', userId),
     client.from('habit_categories').select('id, name, color, archived, sort_order').eq('user_id', userId),
     client.from('habits').select('id, name, course_id, category_id, marks, archived, sort_order').eq('user_id', userId),
@@ -98,6 +99,7 @@ export async function fetchCloudData(userId: string): Promise<AppData> {
     startDate: r.start_date ?? undefined,
     hoursPerDay: r.hours_per_day ?? undefined,
     weekdays: r.weekdays ?? undefined,
+    completedPaths: r.completed_paths ?? undefined,
     createdAt: r.created_at,
     updatedAt: r.updated_at,
   }))
@@ -185,6 +187,7 @@ export async function pushAppDataToCloud(userId: string, data: AppData): Promise
         start_date: d.startDate ?? null,
         hours_per_day: d.hoursPerDay ?? null,
         weekdays: d.weekdays ?? null,
+        completed_paths: d.completedPaths ?? [],
         created_at: d.createdAt,
         updated_at: d.updatedAt,
       }))

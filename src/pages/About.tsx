@@ -2,7 +2,7 @@ function About() {
   return (
     <div className="page" style={{ maxWidth: 680 }}>
       <h1 className="page-title" style={{ marginBottom: 24 }}>About Us</h1>
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 16, fontSize: 16, lineHeight: 1.8, color: 'var(--plum)' }}>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 16, fontSize: 16, lineHeight: 1.8, color: 'var(--mute)' }}>
         <p style={{ margin: 0 }}>
           Anywhere Path exists because most learning plans fail before they start — not from lack
           of ambition, but from a gap between "I want to learn this" and "here's exactly what I'll

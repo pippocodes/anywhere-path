@@ -113,4 +113,9 @@ export interface RoadmapDoc {
   startDate?: string // YYYY-MM-DD
   hoursPerDay?: number
   weekdays?: number[] // 0=Sun..6=Sat
+  // Leaf-node ids (see OutlineNode.id) checked off in the read-only view.
+  // Ids are position-based and stable across reparses of unchanged text, so
+  // this survives normal edits — only a restructure (reordering/adding
+  // sibling nodes) can shift which node an id points at.
+  completedPaths?: string[]
 }

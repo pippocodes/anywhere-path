@@ -1,5 +1,5 @@
-import { useMemo, useRef, useState } from 'react'
-import { Link } from 'react-router-dom'
+import { useEffect, useMemo, useRef, useState } from 'react'
+import { useNavigate, useSearchParams } from 'react-router-dom'
 import { AnimatePresence, motion } from 'framer-motion'
 import {
   DndContext,
@@ -16,11 +16,14 @@ import { useAuth } from '../context/AuthContext'
 import { parseOutline, serializeOutline, computeTotalMinutes, minutesToHours, formatHours } from '../utils/outlineParser'
 import { scheduleOutline, buildScheduleIndex, formatDateLabel } from '../utils/scheduler'
 import { renameNode, setNodeDuration, deleteNode, moveSibling } from '../utils/outlineTree'
+import { computeProgress } from '../utils/roadmapProgress'
 import { toDateStr } from '../utils/habits'
 import { OutlineEditorContext, type OutlineEditorApi } from '../context/OutlineEditorContext'
 import type { DurationUnit, OutlineNode } from '../types'
 import OutlineNodeView from '../components/OutlineNodeView'
+import OutlineTextEditor from '../components/OutlineTextEditor'
 import CountUp from '../components/motion/CountUp'
+import Button from '../components/ui/Button'
 
 const SAMPLE_OUTLINE = [
   'Data Structures & Algorithms (8w)',
@@ -42,11 +45,14 @@ const WEEKDAY_LABELS = ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa']
 function RoadmapOutline() {
   const { data, addRoadmapDoc, updateRoadmapDoc, deleteRoadmapDoc } = useApp()
   const { session } = useAuth()
+  const navigate = useNavigate()
+  const [searchParams, setSearchParams] = useSearchParams()
 
   const [title, setTitle] = useState('')
   const [outlineText, setOutlineText] = useState('')
   const [editingId, setEditingId] = useState<string | null>(null)
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null)
+  const [howToOpen, setHowToOpen] = useState(false)
 
   const [aiOpen, setAiOpen] = useState(false)
   const [aiGoal, setAiGoal] = useState('')
@@ -223,13 +229,16 @@ function RoadmapOutline() {
     if (!canSave) return
     const finalTitle = title.trim() || parsed.nodes[0].name
     const fields = { title: finalTitle, outlineText, startDate, hoursPerDay: Number(hoursPerDay) || 0, weekdays }
+    let savedId: string
     if (editingId) {
       updateRoadmapDoc(editingId, fields)
+      savedId = editingId
     } else {
-      const doc = addRoadmapDoc(fields)
-      setEditingId(doc.id)
+      savedId = addRoadmapDoc(fields).id
     }
     setTitle(finalTitle)
+    // Read-only-first: land on the saved roadmap's view, not back in the editor.
+    navigate(`/roadmap/${savedId}`)
   }
 
   function handleNew() {
@@ -266,21 +275,55 @@ function RoadmapOutline() {
     setConfirmDeleteId(null)
   }
 
+  // Arriving via "Edit as text" from the read-only view (/roadmap?edit=<id>)
+  // loads that doc straight into the editor.
+  useEffect(() => {
+    const editParam = searchParams.get('edit')
+    if (!editParam) return
+    handleEdit(editParam)
+    setSearchParams((prev) => {
+      const next = new URLSearchParams(prev)
+      next.delete('edit')
+      return next
+    }, { replace: true })
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchParams])
+
   return (
     <div className="page" style={{ maxWidth: 1100 }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: 12 }}>
-        <div>
-          <h1 className="page-title">Roadmap Builder</h1>
-          <p className="page-subtitle" style={{ marginBottom: 20 }}>
-            Type or paste an outline — indent with 2 spaces or a tab per level. Topic → Subtopic → Module →
-            Sub-module, up to 4 levels deep. Add a duration at the end of any line, like{' '}
-            <code>(2h)</code>, <code>(45m)</code>, <code>(3d)</code> or <code>(2w)</code>.
-          </p>
-        </div>
-        <p style={{ fontSize: 13, color: 'var(--mute)' }}>
-          Have an existing course? <Link to="/courses" style={{ textDecoration: 'underline' }}>Build its roadmap the classic way</Link>.
-        </p>
-      </div>
+      <h1 className="page-title">Roadmap Builder</h1>
+      <p className="page-subtitle" style={{ marginBottom: 16 }}>
+        Write your skill as a plain indented outline — the preview builds itself as you type.
+      </p>
+
+      <button
+        type="button"
+        onClick={() => setHowToOpen((v) => !v)}
+        className="btn-outline"
+        style={{ fontSize: 13, marginBottom: howToOpen ? 10 : 20, display: 'inline-flex', alignItems: 'center', gap: 6 }}
+      >
+        <motion.span animate={{ rotate: howToOpen ? 90 : 0 }} transition={{ duration: 0.2 }} style={{ display: 'inline-block' }}>
+          ›
+        </motion.span>
+        How to write it
+      </button>
+      <AnimatePresence initial={false}>
+        {howToOpen && (
+          <motion.div
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: 'auto' }}
+            exit={{ opacity: 0, height: 0 }}
+            transition={{ duration: 0.25, ease: [0.2, 0.8, 0.2, 1] }}
+            style={{ overflow: 'hidden' }}
+          >
+            <p className="page-subtitle" style={{ marginBottom: 20, fontSize: 13.5 }}>
+              Indent with 2 spaces or a tab per level — Topic → Subtopic → Module → Sub-module, up to 4 levels
+              deep. Add a duration at the end of any line, like <code>(2h)</code>, <code>(45m)</code>,{' '}
+              <code>(3d)</code> or <code>(2w)</code>.
+            </p>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       <input
         value={title}
@@ -290,7 +333,7 @@ function RoadmapOutline() {
           width: '100%',
           padding: '12px 14px',
           borderRadius: 10,
-          border: '1px solid var(--pink-pale)',
+          border: '1px solid var(--line)',
           fontSize: 15,
           marginBottom: 16,
         }}
@@ -308,7 +351,7 @@ function RoadmapOutline() {
           <div style={{ fontWeight: 600, fontSize: 13.5, color: 'var(--mute)', marginBottom: 10 }}>
             Generate with AI
           </div>
-          <p style={{ fontSize: 12.5, color: 'var(--plum)', marginBottom: 12 }}>
+          <p style={{ fontSize: 12.5, color: 'var(--mute)', marginBottom: 12 }}>
             Describe what you want to learn and how much time you have — e.g. "learn data structures in 8 weeks,
             1h/day". You can edit the result before saving.
           </p>
@@ -337,7 +380,7 @@ function RoadmapOutline() {
                 onChange={(e) => setAiGoal(e.target.value)}
                 placeholder="e.g. learn data structures in 8 weeks, 1h/day"
                 disabled={aiLoading}
-                style={{ flex: 1, padding: '10px 14px', borderRadius: 10, border: '1px solid var(--pink-pale)', fontSize: 14 }}
+                style={{ flex: 1, padding: '10px 14px', borderRadius: 10, border: '1px solid var(--line)', fontSize: 14 }}
               />
               <button className="btn" type="submit" disabled={aiLoading || !aiGoal.trim()}>
                 {aiLoading ? 'Generating…' : 'Generate'}
@@ -358,7 +401,7 @@ function RoadmapOutline() {
         </motion.form>
       ) : (
         <button className="btn-secondary btn" style={{ marginBottom: 16 }} onClick={() => setAiOpen(true)}>
-          ✨ Generate with AI
+          Generate with AI
         </button>
       )}
 
@@ -386,7 +429,7 @@ function RoadmapOutline() {
             />
           </div>
           <div>
-            <label style={{ display: 'block', fontWeight: 600, fontSize: 13.5, color: 'var(--plum)', marginBottom: 8 }}>
+            <label style={{ display: 'block', fontWeight: 600, fontSize: 13.5, color: 'var(--mute)', marginBottom: 8 }}>
               Study Days
             </label>
             <div style={{ display: 'flex', gap: 6 }} role="group" aria-label="Study days">
@@ -402,9 +445,9 @@ function RoadmapOutline() {
                       width: 36,
                       height: 36,
                       borderRadius: 9,
-                      border: '1px solid var(--pink-pale)',
-                      background: active ? 'var(--pink)' : 'var(--card-bg)',
-                      color: active ? 'var(--bg)' : 'var(--mute)',
+                      border: '1px solid var(--line)',
+                      background: active ? 'var(--rose)' : 'var(--ink-2)',
+                      color: active ? 'var(--ink)' : 'var(--mute)',
                       fontWeight: 700,
                       fontSize: 12.5,
                       transition: 'background 0.15s ease, color 0.15s ease',
@@ -421,24 +464,23 @@ function RoadmapOutline() {
 
       <div className="outline-layout">
         <div>
-          <textarea
-            className="outline-textarea"
+          <OutlineTextEditor
             value={outlineText}
-            onChange={(e) => setOutlineText(e.target.value)}
+            onChange={setOutlineText}
             placeholder={`Web Development (2w)\n  Frontend Basics\n    HTML Basics (4h)\n    CSS Fundamentals (5h)\n  Shipping It\n    Deploy (2h)`}
-            spellCheck={false}
+            errors={parsed.errors}
           />
           <div style={{ display: 'flex', gap: 10, marginTop: 12, flexWrap: 'wrap' }}>
-            <button className="btn" disabled={!canSave} onClick={handleSave}>
+            <Button disabled={!canSave} onClick={handleSave}>
               {editingId ? 'Update Roadmap' : 'Save Roadmap'}
-            </button>
+            </Button>
             {outlineText === '' && (
-              <button className="btn-secondary btn" onClick={() => setOutlineText(SAMPLE_OUTLINE)}>
-                Load an Example
-              </button>
+              <Button variant="secondary" onClick={() => setOutlineText(SAMPLE_OUTLINE)}>
+                Example
+              </Button>
             )}
             {(outlineText !== '' || editingId) && (
-              <button className="btn-outline" style={{ color: 'var(--plum)' }} onClick={handleNew}>
+              <button className="btn-outline" style={{ color: 'var(--mute)' }} onClick={handleNew}>
                 Start a New Roadmap
               </button>
             )}
@@ -506,7 +548,7 @@ function RoadmapOutline() {
                   <CountUp value={minutesToHours(totalMinutes)} decimals={totalMinutes % 60 === 0 ? 0 : 1} suffix="h" /> total
                 </span>
               </div>
-              <div style={{ marginBottom: 14, fontSize: 12.5, color: 'var(--plum)' }}>
+              <div style={{ marginBottom: 14, fontSize: 12.5, color: 'var(--mute)' }}>
                 {schedule.finishDate ? (
                   <>
                     Estimated finish: <strong>{formatDateLabel(schedule.finishDate)}</strong> ·{' '}
@@ -546,18 +588,30 @@ function RoadmapOutline() {
                 hoursPerDay: doc.hoursPerDay ?? 2,
                 weekdays: doc.weekdays ?? DEFAULT_WEEKDAYS,
               })
+              const docProgress = computeProgress(docParsed.nodes, doc.completedPaths)
               return (
-                <div key={doc.id} className="card outline-doc-card">
+                <div
+                  key={doc.id}
+                  className="card card-sweep outline-doc-card"
+                  onClick={() => navigate(`/roadmap/${doc.id}`)}
+                  role="button"
+                  tabIndex={0}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') navigate(`/roadmap/${doc.id}`)
+                  }}
+                  style={{ cursor: 'pointer' }}
+                >
                   <div>
                     <div style={{ fontWeight: 700, fontSize: 15 }}>{doc.title}</div>
                     <div style={{ fontSize: 12.5, color: 'var(--mute)', marginTop: 2 }}>
                       {docParsed.nodes.length} topic{docParsed.nodes.length === 1 ? '' : 's'} · {formatHours(docMinutes)} total
                       {docSchedule.finishDate && <> · finishes {formatDateLabel(docSchedule.finishDate)}</>}
+                      {docProgress.totalCount > 0 && <> · {Math.round(docProgress.percent)}% done</>}
                     </div>
                   </div>
                   {confirmDeleteId === doc.id ? (
-                    <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
-                      <span style={{ fontSize: 13, color: 'var(--plum)' }}>Delete this roadmap?</span>
+                    <div style={{ display: 'flex', gap: 10, alignItems: 'center' }} onClick={(e) => e.stopPropagation()}>
+                      <span style={{ fontSize: 13, color: 'var(--mute)' }}>Delete this roadmap?</span>
                       <button className="btn btn-danger" style={{ padding: '7px 14px', fontSize: 12.5 }} onClick={() => handleDelete(doc.id)}>
                         Yes, delete
                       </button>
@@ -566,14 +620,16 @@ function RoadmapOutline() {
                       </button>
                     </div>
                   ) : (
-                    <div style={{ display: 'flex', gap: 16 }}>
-                      <button className="btn-outline" onClick={() => handleEdit(doc.id)}>
-                        Edit
-                      </button>
-                      <button className="btn-outline" style={{ opacity: 0.75 }} onClick={() => setConfirmDeleteId(doc.id)}>
-                        Delete
-                      </button>
-                    </div>
+                    <button
+                      className="btn-outline"
+                      style={{ opacity: 0.75 }}
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        setConfirmDeleteId(doc.id)
+                      }}
+                    >
+                      Delete
+                    </button>
                   )}
                 </div>
               )

@@ -1,5 +1,5 @@
 import { lazy, Suspense } from 'react'
-import { Routes, Route, Outlet, useLocation } from 'react-router-dom'
+import { Routes, Route, useLocation } from 'react-router-dom'
 import { AnimatePresence, motion, useReducedMotion } from 'framer-motion'
 import Navbar from './components/Navbar'
 import PageLoading from './components/PageLoading'
@@ -12,9 +12,8 @@ import RoadmapDemo from './components/demo/RoadmapDemo'
 import HabitsDemo from './components/demo/HabitsDemo'
 
 const Home = lazy(() => import('./pages/Home'))
-const Courses = lazy(() => import('./pages/Courses'))
 const RoadmapOutline = lazy(() => import('./pages/RoadmapOutline'))
-const RoadmapBuilder = lazy(() => import('./pages/RoadmapBuilder'))
+const RoadmapView = lazy(() => import('./pages/RoadmapView'))
 const Habits = lazy(() => import('./pages/Habits'))
 const About = lazy(() => import('./pages/About'))
 const Help = lazy(() => import('./pages/Help'))
@@ -25,10 +24,6 @@ const Login = lazy(() => import('./pages/auth/Login'))
 const SignUp = lazy(() => import('./pages/auth/SignUp'))
 const ForgotPassword = lazy(() => import('./pages/auth/ForgotPassword'))
 const ResetPassword = lazy(() => import('./pages/auth/ResetPassword'))
-
-function RoadmapLayout() {
-  return <Outlet />
-}
 
 const PAGE_VARIANTS = {
   initial: { opacity: 0, y: 10 },
@@ -59,27 +54,27 @@ function AnimatedRoutes() {
             <Route path="/forgot-password" element={<ForgotPassword />} />
             <Route path="/reset-password" element={<ResetPassword />} />
             <Route
-              path="/courses"
-              element={
-                <ProtectedRoute demoHeading="Create a free account to manage your courses">
-                  <Courses />
-                </ProtectedRoute>
-              }
-            />
-            <Route
               path="/roadmap"
               element={
                 <ProtectedRoute
                   demo={<RoadmapDemo />}
                   demoBody="This is a preview with sample data. Sign up to write your own outline and save it."
                 >
-                  <RoadmapLayout />
+                  <RoadmapOutline />
                 </ProtectedRoute>
               }
-            >
-              <Route index element={<RoadmapOutline />} />
-              <Route path=":courseId" element={<RoadmapBuilder />} />
-            </Route>
+            />
+            <Route
+              path="/roadmap/:docId"
+              element={
+                <ProtectedRoute
+                  demo={<RoadmapDemo />}
+                  demoBody="This is a preview with sample data. Sign up to write your own outline and save it."
+                >
+                  <RoadmapView />
+                </ProtectedRoute>
+              }
+            />
             <Route
               path="/habits"
               element={
