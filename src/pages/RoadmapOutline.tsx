@@ -18,10 +18,12 @@ import { scheduleOutline, buildScheduleIndex, formatDateLabel } from '../utils/s
 import { renameNode, setNodeDuration, deleteNode, moveSibling } from '../utils/outlineTree'
 import { computeProgress } from '../utils/roadmapProgress'
 import { toDateStr } from '../utils/habits'
+import { makeId } from '../utils/id'
 import { OutlineEditorContext, type OutlineEditorApi } from '../context/OutlineEditorContext'
-import type { DurationUnit, OutlineNode } from '../types'
+import type { Course, DurationUnit, OutlineNode } from '../types'
 import OutlineNodeView from '../components/OutlineNodeView'
 import OutlineTextEditor from '../components/OutlineTextEditor'
+import CourseForm, { emptyFormValue, type CourseFormValue } from '../components/roadmapBuilder/CourseForm'
 import CountUp from '../components/motion/CountUp'
 import Button from '../components/ui/Button'
 import RevealHeading from '../components/ui/RevealHeading'
@@ -44,10 +46,12 @@ const DEFAULT_WEEKDAYS = [0, 1, 2, 3, 4, 5, 6]
 const WEEKDAY_LABELS = ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa']
 
 function RoadmapOutline() {
-  const { data, addRoadmapDoc, updateRoadmapDoc, deleteRoadmapDoc } = useApp()
+  const { data, addRoadmapDoc, updateRoadmapDoc, deleteRoadmapDoc, addCourse, updateCourse, setCourseModules } = useApp()
   const { session } = useAuth()
   const navigate = useNavigate()
   const [searchParams, setSearchParams] = useSearchParams()
+
+  const [courseForm, setCourseForm] = useState<CourseFormValue>(emptyFormValue())
 
   const [title, setTitle] = useState('')
   const [outlineText, setOutlineText] = useState('')
@@ -226,6 +230,22 @@ function RoadmapOutline() {
     reader.readAsText(file)
   }
 
+  function handleSaveCourse() {
+    const hoursPerDay = courseForm.hoursPerDay.trim() === '' ? undefined : Number(courseForm.hoursPerDay) || undefined
+    const newCourse: Course = {
+      id: makeId('course'),
+      name: courseForm.name.trim(),
+      modules: courseForm.modules,
+      platform: courseForm.platform.trim() || undefined,
+      instructor: courseForm.instructor.trim() || undefined,
+      startDate: courseForm.startDate || undefined,
+      hoursPerDay,
+    }
+    addCourse(newCourse)
+    setCourseForm(emptyFormValue())
+    navigate(`/courses/${newCourse.id}`)
+  }
+
   function handleSave() {
     if (!canSave) return
     const finalTitle = title.trim() || parsed.nodes[0].name
@@ -295,9 +315,22 @@ function RoadmapOutline() {
       <RevealHeading as="h1" className="page-title">
         Roadmap Builder
       </RevealHeading>
-      <p className="page-subtitle" style={{ marginBottom: 16 }}>
-        Write your skill as a plain indented outline — the preview builds itself as you type.
+      <p className="page-subtitle" style={{ marginBottom: 24 }}>
+        Build a course directly, or write one as an outline below — both end up in your Course Tracker with the
+        same progress and scheduling.
       </p>
+
+      <div style={{ marginBottom: 44 }}>
+        <h2 style={{ fontSize: 18, marginBottom: 14 }}>Create a course</h2>
+        <CourseForm value={courseForm} onChange={setCourseForm} onSave={handleSaveCourse} saveLabel="Save course" />
+      </div>
+
+      <div style={{ borderTop: '1px solid var(--line)', paddingTop: 36, marginBottom: 20 }}>
+        <h2 style={{ fontSize: 18, marginBottom: 6 }}>Outline Roadmaps</h2>
+        <p className="page-subtitle" style={{ marginBottom: 16, fontSize: 13.5 }}>
+          A separate saved-roadmap format: write or generate an indented outline and schedule it week by week.
+        </p>
+      </div>
 
       <button
         type="button"

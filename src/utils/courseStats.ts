@@ -10,9 +10,14 @@ export interface CourseStats {
   percent: number // 0-100, by watched time
 }
 
+/** Collects every topic under a module tree, however deep — modules can nest up to 3 levels under a course. */
+function collectTopics(modules: CourseModule[]): Topic[] {
+  return modules.flatMap((m) => [...m.topics, ...collectTopics(m.modules ?? [])])
+}
+
 /** Rolls up a course's lecture durations/watched-state into the numbers the summary row and progress ring need. */
 export function computeCourseStats(course: Pick<Course, 'modules'>): CourseStats {
-  const topics = course.modules.flatMap((m) => m.topics)
+  const topics = collectTopics(course.modules)
 
   let totalSeconds = 0
   let watchedSeconds = 0

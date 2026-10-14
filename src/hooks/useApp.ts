@@ -64,6 +64,12 @@ export function useApp() {
     [dispatch]
   )
 
+  /** Replaces a course's entire module tree in one shot — how the Roadmap Builder's form/text editors commit a save. */
+  const setCourseModules = useCallback(
+    (courseId: string, modules: CourseModule[]) => dispatch({ type: 'SET_COURSE_MODULES', courseId, modules }),
+    [dispatch]
+  )
+
   /** Adds one or many lectures (topics) to a module at once — the same action backs both the single-add form and bulk-add. */
   const addTopics = useCallback(
     (courseId: string, moduleId: string, inputs: { name: string; durationSeconds: number }[]): Topic[] => {
@@ -210,6 +216,7 @@ export function useApp() {
     renameModule,
     deleteModule,
     reorderModules,
+    setCourseModules,
     addTopics,
     updateTopic,
     deleteTopic,

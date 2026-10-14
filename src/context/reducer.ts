@@ -25,6 +25,10 @@ export type Action =
   | { type: 'RENAME_MODULE'; courseId: string; moduleId: string; name: string }
   | { type: 'DELETE_MODULE'; courseId: string; moduleId: string }
   | { type: 'REORDER_MODULES'; courseId: string; parentModuleId?: string | null; orderedIds: string[] }
+  // Replaces a course's whole module tree atomically — used when saving the
+  // Roadmap Builder's form/text editors, which (like RoadmapDoc.outlineText)
+  // build the full structure client-side before committing it in one shot.
+  | { type: 'SET_COURSE_MODULES'; courseId: string; modules: CourseModule[] }
   | { type: 'ADD_TOPICS'; courseId: string; moduleId: string; topics: Topic[] }
   | { type: 'UPDATE_TOPIC'; courseId: string; moduleId: string; topicId: string; patch: Partial<Pick<Topic, 'name' | 'durationSeconds' | 'hours'>> }
   | { type: 'DELETE_TOPIC'; courseId: string; moduleId: string; topicId: string }
@@ -182,6 +186,12 @@ export function appReducer(state: AppData, action: Action): AppData {
                 })),
               }
         ),
+      }
+
+    case 'SET_COURSE_MODULES':
+      return {
+        ...state,
+        courses: mapCourse(state.courses, action.courseId, (c) => ({ ...c, modules: action.modules })),
       }
 
     case 'ADD_TOPICS':
