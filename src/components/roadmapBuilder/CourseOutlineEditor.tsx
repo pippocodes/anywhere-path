@@ -73,7 +73,7 @@ function CourseOutlineEditor({
   }
 
   return (
-    <div>
+    <div id="course-outline-editor">
       <button
         type="button"
         onClick={() => setHowToOpen((v) => !v)}

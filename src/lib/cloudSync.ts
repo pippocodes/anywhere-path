@@ -168,6 +168,25 @@ export async function cloudHasAnyData(userId: string): Promise<boolean> {
 export async function pushAppDataToCloud(userId: string, data: AppData): Promise<void> {
   const client = requireClient()
 
+  // habit_categories goes first: courses.category_id and habits.category_id
+  // both carry a foreign key into it, so a brand-new category created in the
+  // same batch as a course/habit that references it has to exist here first,
+  // or that insert fails the FK constraint.
+  if (data.habitCategories.length > 0) {
+    const { error } = await client.from('habit_categories').upsert(
+      data.habitCategories.map((c) => ({
+        id: c.id,
+        user_id: userId,
+        name: c.name,
+        color: c.color,
+        archived: c.archived,
+        sort_order: c.order,
+      }))
+    )
+    if (error) throw error
+  }
+  await deleteMissing(client, 'habit_categories', userId, data.habitCategories.map((c) => c.id))
+
   if (data.courses.length > 0) {
     const { error } = await client.from('courses').upsert(
       data.courses.map((c) => ({
@@ -222,21 +241,6 @@ export async function pushAppDataToCloud(userId: string, data: AppData): Promise
     if (error) throw error
   }
   await deleteMissing(client, 'roadmap_docs', userId, data.roadmapDocs.map((d) => d.id))
-
-  if (data.habitCategories.length > 0) {
-    const { error } = await client.from('habit_categories').upsert(
-      data.habitCategories.map((c) => ({
-        id: c.id,
-        user_id: userId,
-        name: c.name,
-        color: c.color,
-        archived: c.archived,
-        sort_order: c.order,
-      }))
-    )
-    if (error) throw error
-  }
-  await deleteMissing(client, 'habit_categories', userId, data.habitCategories.map((c) => c.id))
 
   if (data.habits.length > 0) {
     const { error } = await client.from('habits').upsert(

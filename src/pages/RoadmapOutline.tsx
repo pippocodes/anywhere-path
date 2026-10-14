@@ -442,6 +442,7 @@ function RoadmapOutline() {
       </p>
 
       <div style={{ marginBottom: 44 }}>
+        <h2 style={{ fontSize: 18, marginBottom: 14 }}>Create a course</h2>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 12, marginBottom: 18 }}>
           <Pills
             options={[
