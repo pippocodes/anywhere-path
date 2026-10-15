@@ -1,8 +1,10 @@
 import { useState } from 'react'
 import { SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable'
 import { AnimatePresence, motion } from 'framer-motion'
-import type { Habit, HabitCategory, HabitMark } from '../../types'
+import type { Course, Habit, HabitCategory, HabitMark, Plan } from '../../types'
 import { cycleMark, monthCompletionPercent, computeCurrentStreak, isPerfectDay, isPerfectWeek, isPerfectMonth, toDateStr } from '../../utils/habits'
+import { findNextIncompleteTopic, findNextIncompletePlanStep } from '../../utils/nextIncomplete'
+import type { NextItemOffer } from './NextStepOfferModal'
 import HabitGridRow from './HabitGridRow'
 import CountUp from '../motion/CountUp'
 
@@ -11,6 +13,8 @@ export type CelebrationKind = 'day' | 'week' | 'month'
 interface Props {
   category: HabitCategory
   habits: Habit[] // already filtered to this category + non-archived, sorted by order
+  courses: Course[]
+  plans: Plan[]
   dates: string[]
   dayNumbers: number[]
   month: number
@@ -18,10 +22,11 @@ interface Props {
   referenceDate: Date
   onCycle: (habitId: string, date: string) => void
   onCelebrate: (kind: CelebrationKind) => void
+  onOfferNext: (offer: NextItemOffer) => void
   onManage?: () => void // opens the manage sheet focused on this category
 }
 
-function CategorySection({ category, habits, dates, dayNumbers, month, year, referenceDate, onCycle, onCelebrate, onManage }: Props) {
+function CategorySection({ category, habits, courses, plans, dates, dayNumbers, month, year, referenceDate, onCycle, onCelebrate, onOfferNext, onManage }: Props) {
   const [collapsed, setCollapsed] = useState(false)
 
   const percent = monthCompletionPercent(habits, month, year)
@@ -35,7 +40,21 @@ function CategorySection({ category, habits, dates, dayNumbers, month, year, ref
     const target = habits.find((h) => h.id === habitId)
     const nextMark = cycleMark(target?.marks[date])
     onCycle(habitId, date)
-    if (nextMark !== 2) return
+    if (nextMark !== 2 || !target) return
+
+    if (target.courseId) {
+      const course = courses.find((c) => c.id === target.courseId)
+      const next = course && findNextIncompleteTopic(course)
+      if (course && next) {
+        onOfferNext({ kind: 'course', habitName: target.name, courseId: course.id, moduleId: next.moduleId, topicId: next.topicId, title: next.title })
+      }
+    } else if (target.planId) {
+      const plan = plans.find((p) => p.id === target.planId)
+      const next = plan && findNextIncompletePlanStep(plan)
+      if (plan && next) {
+        onOfferNext({ kind: 'plan', habitName: target.name, planId: plan.id, stepId: next.stepId, title: next.title })
+      }
+    }
 
     const done: HabitMark = 2
     const hypothetical = habits.map((h) => (h.id === habitId ? { ...h, marks: { ...h.marks, [date]: done } } : h))
@@ -161,6 +180,8 @@ function CategorySection({ category, habits, dates, dayNumbers, month, year, ref
                         <HabitGridRow
                           key={habit.id}
                           habit={habit}
+                          courses={courses}
+                          plans={plans}
                           dates={dates}
                           referenceDate={referenceDate}
                           onCycle={handleCellClick}

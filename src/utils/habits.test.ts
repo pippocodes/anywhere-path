@@ -17,7 +17,7 @@ import {
 } from './habits'
 
 function habit(marks: Record<string, 0 | 1 | 2>, overrides: Partial<Habit> = {}): Habit {
-  return { id: 'h1', name: 'Test', courseId: null, categoryId: null, archived: false, order: 0, marks, ...overrides }
+  return { id: 'h1', name: 'Test', courseId: null, planId: null, categoryId: null, targetSeconds: null, archived: false, order: 0, marks, ...overrides }
 }
 
 describe('toDateStr / parseDateStr', () => {

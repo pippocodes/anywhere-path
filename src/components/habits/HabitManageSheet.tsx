@@ -1,8 +1,9 @@
 import { useState, type FormEvent } from 'react'
-import type { Habit, HabitCategory } from '../../types'
+import type { Course, Habit, HabitCategory, Plan } from '../../types'
 import { CATEGORY_COLOR_PRESETS } from './colorPresets'
 import Modal from '../ui/Modal'
 import Button from '../ui/Button'
+import AddHabitForm, { type AddHabitInput } from './AddHabitForm'
 
 interface Props {
   open: boolean
@@ -12,7 +13,9 @@ interface Props {
   habitsByCategory: Map<string, Habit[]>
   uncategorizedHabits: Habit[]
   archivedHabits: Habit[]
-  addHabit: (name: string, categoryId: string | null) => void
+  courses: Course[]
+  plans: Plan[]
+  addHabit: (input: AddHabitInput & { categoryId: string | null }) => void
   renameHabit: (id: string, name: string) => void
   archiveHabit: (id: string, archived?: boolean) => void
   deleteHabit: (id: string) => void
@@ -32,6 +35,8 @@ function HabitManageSheet({
   habitsByCategory,
   uncategorizedHabits,
   archivedHabits,
+  courses,
+  plans,
   addHabit,
   renameHabit,
   archiveHabit,
@@ -66,10 +71,12 @@ function HabitManageSheet({
             key={cat.id}
             category={cat}
             habits={habitsByCategory.get(cat.id) ?? []}
+            courses={courses}
+            plans={plans}
             onRename={(name) => renameHabitCategory(cat.id, name)}
             onSetColor={(color) => setHabitCategoryColor(cat.id, color)}
             onArchive={() => archiveHabitCategory(cat.id)}
-            onAddHabit={(name) => addHabit(name, cat.id)}
+            onAddHabit={(input) => addHabit({ ...input, categoryId: cat.id })}
             onRenameHabit={renameHabit}
             onArchiveHabit={(id) => archiveHabit(id)}
           />
@@ -179,6 +186,8 @@ function HabitManageSheet({
 function CategoryEditor({
   category,
   habits,
+  courses,
+  plans,
   onRename,
   onSetColor,
   onArchive,
@@ -188,17 +197,18 @@ function CategoryEditor({
 }: {
   category: HabitCategory
   habits: Habit[]
+  courses: Course[]
+  plans: Plan[]
   onRename: (name: string) => void
   onSetColor: (color: string) => void
   onArchive: () => void
-  onAddHabit: (name: string) => void
+  onAddHabit: (input: AddHabitInput) => void
   onRenameHabit: (id: string, name: string) => void
   onArchiveHabit: (id: string) => void
 }) {
   const [nameDraft, setNameDraft] = useState(category.name)
   const [pickingColor, setPickingColor] = useState(false)
   const [addingHabit, setAddingHabit] = useState(false)
-  const [newHabitName, setNewHabitName] = useState('')
 
   function commitName() {
     const trimmed = nameDraft.trim()
@@ -206,12 +216,8 @@ function CategoryEditor({
     else setNameDraft(category.name)
   }
 
-  function handleAddHabit(e: FormEvent) {
-    e.preventDefault()
-    const trimmed = newHabitName.trim()
-    if (!trimmed) return
-    onAddHabit(trimmed)
-    setNewHabitName('')
+  function handleAddHabit(input: AddHabitInput) {
+    onAddHabit(input)
     setAddingHabit(false)
   }
 
@@ -265,21 +271,7 @@ function CategoryEditor({
       </div>
 
       {addingHabit ? (
-        <form onSubmit={handleAddHabit} style={{ display: 'flex', gap: 8, marginTop: 10 }}>
-          <input
-            autoFocus
-            value={newHabitName}
-            onChange={(e) => setNewHabitName(e.target.value)}
-            placeholder="New habit name"
-            style={{ flex: 1, padding: '7px 10px', borderRadius: 8, border: '1px solid var(--line)', fontSize: 13, background: 'var(--surface)', color: 'var(--cream)' }}
-          />
-          <Button type="submit" size="sm">
-            Add
-          </Button>
-          <Button type="button" variant="secondary" size="sm" onClick={() => setAddingHabit(false)}>
-            Cancel
-          </Button>
-        </form>
+        <AddHabitForm courses={courses} plans={plans} onAdd={handleAddHabit} onCancel={() => setAddingHabit(false)} />
       ) : (
         <button className="btn-outline" style={{ marginTop: 10, fontSize: 12.5 }} onClick={() => setAddingHabit(true)}>
           + Add habit

@@ -281,6 +281,22 @@ function RoadmapOutline() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [searchParams])
 
+  // Arriving via a linked habit's "open plan" chip (/roadmap?editPlan=<id>)
+  // loads that plan straight into the builder for editing.
+  useEffect(() => {
+    const planId = searchParams.get('editPlan')
+    if (!planId) return
+    const plan = data.plans.find((p) => p.id === planId)
+    if (!plan) return
+    setEditingPlan(plan)
+    setSearchParams((prev) => {
+      const next = new URLSearchParams(prev)
+      next.delete('editPlan')
+      return next
+    }, { replace: true })
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchParams, data.plans])
+
   return (
     <div className="page" style={{ maxWidth: 1100 }}>
       <RevealHeading as="h1" className="page-title">

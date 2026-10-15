@@ -348,7 +348,13 @@ export function appReducer(state: AppData, action: Action): AppData {
       }
 
     case 'DELETE_PLAN':
-      return { ...state, plans: state.plans.filter((p) => p.id !== action.id) }
+      return {
+        ...state,
+        plans: state.plans.filter((p) => p.id !== action.id),
+        // Mirrors DELETE_COURSE: a habit linked to a deleted plan is
+        // unlinked, not deleted.
+        habits: state.habits.map((h) => (h.planId !== action.id ? h : { ...h, planId: null })),
+      }
 
     case 'TOGGLE_PLAN_STEP':
       return {

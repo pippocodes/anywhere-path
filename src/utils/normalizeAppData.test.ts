@@ -18,20 +18,24 @@ describe('normalizeAppData', () => {
         { id: 'h2', name: 'Stretch', courseId: null, marks: {} },
       ],
     })
-    expect(result.habits[0]).toMatchObject({ id: 'h1', categoryId: null, archived: false, order: 0 })
-    expect(result.habits[1]).toMatchObject({ id: 'h2', categoryId: null, archived: false, order: 1 })
+    expect(result.habits[0]).toMatchObject({ id: 'h1', categoryId: null, planId: null, targetSeconds: null, archived: false, order: 0 })
+    expect(result.habits[1]).toMatchObject({ id: 'h2', categoryId: null, planId: null, targetSeconds: null, archived: false, order: 1 })
   })
 
   it('leaves already-current habits and categories untouched', () => {
     const result = normalizeAppData({
-      habits: [{ id: 'h1', name: 'Read', courseId: null, categoryId: 'c1', marks: {}, archived: true, order: 5 }],
+      habits: [
+        { id: 'h1', name: 'Read', courseId: null, planId: null, categoryId: 'c1', targetSeconds: null, marks: {}, archived: true, order: 5 },
+      ],
       habitCategories: [{ id: 'c1', name: 'Mind', color: '#ff4d6d', archived: false, order: 2 }],
     })
     expect(result.habits[0]).toEqual({
       id: 'h1',
       name: 'Read',
       courseId: null,
+      planId: null,
       categoryId: 'c1',
+      targetSeconds: null,
       marks: {},
       archived: true,
       order: 5,

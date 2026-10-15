@@ -66,7 +66,15 @@ export interface Habit {
   id: string
   name: string
   courseId: string | null
+  // References a Plan id — a habit can be linked to a course OR a plan
+  // (never both), set only at creation time via "Add from...". null = not
+  // linked to a plan.
+  planId: string | null
   categoryId: string | null // null = uncategorized (pre-dates categories, or deliberately unsorted)
+  // Daily target time in seconds, shown next to the habit — pulled from the
+  // linked course's/plan's hoursPerDay at creation time, or set manually for
+  // a custom habit. null = no target (a plain tick-it-off habit).
+  targetSeconds: number | null
   marks: Record<string, HabitMark>
   archived: boolean
   order: number

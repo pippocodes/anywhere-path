@@ -4,7 +4,7 @@ import { toDateStr } from './habits'
 import { generateSuggestions } from './suggestions'
 
 function habit(id: string, marks: Record<string, 0 | 1 | 2>, categoryId: string | null = null): Habit {
-  return { id, name: id, courseId: null, categoryId, archived: false, order: 0, marks }
+  return { id, name: id, courseId: null, planId: null, categoryId, targetSeconds: null, archived: false, order: 0, marks }
 }
 
 function category(id: string, name = id): HabitCategory {

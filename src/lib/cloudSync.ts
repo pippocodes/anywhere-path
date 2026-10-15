@@ -71,7 +71,9 @@ type HabitRow = {
   id: string
   name: string
   course_id: string | null
+  plan_id: string | null
   category_id: string | null
+  target_seconds: number | null
   marks: Habit['marks']
   archived: boolean
   sort_order: number
@@ -92,7 +94,10 @@ export async function fetchCloudData(userId: string): Promise<AppData> {
       .select('id, title, outline_text, start_date, hours_per_day, weekdays, completed_paths, created_at, updated_at')
       .eq('user_id', userId),
     client.from('habit_categories').select('id, name, color, archived, sort_order').eq('user_id', userId),
-    client.from('habits').select('id, name, course_id, category_id, marks, archived, sort_order').eq('user_id', userId),
+    client
+      .from('habits')
+      .select('id, name, course_id, plan_id, category_id, target_seconds, marks, archived, sort_order')
+      .eq('user_id', userId),
     client
       .from('plans')
       .select('id, title, category_id, source_type, source_course_id, steps, start_date, days, hours_per_day, weekdays, created_at, updated_at')
@@ -150,7 +155,9 @@ export async function fetchCloudData(userId: string): Promise<AppData> {
     id: r.id,
     name: r.name,
     courseId: r.course_id,
+    planId: r.plan_id,
     categoryId: r.category_id,
+    targetSeconds: r.target_seconds,
     marks: r.marks ?? {},
     archived: r.archived,
     order: r.sort_order,
@@ -315,7 +322,9 @@ export async function pushAppDataToCloud(userId: string, data: AppData): Promise
         user_id: userId,
         name: h.name,
         course_id: h.courseId,
+        plan_id: h.planId,
         category_id: h.categoryId,
+        target_seconds: h.targetSeconds,
         marks: h.marks,
         archived: h.archived,
         sort_order: h.order,

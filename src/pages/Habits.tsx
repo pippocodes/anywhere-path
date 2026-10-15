@@ -35,6 +35,7 @@ import ProgressRing from '../components/habits/ProgressRing'
 import SuggestionsPanel from '../components/habits/SuggestionsPanel'
 import Confetti from '../components/habits/Confetti'
 import HabitManageSheet from '../components/habits/HabitManageSheet'
+import NextStepOfferModal, { type NextItemOffer } from '../components/habits/NextStepOfferModal'
 import MonthStats from '../components/habits/MonthStats'
 import CategoryYearRings from '../components/habits/CategoryYearRings'
 import DailyCompletionChart from '../components/habits/charts/DailyCompletionChart'
@@ -84,6 +85,8 @@ function Habits() {
     setHabitCategoryColor,
     archiveHabitCategory,
     deleteHabitCategory,
+    toggleTopic,
+    togglePlanStep,
   } = useApp()
 
   const referenceDate = useMemo(() => new Date(), [])
@@ -93,6 +96,14 @@ function Habits() {
   const [year, setYear] = useState(today.getFullYear())
   const [celebration, setCelebration] = useState<CelebrationKind | null>(null)
   const [manageOpen, setManageOpen] = useState(false)
+  const [nextOffer, setNextOffer] = useState<NextItemOffer | null>(null)
+
+  function handleConfirmNextOffer() {
+    if (!nextOffer) return
+    if (nextOffer.kind === 'course') toggleTopic(nextOffer.courseId, nextOffer.moduleId, nextOffer.topicId)
+    else togglePlanStep(nextOffer.planId, nextOffer.stepId)
+    setNextOffer(null)
+  }
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 4 } }),
@@ -305,6 +316,8 @@ function Habits() {
                     <CategorySection
                       category={category}
                       habits={habitsByCategory.get(category.id) ?? []}
+                      courses={data.courses}
+                      plans={data.plans}
                       dates={dates}
                       dayNumbers={dayNumbers}
                       month={month}
@@ -312,6 +325,7 @@ function Habits() {
                       referenceDate={referenceDate}
                       onCycle={cycleHabitMark}
                       onCelebrate={setCelebration}
+                      onOfferNext={setNextOffer}
                       onManage={() => setManageOpen(true)}
                     />
                   </motion.div>
@@ -322,6 +336,8 @@ function Habits() {
                     <CategorySection
                       category={{ id: UNCATEGORIZED_ID, name: 'Uncategorized', color: 'var(--mute)', archived: false, order: -1 }}
                       habits={uncategorized}
+                      courses={data.courses}
+                      plans={data.plans}
                       dates={dates}
                       dayNumbers={dayNumbers}
                       month={month}
@@ -329,6 +345,7 @@ function Habits() {
                       referenceDate={referenceDate}
                       onCycle={cycleHabitMark}
                       onCelebrate={setCelebration}
+                      onOfferNext={setNextOffer}
                       onManage={() => setManageOpen(true)}
                     />
                   </motion.div>
@@ -385,7 +402,9 @@ function Habits() {
         habitsByCategory={habitsByCategory}
         uncategorizedHabits={uncategorized}
         archivedHabits={archivedHabits}
-        addHabit={(name, categoryId) => addHabit(name, null, categoryId)}
+        courses={data.courses}
+        plans={data.plans}
+        addHabit={(input) => addHabit(input.name, input.categoryId, { courseId: input.courseId, planId: input.planId, targetSeconds: input.targetSeconds })}
         renameHabit={renameHabit}
         archiveHabit={archiveHabit}
         deleteHabit={deleteHabit}
@@ -395,6 +414,8 @@ function Habits() {
         archiveHabitCategory={archiveHabitCategory}
         deleteHabitCategory={deleteHabitCategory}
       />
+
+      <NextStepOfferModal offer={nextOffer} onConfirm={handleConfirmNextOffer} onDismiss={() => setNextOffer(null)} />
     </div>
   )
 }

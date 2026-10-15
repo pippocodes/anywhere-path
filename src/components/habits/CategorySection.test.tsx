@@ -1,5 +1,6 @@
 import { describe, it, expect, vi } from 'vitest'
 import { render, screen, fireEvent } from '@testing-library/react'
+import { MemoryRouter } from 'react-router-dom'
 import { useState } from 'react'
 import CategorySection, { type CelebrationKind } from './CategorySection'
 import type { Habit, HabitCategory } from '../../types'
@@ -24,22 +25,27 @@ function Harness({
     )
   }
   return (
-    <CategorySection
-      category={category}
-      habits={habits}
-      dates={['2024-01-01']}
-      dayNumbers={[1]}
-      month={0}
-      year={2024}
-      referenceDate={new Date(2024, 0, 1)}
-      onCycle={handleCycle}
-      onCelebrate={onCelebrate}
-    />
+    <MemoryRouter>
+      <CategorySection
+        category={category}
+        habits={habits}
+        courses={[]}
+        plans={[]}
+        dates={['2024-01-01']}
+        dayNumbers={[1]}
+        month={0}
+        year={2024}
+        referenceDate={new Date(2024, 0, 1)}
+        onCycle={handleCycle}
+        onCelebrate={onCelebrate}
+        onOfferNext={() => {}}
+      />
+    </MemoryRouter>
   )
 }
 
 function habit(id: string, order: number, marks: Record<string, 0 | 1 | 2> = {}): Habit {
-  return { id, name: id, courseId: null, categoryId: 'c1', archived: false, order, marks }
+  return { id, name: id, courseId: null, planId: null, categoryId: 'c1', targetSeconds: null, archived: false, order, marks }
 }
 
 describe('CategorySection celebration trigger', () => {

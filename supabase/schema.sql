@@ -351,6 +351,17 @@ create policy "plans_delete_own" on public.plans
   for delete using (auth.uid() = user_id);
 
 -- ---------------------------------------------------------------------
+-- habits: link to a plan, and an optional daily target time (Roadmap
+-- Builder Step 4 — "habit tracker ties into courses and roadmaps").
+-- Additive only: existing habit rows get plan_id/target_seconds = null,
+-- same meaning as "not linked" / "no target" they already had.
+-- ---------------------------------------------------------------------
+alter table public.habits add column if not exists plan_id text references public.plans (id) on delete set null;
+alter table public.habits add column if not exists target_seconds integer;
+
+create index if not exists habits_plan_id_idx on public.habits (plan_id);
+
+-- ---------------------------------------------------------------------
 -- Done. Every table above has RLS enabled with policies that scope
 -- every select/insert/update/delete to `auth.uid() = user_id` — a user
 -- can only ever see or change their own rows, enforced by Postgres

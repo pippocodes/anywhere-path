@@ -111,9 +111,23 @@ export function useApp() {
   )
 
   const addHabit = useCallback(
-    (name: string, courseId: string | null = null, categoryId: string | null = null): Habit => {
+    (
+      name: string,
+      categoryId: string | null = null,
+      options?: { courseId?: string | null; planId?: string | null; targetSeconds?: number | null }
+    ): Habit => {
       const order = data.habits.filter((h) => h.categoryId === categoryId).length
-      const habit: Habit = { id: makeId('habit'), name, courseId, categoryId, marks: {}, archived: false, order }
+      const habit: Habit = {
+        id: makeId('habit'),
+        name,
+        courseId: options?.courseId ?? null,
+        planId: options?.planId ?? null,
+        categoryId,
+        targetSeconds: options?.targetSeconds ?? null,
+        marks: {},
+        archived: false,
+        order,
+      }
       dispatch({ type: 'ADD_HABIT', habit })
       return habit
     },

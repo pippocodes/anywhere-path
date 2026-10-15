@@ -14,6 +14,8 @@ export function normalizeAppData(partial: Partial<AppData> | null | undefined): 
   const habits: Habit[] = (base.habits ?? []).map((h, i) => ({
     ...h,
     categoryId: h.categoryId ?? null,
+    planId: h.planId ?? null,
+    targetSeconds: h.targetSeconds ?? null,
     archived: h.archived ?? false,
     order: h.order ?? i,
   }))
