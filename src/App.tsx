@@ -18,6 +18,7 @@ const CourseDetail = lazy(() => import('./pages/CourseDetail'))
 const RoadmapOutline = lazy(() => import('./pages/RoadmapOutline'))
 const RoadmapView = lazy(() => import('./pages/RoadmapView'))
 const Habits = lazy(() => import('./pages/Habits'))
+const Friends = lazy(() => import('./pages/Friends'))
 const About = lazy(() => import('./pages/About'))
 const Help = lazy(() => import('./pages/Help'))
 const Profile = lazy(() => import('./pages/Profile'))
@@ -110,6 +111,14 @@ function AnimatedRoutes() {
                   demoBody="This is a preview with sample data. Sign up to start tracking your own habits."
                 >
                   <Habits />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/friends"
+              element={
+                <ProtectedRoute demoHeading="Create a free account to add friends and share tracking">
+                  <Friends />
                 </ProtectedRoute>
               }
             />

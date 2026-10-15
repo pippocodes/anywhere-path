@@ -3,12 +3,14 @@ import { NavLink, useNavigate } from 'react-router-dom'
 import { AnimatePresence, motion } from 'framer-motion'
 import { useAuth } from '../context/AuthContext'
 import Button from './ui/Button'
+import NotificationBell from './friends/NotificationBell'
 
 const NAV_ITEMS = [
   { to: '/', label: 'Home', end: true },
   { to: '/courses', label: 'Course Tracker' },
   { to: '/roadmap', label: 'Roadmap Builder' },
   { to: '/habits', label: 'Habit Tracker' },
+  { to: '/friends', label: 'Friends' },
   { to: '/about', label: 'About Us' },
   { to: '/help', label: 'Help' },
 ]
@@ -118,6 +120,9 @@ function Navbar() {
         </div>
 
         <div className="navbar-actions" style={{ display: 'flex', alignItems: 'center', gap: 14, flexShrink: 0 }}>
+          {user ? (
+            <NotificationBell />
+          ) : null}
           {user ? (
             <div ref={menuRef} style={{ position: 'relative' }} className="navbar-account">
               <button

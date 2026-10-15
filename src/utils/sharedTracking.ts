@@ -1,0 +1,69 @@
+import type { HabitMark } from '../types'
+import { toDateStr } from './habits'
+
+/** One row from shared_item_logs — a single member's state on a single day. */
+export interface SharedLog {
+  userId: string
+  date: string // YYYY-MM-DD
+  state: HabitMark // 0 none, 1 partial, 2 full — same semantics as a personal habit mark
+}
+
+function addDays(date: Date, days: number): Date {
+  const next = new Date(date)
+  next.setDate(next.getDate() + days)
+  return next
+}
+
+/** This member's state for one date, or 0 if nothing logged. */
+export function stateFor(logs: SharedLog[], userId: string, date: string): HabitMark {
+  return logs.find((l) => l.userId === userId && l.date === date)?.state ?? 0
+}
+
+/**
+ * The shared streak: consecutive days (ending today, or yesterday if today
+ * isn't fully done by everyone yet) on which EVERY given member was fully
+ * done (state 2) — mirrors computeCurrentStreak's "only full days count,
+ * today-in-progress isn't a broken streak" rule from the personal tracker.
+ */
+export function computeSharedStreak(logs: SharedLog[], memberIds: string[], today: Date = new Date()): number {
+  if (memberIds.length === 0) return 0
+
+  function allDoneOn(date: string): boolean {
+    return memberIds.every((id) => stateFor(logs, id, date) === 2)
+  }
+
+  let cursor = today
+  if (!allDoneOn(toDateStr(cursor))) cursor = addDays(cursor, -1)
+
+  let streak = 0
+  while (allDoneOn(toDateStr(cursor))) {
+    streak++
+    cursor = addDays(cursor, -1)
+  }
+  return streak
+}
+
+export interface FinishOrderEntry {
+  userId: string
+  finishedAt: string // ISO timestamp this member's state for `date` was last written
+}
+
+/**
+ * Members who are fully done (state 2) on `date`, ordered by who got there
+ * first — needs each log row's `updatedAt` (the DB's own timestamp), not
+ * just the date, since multiple members can finish the same day.
+ */
+export function finishOrderFor(
+  logsWithTimestamps: { userId: string; date: string; state: HabitMark; updatedAt: string }[],
+  date: string
+): FinishOrderEntry[] {
+  return logsWithTimestamps
+    .filter((l) => l.date === date && l.state === 2)
+    .sort((a, b) => a.updatedAt.localeCompare(b.updatedAt))
+    .map((l) => ({ userId: l.userId, finishedAt: l.updatedAt }))
+}
+
+/** True once every member is fully done for `date`. */
+export function isTogetherComplete(logs: SharedLog[], memberIds: string[], date: string): boolean {
+  return memberIds.length > 0 && memberIds.every((id) => stateFor(logs, id, date) === 2)
+}
