@@ -1,3 +1,4 @@
+import { useId } from 'react'
 import { motion } from 'framer-motion'
 import CountUp from '../motion/CountUp'
 
@@ -6,10 +7,12 @@ interface Props {
   size?: number
   color?: string
   label?: string
+  gradient?: boolean // uses the accent->accent-2 gradient instead of a flat stroke color — the Month tab's big hero ring
 }
 
 /** An animated progress ring — SVG stroke-dashoffset (not conic-gradient, which can't be smoothly transitioned across browsers) so it genuinely animates whenever `percent` changes, not just snaps. */
-function ProgressRing({ percent, size = 96, color = 'var(--gold)', label }: Props) {
+function ProgressRing({ percent, size = 96, color = 'var(--gold)', label, gradient = false }: Props) {
+  const gradientId = useId()
   const clamped = Math.max(0, Math.min(100, percent))
   const strokeWidth = size * 0.11
   const radius = (size - strokeWidth) / 2
@@ -22,13 +25,21 @@ function ProgressRing({ percent, size = 96, color = 'var(--gold)', label }: Prop
       aria-label={`${label ? label + ': ' : ''}${Math.round(clamped)}% complete`}
     >
       <svg width={size} height={size} style={{ transform: 'rotate(-90deg)' }}>
-        <circle cx={size / 2} cy={size / 2} r={radius} fill="none" stroke="var(--line)" strokeWidth={strokeWidth} />
+        {gradient && (
+          <defs>
+            <linearGradient id={gradientId} x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stopColor="var(--accent)" />
+              <stop offset="100%" stopColor="var(--accent-2)" />
+            </linearGradient>
+          </defs>
+        )}
+        <circle cx={size / 2} cy={size / 2} r={radius} fill="none" stroke="var(--ring-track)" strokeWidth={strokeWidth} />
         <motion.circle
           cx={size / 2}
           cy={size / 2}
           r={radius}
           fill="none"
-          stroke={color}
+          stroke={gradient ? `url(#${gradientId})` : color}
           strokeWidth={strokeWidth}
           strokeLinecap="round"
           strokeDasharray={circumference}
@@ -51,7 +62,11 @@ function ProgressRing({ percent, size = 96, color = 'var(--gold)', label }: Prop
         <div style={{ fontFamily: 'var(--font-display)', fontStyle: 'italic', fontWeight: 600, fontSize: size / 4, color: 'var(--cream)' }}>
           <CountUp value={Math.round(clamped)} suffix="%" />
         </div>
-        {label && <div className="micro-label" style={{ marginTop: 2, fontSize: 9.5 }}>{label}</div>}
+        {label && (
+          <div className="micro-label" style={{ marginTop: size > 120 ? 6 : 2, fontSize: size > 120 ? 12 : 9.5 }}>
+            {label}
+          </div>
+        )}
       </div>
     </div>
   )

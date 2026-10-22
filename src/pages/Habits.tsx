@@ -1,4 +1,5 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
+import { useLocation } from 'react-router-dom'
 import { createPortal } from 'react-dom'
 import { AnimatePresence, motion } from 'framer-motion'
 import {
@@ -11,7 +12,10 @@ import {
   type DragEndEvent,
 } from '@dnd-kit/core'
 import { arrayMove, sortableKeyboardCoordinates } from '@dnd-kit/sortable'
+import { useAuth } from '../context/AuthContext'
 import { useApp } from '../hooks/useApp'
+import { useFriends } from '../hooks/useFriends'
+import { useSharedItems } from '../hooks/useSharedItems'
 import {
   daysInMonth,
   monthDates,
@@ -19,6 +23,8 @@ import {
   yearlyCompletion,
   computeBestStreak,
   computeCurrentStreak,
+  compareToLastMonth,
+  toDateStr,
 } from '../utils/habits'
 import {
   dailyCompletionSeries,
@@ -32,7 +38,9 @@ import {
 import { generateSuggestions } from '../utils/suggestions'
 import CategorySection, { type CelebrationKind } from '../components/habits/CategorySection'
 import ProgressRing from '../components/habits/ProgressRing'
+import TodayStrip from '../components/habits/TodayStrip'
 import SuggestionsPanel from '../components/habits/SuggestionsPanel'
+import SharedTrackersSection from '../components/habits/SharedTrackersSection'
 import Confetti from '../components/habits/Confetti'
 import HabitManageSheet from '../components/habits/HabitManageSheet'
 import NextStepOfferModal, { type NextItemOffer } from '../components/habits/NextStepOfferModal'
@@ -43,6 +51,7 @@ import PerHabitBarChart from '../components/habits/charts/PerHabitBarChart'
 import WeekdayPatternChart from '../components/habits/charts/WeekdayPatternChart'
 import MonthlyBarChart from '../components/habits/charts/MonthlyBarChart'
 import YearHeatmap from '../components/habits/charts/YearHeatmap'
+import ShareItemModal from '../components/friends/ShareItemModal'
 import Pills from '../components/ui/Pills'
 import RevealHeading from '../components/ui/RevealHeading'
 import EmptyState from '../components/ui/EmptyState'
@@ -60,7 +69,10 @@ const CELEBRATION_MESSAGE: Record<CelebrationKind, string> = {
   month: 'Perfect month',
 }
 
+type ViewTab = 'tracker' | 'month' | 'year'
+
 const VIEW_OPTIONS = [
+  { value: 'tracker', label: 'Tracker' },
   { value: 'month', label: 'Month' },
   { value: 'year', label: 'Year' },
 ]
@@ -72,6 +84,8 @@ function sortByOrder<T extends { order: number }>(items: T[]): T[] {
 }
 
 function Habits() {
+  const { user } = useAuth()
+  const location = useLocation()
   const {
     data,
     cycleHabitMark,
@@ -89,14 +103,25 @@ function Habits() {
     togglePlanStep,
   } = useApp()
 
+  const friendsState = useFriends()
+  const sharedState = useSharedItems()
+
   const referenceDate = useMemo(() => new Date(), [])
   const today = referenceDate
-  const [view, setView] = useState<'month' | 'year'>('month')
+  const todayStr = toDateStr(referenceDate)
+  const [view, setView] = useState<ViewTab>('tracker')
   const [month, setMonth] = useState(today.getMonth())
   const [year, setYear] = useState(today.getFullYear())
   const [celebration, setCelebration] = useState<CelebrationKind | null>(null)
   const [manageOpen, setManageOpen] = useState(false)
   const [nextOffer, setNextOffer] = useState<NextItemOffer | null>(null)
+  const [shareOpen, setShareOpen] = useState(false)
+  const [preselectedHabitId, setPreselectedHabitId] = useState<string | null>(null)
+
+  function openShare(habitId: string | null) {
+    setPreselectedHabitId(habitId)
+    setShareOpen(true)
+  }
 
   function handleConfirmNextOffer() {
     if (!nextOffer) return
@@ -142,6 +167,8 @@ function Habits() {
   const bestStreakEver = activeHabits.reduce((max, h) => Math.max(max, computeBestStreak(h)), 0)
   const bestCurrentStreak = activeHabits.reduce((max, h) => Math.max(max, computeCurrentStreak(h, referenceDate)), 0)
   const perfectDays = countPerfectDays(activeHabits, month, year)
+  const doneToday = activeHabits.filter((h) => h.marks[todayStr] === 2).length
+  const monthComparison = useMemo(() => compareToLastMonth(activeHabits, referenceDate), [activeHabits, referenceDate])
 
   const suggestions = useMemo(
     () => generateSuggestions(data.habits, data.habitCategories, referenceDate),
@@ -196,6 +223,18 @@ function Habits() {
     reorderHabits(arrayMove(ids, oldIndex, newIndex))
   }
 
+  const hasAnyHabits = activeCategories.length > 0 || uncategorized.length > 0
+
+  // Arriving here from the notification bell's "Accept" on a share invite
+  // (see NotificationBell.tsx) lands on the Shared trackers section —
+  // react-router doesn't scroll to URL hashes on its own.
+  useEffect(() => {
+    if (location.hash !== '#shared-trackers' || view !== 'tracker') return
+    const el = document.getElementById('shared-trackers')
+    el?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [location.hash, view])
+
   return (
     <div className="page" style={{ maxWidth: 1100 }}>
       {celebration &&
@@ -243,64 +282,40 @@ function Habits() {
           document.body
         )}
 
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 28, flexWrap: 'wrap', gap: 16 }}>
-        <div>
-          <RevealHeading as="h1" className="page-title" style={{ marginBottom: 6 }}>
-            Habit Tracker
-          </RevealHeading>
-          <Pills options={VIEW_OPTIONS} value={view} onChange={(v) => setView(v as 'month' | 'year')} layoutId="habit-view-tab" size="sm" />
-        </div>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 16, marginBottom: 28 }}>
+        <RevealHeading as="h1" className="page-title" style={{ marginBottom: 0 }}>
+          Habit Tracker
+        </RevealHeading>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 12 }}>
+          <Pills options={VIEW_OPTIONS} value={view} onChange={(v) => setView(v as ViewTab)} layoutId="habit-view-tab" />
 
-        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-          {view === 'month' ? (
-            <div style={{ display: 'flex', alignItems: 'center', gap: 10, background: 'var(--surface)', border: '1px solid var(--line)', borderRadius: 12, padding: '8px 14px' }}>
-              <button className="btn-outline" style={{ fontSize: 18 }} onClick={prevMonth} aria-label="Previous month">‹</button>
-              <div style={{ fontWeight: 700, fontSize: 14, minWidth: 130, textAlign: 'center' }}>
-                {MONTH_NAMES[month]} {year}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
+            {view !== 'year' ? (
+              <div style={{ display: 'flex', alignItems: 'center', gap: 10, background: 'var(--surface)', border: '1px solid var(--line)', borderRadius: 12, padding: '8px 14px' }}>
+                <button className="btn-outline" style={{ fontSize: 18 }} onClick={prevMonth} aria-label="Previous month">‹</button>
+                <div style={{ fontWeight: 700, fontSize: 14, minWidth: 130, textAlign: 'center' }}>
+                  {MONTH_NAMES[month]} {year}
+                </div>
+                <button className="btn-outline" style={{ fontSize: 18 }} onClick={nextMonth} aria-label="Next month">›</button>
               </div>
-              <button className="btn-outline" style={{ fontSize: 18 }} onClick={nextMonth} aria-label="Next month">›</button>
-            </div>
-          ) : (
-            <div style={{ display: 'flex', alignItems: 'center', gap: 10, background: 'var(--surface)', border: '1px solid var(--line)', borderRadius: 12, padding: '8px 14px' }}>
-              <button className="btn-outline" style={{ fontSize: 18 }} onClick={() => setYear((y) => y - 1)} aria-label="Previous year">‹</button>
-              <div style={{ fontWeight: 700, fontSize: 14, minWidth: 60, textAlign: 'center' }}>{year}</div>
-              <button className="btn-outline" style={{ fontSize: 18 }} onClick={() => setYear((y) => y + 1)} aria-label="Next year">›</button>
-            </div>
-          )}
-          <button className="btn" onClick={() => setManageOpen(true)}>
-            Manage
-          </button>
+            ) : (
+              <div style={{ display: 'flex', alignItems: 'center', gap: 10, background: 'var(--surface)', border: '1px solid var(--line)', borderRadius: 12, padding: '8px 14px' }}>
+                <button className="btn-outline" style={{ fontSize: 18 }} onClick={() => setYear((y) => y - 1)} aria-label="Previous year">‹</button>
+                <div style={{ fontWeight: 700, fontSize: 14, minWidth: 60, textAlign: 'center' }}>{year}</div>
+                <button className="btn-outline" style={{ fontSize: 18 }} onClick={() => setYear((y) => y + 1)} aria-label="Next year">›</button>
+              </div>
+            )}
+            <button className="btn" onClick={() => setManageOpen(true)}>
+              Manage
+            </button>
+          </div>
         </div>
       </div>
 
       <AnimatePresence mode="wait" initial={false}>
-        {view === 'month' ? (
-          <motion.div key="month" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} transition={{ duration: 0.25 }}>
-            {activeHabits.length > 0 && (
-              <>
-                <MonthStats completionPercent={overallPercent} currentStreak={bestCurrentStreak} bestStreak={bestStreakEver} perfectDays={perfectDays} />
-
-                <div style={{ display: 'grid', gridTemplateColumns: 'minmax(180px, 280px) 1fr', gap: 20, marginBottom: 24 }}>
-                  <div className="card" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 10 }}>
-                    <ProgressRing percent={overallPercent} label="this month" />
-                  </div>
-                  <div className="card">
-                    <DailyCompletionChart data={dailySeries} />
-                  </div>
-                </div>
-
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: 20, marginBottom: 24 }}>
-                  <div className="card">
-                    <PerHabitBarChart data={perHabitSeries} />
-                  </div>
-                  <div className="card">
-                    <WeekdayPatternChart data={weekdaySeries} />
-                  </div>
-                </div>
-              </>
-            )}
-
-            <SuggestionsPanel suggestions={suggestions} />
+        {view === 'tracker' && (
+          <motion.div key="tracker" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} transition={{ duration: 0.25 }}>
+            <TodayStrip doneToday={doneToday} totalHabits={activeHabits.length} currentStreak={bestCurrentStreak} />
 
             <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
               <AnimatePresence initial={false}>
@@ -327,6 +342,7 @@ function Habits() {
                       onCelebrate={setCelebration}
                       onOfferNext={setNextOffer}
                       onManage={() => setManageOpen(true)}
+                      onShare={openShare}
                     />
                   </motion.div>
                 ))}
@@ -347,13 +363,14 @@ function Habits() {
                       onCelebrate={setCelebration}
                       onOfferNext={setNextOffer}
                       onManage={() => setManageOpen(true)}
+                      onShare={openShare}
                     />
                   </motion.div>
                 )}
               </AnimatePresence>
             </DndContext>
 
-            {activeCategories.length === 0 && uncategorized.length === 0 && (
+            {!hasAnyHabits && (
               <div style={{ marginBottom: 24 }}>
                 <EmptyState
                   title="Nothing to track yet"
@@ -364,15 +381,72 @@ function Habits() {
               </div>
             )}
 
-            <div style={{ display: 'flex', gap: 20, alignItems: 'center', background: 'var(--surface)', border: '1px solid var(--line)', borderRadius: 12, padding: '12px 18px', marginBottom: 24, flexWrap: 'wrap' }}>
-              <Legend swatch="transparent" border label="Not done" />
-              <Legend swatch="color-mix(in srgb, var(--accent) 25%, transparent)" label="Partial" />
-              <Legend swatch="var(--gradient-primary)" label="Done" />
-            </div>
+            {hasAnyHabits && (
+              <div style={{ display: 'flex', gap: 20, alignItems: 'center', background: 'var(--surface)', border: '1px solid var(--line)', borderRadius: 12, padding: '12px 18px', marginBottom: 24, flexWrap: 'wrap' }}>
+                <Legend swatch="transparent" border label="Not done" />
+                <Legend swatch="color-mix(in srgb, var(--accent) 45%, transparent)" label="Partial" />
+                <Legend swatch="var(--gradient-primary)" label="Done" />
+              </div>
+            )}
+
+            {user && (
+              <SharedTrackersSection
+                currentUserId={user.id}
+                hasFriends={friendsState.friends.length > 0}
+                sharedState={sharedState}
+                onOpenShare={openShare}
+              />
+            )}
           </motion.div>
-        ) : (
+        )}
+
+        {view === 'month' && (
+          <motion.div key="month" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} transition={{ duration: 0.25 }}>
+            {activeHabits.length === 0 ? (
+              <EmptyState
+                title="No stats yet"
+                description="Add a habit and start ticking days off on the Tracker tab to see your monthly stats here."
+                actionLabel="Go to Tracker"
+                onAction={() => setView('tracker')}
+              />
+            ) : (
+              <>
+                <MonthStats
+                  completionPercent={overallPercent}
+                  currentStreak={bestCurrentStreak}
+                  bestStreak={bestStreakEver}
+                  perfectDays={perfectDays}
+                  comparison={monthComparison}
+                  dailyValues={dailySeries.map((d) => d.percent)}
+                />
+
+                <div style={{ display: 'grid', gridTemplateColumns: 'minmax(220px, 320px) 1fr', gap: 20, marginBottom: 24 }}>
+                  <div className="card" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 10, minHeight: 300 }}>
+                    <ProgressRing percent={overallPercent} size={200} label="this month" gradient />
+                  </div>
+                  <div className="card" style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+                    <DailyCompletionChart data={dailySeries} />
+                  </div>
+                </div>
+
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: 20, marginBottom: 24 }}>
+                  <div className="card">
+                    <PerHabitBarChart data={perHabitSeries} />
+                  </div>
+                  <div className="card">
+                    <WeekdayPatternChart data={weekdaySeries} />
+                  </div>
+                </div>
+
+                <SuggestionsPanel suggestions={suggestions} />
+              </>
+            )}
+          </motion.div>
+        )}
+
+        {view === 'year' && (
           <motion.div key="year" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} transition={{ duration: 0.25 }}>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: 20, marginBottom: 24 }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(170px, 1fr))', gap: 20, marginBottom: 24 }}>
               <StatCard value={totalTicks} label="Total Ticks" />
               {bestMonth && <StatCard value={bestMonth.percent} suffix="%" label={`Best Month: ${MONTH_NAMES[bestMonth.month]}`} />}
               <StatCard value={activeCategories.length} label="Categories" />
@@ -416,14 +490,25 @@ function Habits() {
       />
 
       <NextStepOfferModal offer={nextOffer} onConfirm={handleConfirmNextOffer} onDismiss={() => setNextOffer(null)} />
+
+      <ShareItemModal
+        open={shareOpen}
+        onClose={() => setShareOpen(false)}
+        courses={data.courses}
+        habits={data.habits}
+        friends={friendsState.friends}
+        preselectedHabitId={preselectedHabitId}
+        ownedSharedItemCount={sharedState.items.filter((i) => i.isOwner).length}
+        onShare={sharedState.share}
+      />
     </div>
   )
 }
 
 function StatCard({ value, suffix, label }: { value: number; suffix?: string; label: string }) {
   return (
-    <div className="card" style={{ padding: '18px 20px' }}>
-      <div style={{ fontFamily: 'var(--font-display)', fontStyle: 'italic', fontWeight: 600, fontSize: 28 }}>
+    <div className="card" style={{ padding: '20px 22px' }}>
+      <div style={{ fontFamily: 'var(--font-display)', fontStyle: 'italic', fontWeight: 600, fontSize: 'clamp(30px, 4vw, 42px)' }}>
         <CountUp value={value} suffix={suffix ?? ''} />
       </div>
       <div className="micro-label" style={{ marginTop: 6 }}>

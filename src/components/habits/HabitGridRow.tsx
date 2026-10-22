@@ -16,9 +16,10 @@ interface Props {
   dates: string[]
   referenceDate: Date
   onCycle: (habitId: string, date: string) => void
+  onShare?: (habitId: string) => void
 }
 
-function HabitGridRow({ habit, courses, plans, dates, referenceDate, onCycle }: Props) {
+function HabitGridRow({ habit, courses, plans, dates, referenceDate, onCycle, onShare }: Props) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: habit.id })
   const navigate = useNavigate()
   const streak = computeCurrentStreak(habit, referenceDate)
@@ -84,6 +85,37 @@ function HabitGridRow({ habit, courses, plans, dates, referenceDate, onCycle }: 
             <span style={{ fontSize: 10.5, color: 'var(--mute)', maxWidth: 90, overflow: 'hidden', textOverflow: 'ellipsis' }}>
               {linkedPlan.title}
             </span>
+          </button>
+        )}
+        {onShare && (
+          <button
+            type="button"
+            onClick={() => onShare(habit.id)}
+            title={`Share "${habit.name}" with a friend`}
+            aria-label={`Share "${habit.name}" with a friend`}
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              width: 20,
+              height: 20,
+              marginLeft: 8,
+              background: 'none',
+              border: 'none',
+              padding: 0,
+              cursor: 'pointer',
+              verticalAlign: 'middle',
+              color: 'var(--mute)',
+              opacity: 0.7,
+            }}
+          >
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <circle cx="18" cy="5" r="3" />
+              <circle cx="6" cy="12" r="3" />
+              <circle cx="18" cy="19" r="3" />
+              <line x1="8.59" y1="13.51" x2="15.42" y2="17.49" />
+              <line x1="15.41" y1="6.51" x2="8.59" y2="10.49" />
+            </svg>
           </button>
         )}
       </td>

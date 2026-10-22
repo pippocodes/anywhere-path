@@ -56,6 +56,14 @@ function SharedItemCard({
   )
   const firstFinisher = finishedToday[0]
 
+  // Full = 1, partial = 0.5, summed across everyone — "1.5 of 3 together
+  // today" is a lighter read than a full monthly grid, which doesn't exist
+  // yet (see Habits.tsx's Step 2 notes on what's still missing from spec).
+  const togetherToday = useMemo(
+    () => participants.reduce((sum, p) => sum + stateFor(logs, p.userId, today) / 2, 0),
+    [participants, logs, today]
+  )
+
   if (myStatus === 'invited') {
     return (
       <div className="card" style={{ borderLeft: '3px solid var(--gold)' }}>
@@ -90,31 +98,38 @@ function SharedItemCard({
             {ITEM_TYPE_LABEL[item.itemType]} · shared by {ownerUsername}
           </div>
         </div>
-        {streak > 0 && (
-          <motion.span
-            initial={{ opacity: 0, scale: 0.6 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ type: 'spring', stiffness: 400, damping: 15 }}
-            style={{ fontSize: 12, color: 'var(--gold)', fontWeight: 700, whiteSpace: 'nowrap' }}
-          >
-            ✦ {streak}d together
-          </motion.span>
-        )}
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 4 }}>
+          {streak > 0 && (
+            <motion.span
+              initial={{ opacity: 0, scale: 0.6 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ type: 'spring', stiffness: 400, damping: 15 }}
+              style={{ fontSize: 12, color: 'var(--gold)', fontWeight: 700, whiteSpace: 'nowrap' }}
+            >
+              ✦ {streak}d together
+            </motion.span>
+          )}
+          <span style={{ fontSize: 11, color: 'var(--mute)', whiteSpace: 'nowrap' }}>
+            {togetherToday} of {participants.length} today
+          </span>
+        </div>
       </div>
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginBottom: 14 }}>
-        {participants.map((p) => {
+        {participants.map((p, i) => {
           const isMe = p.userId === currentUserId
           const state = stateFor(logs, p.userId, today)
           const finishedIndex = finishedToday.findIndex((f) => f.userId === p.userId)
+          const memberColor = `var(--member-${(i % 4) + 1})`
           return (
             <div key={p.userId} style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
               <span
+                title={p.username}
                 style={{
                   width: 28,
                   height: 28,
                   borderRadius: '50%',
-                  background: 'var(--gradient-primary)',
+                  background: memberColor,
                   color: 'var(--ink)',
                   display: 'flex',
                   alignItems: 'center',

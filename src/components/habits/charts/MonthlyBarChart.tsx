@@ -17,7 +17,7 @@ function MonthlyBarChart({ values, activeMonth }: Props) {
       <div className="micro-label" style={{ marginBottom: 12 }}>
         Months at a Glance
       </div>
-      <ResponsiveContainer width="100%" height={200}>
+      <ResponsiveContainer width="100%" height={300}>
         <BarChart data={data} margin={{ top: 4, right: 8, left: -24, bottom: 0 }} barCategoryGap={8}>
           <XAxis dataKey="month" tick={{ fill: 'var(--mute)', fontSize: 11 }} axisLine={false} tickLine={false} />
           <YAxis domain={[0, 100]} tick={{ fill: 'var(--mute)', fontSize: 10.5 }} axisLine={false} tickLine={false} width={32} tickFormatter={(v) => `${v}%`} />
@@ -27,7 +27,7 @@ function MonthlyBarChart({ values, activeMonth }: Props) {
           />
           <Bar dataKey="percent" radius={[6, 6, 0, 0]} isAnimationActive animationDuration={800} animationEasing="ease-out">
             {data.map((_, i) => (
-              <Cell key={i} fill={i === activeMonth ? 'var(--rose)' : 'var(--gold)'} fillOpacity={i === activeMonth ? 1 : 0.55} />
+              <Cell key={i} fill={i === activeMonth ? 'var(--chart-2)' : 'var(--chart-1)'} fillOpacity={i === activeMonth ? 1 : 0.55} />
             ))}
           </Bar>
         </BarChart>

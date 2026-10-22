@@ -13,7 +13,8 @@ interface Props {
   courses: Course[]
   habits: Habit[]
   friends: FriendEntry[]
-  preselectedFriendId: string | null
+  preselectedFriendId?: string | null
+  preselectedHabitId?: string | null // opened from a habit row's own share icon — starts straight on that habit
   ownedSharedItemCount: number
   onShare: (itemType: SharedItemType, itemId: string, title: string, memberIds: string[]) => Promise<'ok' | 'limit'>
 }
@@ -24,9 +25,9 @@ const SOURCE_OPTIONS = [
 ]
 
 /** Share one of the user's own habits or courses with chosen friends — blocked server-side past 2 owned shared items. */
-function ShareItemModal({ open, onClose, courses, habits, friends, preselectedFriendId, ownedSharedItemCount, onShare }: Props) {
+function ShareItemModal({ open, onClose, courses, habits, friends, preselectedFriendId = null, preselectedHabitId = null, ownedSharedItemCount, onShare }: Props) {
   const [itemType, setItemType] = useState<SharedItemType>('habit')
-  const [selectedItemId, setSelectedItemId] = useState<string | null>(null)
+  const [selectedItemId, setSelectedItemId] = useState<string | null>(preselectedHabitId)
   const [selectedFriendIds, setSelectedFriendIds] = useState<Set<string>>(
     new Set(preselectedFriendId ? [preselectedFriendId] : [])
   )
@@ -36,18 +37,18 @@ function ShareItemModal({ open, onClose, courses, habits, friends, preselectedFr
 
   function reset() {
     setItemType('habit')
-    setSelectedItemId(null)
+    setSelectedItemId(preselectedHabitId)
     setSelectedFriendIds(new Set(preselectedFriendId ? [preselectedFriendId] : []))
     setError(null)
     setShowLimit(false)
   }
 
   // The modal stays mounted (Modal just toggles visibility), so each fresh
-  // open needs to re-pick up whichever friend triggered it this time.
+  // open needs to re-pick up whichever friend/habit triggered it this time.
   useEffect(() => {
     if (open) reset()
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [open, preselectedFriendId])
+  }, [open, preselectedFriendId, preselectedHabitId])
 
   function handleClose() {
     reset()

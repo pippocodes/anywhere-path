@@ -24,9 +24,10 @@ interface Props {
   onCelebrate: (kind: CelebrationKind) => void
   onOfferNext: (offer: NextItemOffer) => void
   onManage?: () => void // opens the manage sheet focused on this category
+  onShare?: (habitId: string) => void
 }
 
-function CategorySection({ category, habits, courses, plans, dates, dayNumbers, month, year, referenceDate, onCycle, onCelebrate, onOfferNext, onManage }: Props) {
+function CategorySection({ category, habits, courses, plans, dates, dayNumbers, month, year, referenceDate, onCycle, onCelebrate, onOfferNext, onManage, onShare }: Props) {
   const [collapsed, setCollapsed] = useState(false)
 
   const percent = monthCompletionPercent(habits, month, year)
@@ -162,11 +163,11 @@ function CategorySection({ category, habits, courses, plans, dates, dayNumbers, 
                         <th
                           key={d}
                           style={{
-                            padding: '4px 3px',
+                            padding: '4px 0',
                             fontSize: 10.5,
                             color: dates[i] === todayStr ? 'var(--gold)' : 'var(--mute)',
                             fontWeight: 600,
-                            minWidth: 22,
+                            minWidth: 44,
                           }}
                         >
                           {d}
@@ -185,6 +186,7 @@ function CategorySection({ category, habits, courses, plans, dates, dayNumbers, 
                           dates={dates}
                           referenceDate={referenceDate}
                           onCycle={handleCellClick}
+                          onShare={onShare}
                         />
                       ))}
                     </SortableContext>

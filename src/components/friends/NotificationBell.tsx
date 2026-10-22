@@ -15,6 +15,12 @@ function NotificationBell() {
   const invites = items.filter((i) => i.myStatus === 'invited')
   const count = incomingRequests.length + invites.length
 
+  function handleAcceptInvite(sharedItemId: string) {
+    acceptInvite(sharedItemId)
+    setOpen(false)
+    navigate('/habits#shared-trackers')
+  }
+
   useEffect(() => {
     function handleClick(e: MouseEvent) {
       if (rootRef.current && !rootRef.current.contains(e.target as Node)) setOpen(false)
@@ -118,7 +124,7 @@ function NotificationBell() {
                       {i.ownerUsername} shared "{i.item.title}"
                     </span>
                     <div style={{ display: 'flex', gap: 6, flexShrink: 0, marginLeft: 8 }}>
-                      <button className="btn-outline" style={{ fontSize: 10.5, padding: '3px 8px' }} onClick={() => acceptInvite(i.item.id)}>
+                      <button className="btn-outline" style={{ fontSize: 10.5, padding: '3px 8px' }} onClick={() => handleAcceptInvite(i.item.id)}>
                         Accept
                       </button>
                       <button className="btn-outline" style={{ fontSize: 10.5, padding: '3px 8px' }} onClick={() => declineInvite(i.item.id)}>

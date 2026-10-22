@@ -4,8 +4,8 @@ import type { HeatmapDay } from '../../../utils/habitStats'
 import { parseDateStr } from '../../../utils/habits'
 
 const MONTH_LABELS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
-const CELL = 12
-const GAP = 3
+const CELL = 15
+const GAP = 4
 
 /** Buckets into the theme's 5-step --heat-0..4 scale (0 = no activity, 4 = most) instead of computing an RGB ramp by hand — themes pick their own intensity colors. */
 function intensityColor(count: number, maxCount: number): string {

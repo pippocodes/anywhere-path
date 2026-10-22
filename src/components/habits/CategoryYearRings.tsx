@@ -29,7 +29,7 @@ function CategoryYearRings({ categories, habitsByCategory, year }: Props) {
               transition={{ duration: 0.4, delay: i * 0.08, ease: [0.2, 0.8, 0.2, 1] }}
               style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8 }}
             >
-              <ProgressRing percent={percent} size={72} color={cat.color} />
+              <ProgressRing percent={percent} size={96} color={cat.color} />
               <span style={{ fontSize: 12, color: 'var(--mute)' }}>{cat.name}</span>
             </motion.div>
           )
