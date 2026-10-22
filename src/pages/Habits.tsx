@@ -231,7 +231,7 @@ function Habits() {
                   borderRadius: 999,
                   fontWeight: 700,
                   fontSize: 13.5,
-                  boxShadow: '0 12px 32px rgba(0,0,0,0.5)',
+                  boxShadow: '0 12px 32px var(--shadow)',
                   whiteSpace: 'nowrap',
                 }}
               >
@@ -366,7 +366,7 @@ function Habits() {
 
             <div style={{ display: 'flex', gap: 20, alignItems: 'center', background: 'var(--surface)', border: '1px solid var(--line)', borderRadius: 12, padding: '12px 18px', marginBottom: 24, flexWrap: 'wrap' }}>
               <Legend swatch="transparent" border label="Not done" />
-              <Legend swatch="rgba(233,197,143,0.25)" label="Partial" />
+              <Legend swatch="color-mix(in srgb, var(--accent) 25%, transparent)" label="Partial" />
               <Legend swatch="var(--gradient-primary)" label="Done" />
             </div>
           </motion.div>

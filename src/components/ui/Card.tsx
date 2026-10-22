@@ -27,7 +27,7 @@ function Card({ children, className, style, onClick, hoverLift = true }: Props) 
       className={className ? `card card-sweep ${className}` : 'card card-sweep'}
       onClick={onClick}
       onMouseMove={handleMouseMove}
-      whileHover={reduceMotion || !hoverLift ? undefined : { y: -5, borderColor: 'rgba(233,197,143,0.4)' }}
+      whileHover={reduceMotion || !hoverLift ? undefined : { y: -5, borderColor: 'color-mix(in srgb, var(--accent) 40%, transparent)' }}
       transition={{ duration: 0.25, ease: [0.2, 0.8, 0.2, 1] }}
       style={{ cursor: onClick ? 'pointer' : undefined, ...style }}
     >

@@ -63,7 +63,7 @@ function DemoGate({ children, heading = 'Create a free account to unlock the ful
             alignItems: 'center',
             justifyContent: 'center',
             padding: 16,
-            background: 'rgba(14, 9, 18, 0.45)',
+            background: 'rgba(0, 0, 0, 0.45)',
             backdropFilter: 'blur(2px)',
           }}
         >
@@ -82,7 +82,7 @@ function DemoGate({ children, heading = 'Create a free account to unlock the ful
               borderRadius: 16,
               padding: '32px 28px',
               textAlign: 'center',
-              boxShadow: '0 30px 80px rgba(0,0,0,0.55)',
+              boxShadow: '0 30px 80px rgba(0, 0, 0, 0.55)',
               backdropFilter: 'blur(4px)',
             }}
           >

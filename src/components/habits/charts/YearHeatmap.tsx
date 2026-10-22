@@ -7,14 +7,12 @@ const MONTH_LABELS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'S
 const CELL = 12
 const GAP = 3
 
+/** Buckets into the theme's 5-step --heat-0..4 scale (0 = no activity, 4 = most) instead of computing an RGB ramp by hand — themes pick their own intensity colors. */
 function intensityColor(count: number, maxCount: number): string {
-  if (maxCount === 0 || count === 0) return 'var(--surface)'
+  if (maxCount === 0 || count === 0) return 'var(--heat-0)'
   const t = Math.min(count / maxCount, 1)
-  // gold -> rose ramp by interpolating between the two accent colors' rgb
-  const gold = [233, 197, 143]
-  const rose = [232, 121, 155]
-  const rgb = gold.map((g, i) => Math.round(g + (rose[i] - g) * t))
-  return `rgba(${rgb[0]}, ${rgb[1]}, ${rgb[2]}, ${0.25 + t * 0.75})`
+  const step = Math.max(1, Math.min(4, Math.ceil(t * 4)))
+  return `var(--heat-${step})`
 }
 
 /** GitHub-style contribution heatmap for the whole year — one column per week, gold->rose intensity by day. */

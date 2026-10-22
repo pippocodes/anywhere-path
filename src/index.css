@@ -1,42 +1,37 @@
 @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@1,500;1,600&family=Manrope:wght@400;500;600;700&family=Pinyon+Script&display=swap');
+@import './theme.css';
 
 :root {
-  /* --- Vision Board 2030 tokens --- */
-  --ink: #0e0912;
-  --ink-2: #171020;
-  --cream: #f6ede4;
-  --mute: #b9a9bd;
-  --rose: #e8799b;
-  --gold: #e9c58f;
-  --line: rgba(246, 237, 228, 0.16);
-  --violet: #8a5bd6;
-  --gradient-primary: linear-gradient(135deg, var(--gold), var(--rose));
-  --gradient-primary-hover: linear-gradient(135deg, #f0d4a8, #ed8fab);
+  /* Colour tokens now come from theme.css (generated from
+     theme-tokens.json) via html[data-theme][data-mode] — see
+     scripts/generate-theme-css.mjs. Only non-colour, theme-independent
+     tokens live here. --shadow-soft here is defined as a *shape* (the
+     `0 20px 60px` offset/blur), composed with the themed --shadow colour
+     token for its actual colour; existing `box-shadow: var(--shadow-soft)`
+     call sites keep working unchanged. */
+  --gradient-primary-hover: var(--gradient-primary);
   --ease: cubic-bezier(0.2, 0.8, 0.2, 1);
   --ease-pop: cubic-bezier(0.3, 1.6, 0.5, 1);
-  --surface: rgba(246, 237, 228, 0.04);
-  --surface-hover: rgba(246, 237, 228, 0.07);
-  --shadow-soft: 0 20px 60px rgba(0, 0, 0, 0.45);
+  --shadow-soft: 0 20px 60px var(--shadow);
   --font-display: 'Cormorant Garamond', 'Times New Roman', serif;
   --font-body: 'Manrope', system-ui, sans-serif;
   --font-script: 'Pinyon Script', cursive;
-
-  /* --- legacy bridge: old variable names, remapped to the new dark theme ---
-     Pages not yet migrated to the new component library read these so they
-     stay legible instead of breaking; each gets replaced as its page is
-     redesigned in later phases. */
-  --bg: var(--ink);
-  --card-bg: var(--ink-2);
-  --plum: var(--cream);
-  --cherry: var(--gold);
-  --pink: var(--rose);
-  --pink-light: var(--gold);
-  --pink-pale: var(--line);
-  --pink-paler: rgba(246, 237, 228, 0.05);
 }
 
 * {
   box-sizing: border-box;
+}
+
+/* Theme/mode switch cross-fade — see ThemeContext.tsx's runTransition().
+   Browsers without the View Transitions API never generate these
+   pseudo-elements, so this rule is a no-op there (the JS falls back to a
+   manual opacity fade in that case). Skipped entirely under
+   prefers-reduced-motion by the JS caller, same as every other motion in
+   this app. */
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation-duration: 360ms;
+  animation-timing-function: cubic-bezier(0.2, 0.8, 0.2, 1);
 }
 
 html {
@@ -62,7 +57,7 @@ body {
 }
 
 ::-webkit-scrollbar-thumb {
-  background: rgba(246, 237, 228, 0.18);
+  background: color-mix(in srgb, var(--text) 18%, transparent);
   border-radius: 999px;
 }
 
@@ -153,7 +148,7 @@ textarea {
 
 .card:hover {
   transform: translateY(-4px);
-  border-color: rgba(233, 197, 143, 0.4);
+  border-color: color-mix(in srgb, var(--accent) 40%, transparent);
 }
 
 .card::before {
@@ -163,7 +158,7 @@ textarea {
   border-radius: inherit;
   background: radial-gradient(
     220px circle at var(--sweep-x, 50%) var(--sweep-y, 50%),
-    rgba(233, 197, 143, 0.1),
+    color-mix(in srgb, var(--accent) 10%, transparent),
     transparent 70%
   );
   opacity: 0;
@@ -194,7 +189,7 @@ textarea {
 
 .btn:hover {
   filter: brightness(1.06);
-  box-shadow: 0 8px 28px rgba(233, 197, 143, 0.25);
+  box-shadow: 0 8px 28px color-mix(in srgb, var(--accent) 25%, transparent);
 }
 
 .btn:active {
@@ -216,7 +211,7 @@ textarea {
 }
 
 .btn-secondary:hover {
-  border-color: rgba(233, 197, 143, 0.5);
+  border-color: color-mix(in srgb, var(--accent) 50%, transparent);
   background: var(--surface-hover);
 }
 
@@ -256,7 +251,7 @@ textarea {
 }
 
 .habit-grid-row:hover td {
-  background: rgba(246, 237, 228, 0.03);
+  background: color-mix(in srgb, var(--text) 3%, transparent);
 }
 
 .habit-grid-row:hover td:first-child {
@@ -281,8 +276,8 @@ textarea {
 
 .btn-danger {
   background: transparent;
-  border: 1px solid rgba(232, 121, 155, 0.5);
-  color: var(--rose);
+  border: 1px solid color-mix(in srgb, var(--danger) 50%, transparent);
+  color: var(--danger);
 }
 
 .field {
@@ -303,7 +298,7 @@ textarea {
   width: 100%;
   padding: 12px 14px;
   border-radius: 10px;
-  border: 1px solid var(--line);
+  border: 1px solid var(--line-strong);
   background: var(--surface);
   color: var(--cream);
   font-size: 14.5px;
@@ -404,9 +399,9 @@ textarea {
 }
 
 .outline-issues-error {
-  background: rgba(232, 121, 155, 0.08);
+  background: color-mix(in srgb, var(--danger) 8%, transparent);
   color: var(--cream);
-  border: 1px solid rgba(232, 121, 155, 0.3);
+  border: 1px solid color-mix(in srgb, var(--danger) 30%, transparent);
 }
 
 .outline-issues-warning {
@@ -495,7 +490,7 @@ textarea {
 
 .auth-field-error {
   font-size: 12.5px;
-  color: var(--rose);
+  color: var(--danger);
   margin-top: -10px;
   margin-bottom: 14px;
 }
@@ -509,15 +504,15 @@ textarea {
 }
 
 .auth-notice-error {
-  background: rgba(232, 121, 155, 0.08);
+  background: color-mix(in srgb, var(--danger) 8%, transparent);
   color: var(--cream);
-  border: 1px solid rgba(232, 121, 155, 0.3);
+  border: 1px solid color-mix(in srgb, var(--danger) 30%, transparent);
 }
 
 .auth-notice-success {
-  background: rgba(233, 197, 143, 0.08);
+  background: color-mix(in srgb, var(--success) 10%, transparent);
   color: var(--cream);
-  border: 1px solid rgba(233, 197, 143, 0.3);
+  border: 1px solid color-mix(in srgb, var(--success) 35%, transparent);
 }
 
 /* --- ambient atmosphere (global orbs + grain), see AmbientBackground.tsx --- */
@@ -538,7 +533,7 @@ textarea {
 }
 
 .ambient-orb--rose {
-  background: var(--rose);
+  background: var(--orb-1);
   width: 46vw;
   height: 46vw;
   top: -12vw;
@@ -547,7 +542,7 @@ textarea {
 }
 
 .ambient-orb--violet {
-  background: var(--violet);
+  background: var(--orb-2);
   width: 40vw;
   height: 40vw;
   bottom: -14vw;
@@ -576,7 +571,7 @@ textarea {
 .ambient-grain {
   position: absolute;
   inset: -10%;
-  opacity: 0.035;
+  opacity: var(--grain-opacity);
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
   mix-blend-mode: overlay;
 }
@@ -599,7 +594,7 @@ textarea {
   pointer-events: none;
   background: radial-gradient(
     600px circle at var(--spot-x, 50%) var(--spot-y, 50%),
-    rgba(233, 197, 143, 0.05),
+    color-mix(in srgb, var(--accent) 5%, transparent),
     transparent 60%
   );
 }
@@ -613,9 +608,9 @@ textarea {
 .skeleton-shimmer {
   background: linear-gradient(
     90deg,
-    rgba(246, 237, 228, 0.04) 25%,
-    rgba(246, 237, 228, 0.09) 37%,
-    rgba(246, 237, 228, 0.04) 63%
+    color-mix(in srgb, var(--text) 4%, transparent) 25%,
+    color-mix(in srgb, var(--text) 9%, transparent) 37%,
+    color-mix(in srgb, var(--text) 4%, transparent) 63%
   );
   background-size: 400% 100%;
   animation: skeleton-shimmer 1.6s ease-in-out infinite;

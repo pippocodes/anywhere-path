@@ -16,7 +16,7 @@ export const DEFAULT_CATEGORY_SUGGESTIONS = [
 ]
 
 export const UNCATEGORIZED_LABEL = 'Other'
-export const UNCATEGORIZED_COLOR = '#8a8390'
+export const UNCATEGORIZED_COLOR = 'var(--text-muted)'
 
 export function findCategory(categories: HabitCategory[], id: string | null | undefined): HabitCategory | null {
   if (!id) return null

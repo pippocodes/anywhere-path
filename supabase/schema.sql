@@ -231,6 +231,23 @@ create table if not exists public.profiles (
   created_at timestamptz not null default now()
 );
 
+-- Theme + color-mode persistence (settings page, redesign Step 1). Both
+-- apply instantly from localStorage client-side; these columns just let the
+-- same choice follow the user to another device on login.
+alter table public.profiles
+  add column if not exists theme text not null default 'plum',
+  add column if not exists color_mode text not null default 'system';
+
+alter table public.profiles
+  drop constraint if exists profiles_theme_check,
+  drop constraint if exists profiles_color_mode_check;
+
+alter table public.profiles
+  add constraint profiles_theme_check
+    check (theme in ('plum', 'carousel', 'burgundy', 'strawberry')),
+  add constraint profiles_color_mode_check
+    check (color_mode in ('system', 'light', 'dark'));
+
 -- Case-insensitive uniqueness: "Alex" and "alex" are the same username.
 create unique index if not exists profiles_username_lower_idx on public.profiles (lower(username));
 

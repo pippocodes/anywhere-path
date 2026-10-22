@@ -78,7 +78,7 @@ function UsernameField({ value, onChange, onValidityChange, disabled }: Props) {
           onChange={(e) => onChange(e.target.value.trim())}
           onBlur={() => setTouched(true)}
           aria-invalid={showError}
-          style={{ paddingRight: 36, borderColor: showError ? 'rgba(232,121,155,0.6)' : undefined }}
+          style={{ paddingRight: 36, borderColor: showError ? 'color-mix(in srgb, var(--danger) 60%, transparent)' : undefined }}
         />
         <div style={{ position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)' }}>
           <AnimatePresence mode="wait">

@@ -90,7 +90,7 @@ function HabitGridRow({ habit, courses, plans, dates, referenceDate, onCycle }: 
       {dates.map((date) => (
         <td
           key={date}
-          style={{ padding: 2, background: date === todayStr ? 'rgba(233,197,143,0.06)' : 'transparent' }}
+          style={{ padding: 2, background: date === todayStr ? 'color-mix(in srgb, var(--accent) 6%, transparent)' : 'transparent' }}
         >
           <HabitCell date={date} mark={habit.marks[date] ?? 0} onClick={(d) => onCycle(habit.id, d)} today={date === todayStr} />
         </td>

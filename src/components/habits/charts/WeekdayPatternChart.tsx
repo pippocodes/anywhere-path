@@ -19,7 +19,7 @@ function WeekdayPatternChart({ data }: Props) {
           <XAxis dataKey="label" tick={{ fill: 'var(--mute)', fontSize: 11 }} axisLine={false} tickLine={false} />
           <YAxis domain={[0, 100]} tick={{ fill: 'var(--mute)', fontSize: 10.5 }} axisLine={false} tickLine={false} width={32} tickFormatter={(v) => `${v}%`} />
           <Tooltip
-            cursor={{ fill: 'rgba(246,237,228,0.03)' }}
+            cursor={{ fill: 'color-mix(in srgb, var(--text) 3%, transparent)' }}
             content={({ active, payload, label }) => <ChartTooltip active={active} label={label} value={payload?.[0]?.value as number} suffix="%" />}
           />
           <Bar dataKey="percent" radius={[6, 6, 0, 0]} isAnimationActive animationDuration={700} animationEasing="ease-out">

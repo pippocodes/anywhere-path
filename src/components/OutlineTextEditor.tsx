@@ -52,7 +52,7 @@ function OutlineTextEditor({ value, onChange, placeholder, errors }: Props) {
           fontSize: 13.5,
           lineHeight: 1.6,
           color: 'var(--mute)',
-          background: 'rgba(0,0,0,0.15)',
+          background: 'rgba(0, 0, 0, 0.15)',
           borderRight: '1px solid var(--line)',
           overflow: 'hidden',
           userSelect: 'none',

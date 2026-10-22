@@ -91,7 +91,7 @@ function NotificationBell() {
               border: '1px solid var(--line)',
               borderRadius: 12,
               padding: 10,
-              boxShadow: '0 20px 50px rgba(0,0,0,0.5)',
+              boxShadow: '0 20px 50px var(--shadow)',
               zIndex: 60,
             }}
           >

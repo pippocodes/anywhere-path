@@ -105,7 +105,7 @@ function CategorySelect({
               border: '1px solid var(--line)',
               borderRadius: 12,
               padding: 12,
-              boxShadow: '0 20px 50px rgba(0,0,0,0.5)',
+              boxShadow: '0 20px 50px var(--shadow)',
             }}
           >
             {!managing ? (
@@ -200,7 +200,7 @@ function ChipOption({ label, color, active, onClick }: { label: string; color: s
         padding: '5px 10px',
         borderRadius: 999,
         border: active ? '1px solid var(--cream)' : '1px solid var(--line)',
-        background: active ? 'rgba(255,255,255,0.08)' : 'transparent',
+        background: active ? 'color-mix(in srgb, var(--text) 8%, transparent)' : 'transparent',
         color: 'var(--cream)',
       }}
     >

@@ -16,7 +16,7 @@ const VARIANT_STYLE: Record<Variant, React.CSSProperties> = {
   primary: { background: 'var(--gradient-primary)', color: 'var(--ink)', border: 'none' },
   secondary: { background: 'transparent', color: 'var(--cream)', border: '1px solid var(--line)' },
   ghost: { background: 'transparent', color: 'var(--gold)', border: 'none', padding: 0 },
-  danger: { background: 'transparent', color: 'var(--rose)', border: '1px solid rgba(232,121,155,0.5)' },
+  danger: { background: 'transparent', color: 'var(--danger)', border: '1px solid color-mix(in srgb, var(--danger) 50%, transparent)' },
 }
 
 const SIZE_STYLE: Record<Size, React.CSSProperties> = {

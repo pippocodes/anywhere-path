@@ -19,7 +19,7 @@ const Input = forwardRef<HTMLInputElement, Props>(function Input({ label, error,
         id={inputId}
         aria-invalid={!!error}
         aria-describedby={error ? `${inputId}-error` : hint ? `${inputId}-hint` : undefined}
-        style={{ borderColor: error ? 'rgba(232,121,155,0.6)' : undefined }}
+        style={{ borderColor: error ? 'color-mix(in srgb, var(--danger) 60%, transparent)' : undefined }}
         {...rest}
       />
       {error ? (

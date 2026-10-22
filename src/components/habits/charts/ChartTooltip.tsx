@@ -19,7 +19,7 @@ function ChartTooltip({ active, label, value, suffix = '' }: Props) {
         padding: '8px 12px',
         fontSize: 12.5,
         color: 'var(--cream)',
-        boxShadow: '0 12px 32px rgba(0,0,0,0.4)',
+        boxShadow: '0 12px 32px var(--shadow)',
       }}
     >
       {label && <div style={{ color: 'var(--mute)', fontSize: 11, marginBottom: 2 }}>{label}</div>}

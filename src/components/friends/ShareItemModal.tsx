@@ -163,7 +163,7 @@ function ShareItemModal({ open, onClose, courses, habits, friends, preselectedFr
                       padding: '6px 12px',
                       borderRadius: 999,
                       border: active ? '1px solid var(--gold)' : '1px solid var(--line)',
-                      background: active ? 'rgba(233,197,143,0.12)' : 'transparent',
+                      background: active ? 'color-mix(in srgb, var(--accent) 12%, transparent)' : 'transparent',
                       color: 'var(--cream)',
                     }}
                   >

@@ -76,7 +76,7 @@ function Modal({ open, onClose, children, variant = 'center', title, width = 440
             position: 'fixed',
             inset: 0,
             zIndex: 200,
-            background: 'rgba(14,9,18,0.65)',
+            background: 'rgba(0, 0, 0, 0.6)',
             backdropFilter: 'blur(4px)',
             display: 'flex',
             justifyContent: variant === 'sheet' ? 'flex-end' : 'center',

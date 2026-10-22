@@ -4,6 +4,30 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Anywhere Path</title>
+    <!--
+      Sets data-theme/data-mode on <html> synchronously, before first paint,
+      so there's no flash of the wrong theme. Keep the theme keys, storage
+      keys, and default here in sync with src/context/ThemeContext.tsx —
+      this script can't import that module, it has to run standalone.
+    -->
+    <script>
+      (function () {
+        try {
+          var THEME_KEYS = ['plum', 'carousel', 'burgundy', 'strawberry']
+          var theme = localStorage.getItem('anywherePathTheme')
+          if (THEME_KEYS.indexOf(theme) === -1) theme = 'plum'
+          var mode = localStorage.getItem('anywherePathColorMode')
+          if (mode !== 'light' && mode !== 'dark' && mode !== 'system') mode = 'system'
+          var resolved = mode === 'system' ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light') : mode
+          document.documentElement.setAttribute('data-theme', theme)
+          document.documentElement.setAttribute('data-mode', resolved)
+        } catch (e) {
+          document.documentElement.setAttribute('data-theme', 'plum')
+          document.documentElement.setAttribute('data-mode', 'dark')
+        }
+      })()
+    </script>
+    <meta name="theme-color" content="#0e0912" />
   </head>
   <body>
     <div id="root"></div>

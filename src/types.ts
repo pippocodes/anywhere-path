@@ -57,7 +57,7 @@ export type HabitMark = 0 | 1 | 2
 export interface HabitCategory {
   id: string
   name: string
-  color: string // hex swatch, e.g. "#ff4d6d"
+  color: string // a hex swatch the user picked (e.g. "#ff4d6d"), or a theme-aware "var(--chart-N)" string for newer categories
   archived: boolean
   order: number
 }

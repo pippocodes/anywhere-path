@@ -1,0 +1,441 @@
+/* ---------------------------------------------------------------------
+   GENERATED FILE — do not hand-edit.
+   Source: src/theme-tokens.json + scripts/generate-theme-css.mjs
+   Regenerate with: node scripts/generate-theme-css.mjs
+   --------------------------------------------------------------------- */
+
+/* Theme catalogue (for Settings UI / docs):
+   plum = "Plum & Rose" [#0e0912, #e8799b, #e9c58f, #8a5bd6, #f6ede4]
+   carousel = "Carousel" [#210100, #E6A341, #FECE79, #B14A36, #8C0902]
+   burgundy = "Burgundy & Gold" [#2A1018, #C6A15B, #6E1734, #8F2948, #F2E4D0]
+   strawberry = "Strawberry" [#1E0D0A, #550006, #BF353B, #EE666A, #3D4421]
+*/
+
+[data-theme="plum"][data-mode="dark"] {
+  /* semantic tokens */
+  --bg: #0e0912;
+  --surface: rgba(246, 237, 228, 0.045);
+  --surface-hover: rgba(246, 237, 228, 0.075);
+  --surface-2: #171020;
+  --text: #f6ede4;
+  --text-muted: #b9a9bd;
+  --line: rgba(246, 237, 228, 0.16);
+  --line-strong: rgba(246, 237, 228, 0.6);
+  --accent: #e9c58f;
+  --accent-2: #e8799b;
+  --gradient-primary: linear-gradient(135deg, #e9c58f, #e8799b);
+  --success: #7fb88a;
+  --warning: #e0a654;
+  --danger: #e2566f;
+  --info: #8a5bd6;
+  --ring-track: rgba(246, 237, 228, 0.16);
+  --chart-1: #e9c58f;
+  --chart-2: #e8799b;
+  --chart-3: #8a5bd6;
+  --chart-4: #5fa8a0;
+  --chart-5: #c97b9b;
+  --chart-6: #b9a9bd;
+  --heat-0: rgba(246,237,228,0.06);
+  --heat-1: rgba(233,197,143,0.35);
+  --heat-2: rgba(233,197,143,0.62);
+  --heat-3: rgba(227,150,159,0.78);
+  --heat-4: #e8799b;
+  --member-1: #e9c58f;
+  --member-2: #8a5bd6;
+  --member-3: #5fa8a0;
+  --member-4: #e8799b;
+  --shadow: rgba(0, 0, 0, 0.45);
+  --grain-opacity: 0.035;
+  --orb-1: #e8799b;
+  --orb-2: #8a5bd6;
+
+  /* legacy bridge — old variable names used throughout the app,
+     remapped so every existing component re-themes automatically
+     without needing its own edit. New code should prefer the
+     semantic names above. */
+  --ink: var(--bg);
+  --ink-2: var(--surface-2);
+  --cream: var(--text);
+  --mute: var(--text-muted);
+  --gold: var(--accent);
+  --rose: var(--accent-2);
+  --violet: var(--chart-3);
+  --plum: var(--text);
+  color-scheme: dark;
+}
+
+[data-theme="plum"][data-mode="light"] {
+  /* semantic tokens */
+  --bg: #fbf5ef;
+  --surface: rgba(23, 16, 32, 0.035);
+  --surface-hover: rgba(23, 16, 32, 0.06);
+  --surface-2: #fffcfa;
+  --text: #0e0912;
+  --text-muted: #6b5f72;
+  --line: rgba(14, 9, 18, 0.13);
+  --line-strong: rgba(14, 9, 18, 0.55);
+  --accent: #c23d64;
+  --accent-2: #6a3fb0;
+  --gradient-primary: linear-gradient(135deg, #c23d64, #6a3fb0);
+  --success: #347849;
+  --warning: #8f5a19;
+  --danger: #b8324f;
+  --info: #6a3fb0;
+  --ring-track: rgba(14, 9, 18, 0.13);
+  --chart-1: #b8872f;
+  --chart-2: #c23d64;
+  --chart-3: #6a3fb0;
+  --chart-4: #2f7a72;
+  --chart-5: #9c4f6f;
+  --chart-6: #7a6b82;
+  --heat-0: #f3eae0;
+  --heat-1: #e6c98f;
+  --heat-2: #d99e63;
+  --heat-3: #cc6f6a;
+  --heat-4: #c23d64;
+  --member-1: #b8872f;
+  --member-2: #6a3fb0;
+  --member-3: #2f7a72;
+  --member-4: #c23d64;
+  --shadow: rgba(23, 16, 32, 0.14);
+  --grain-opacity: 0.02;
+  --orb-1: #e8799b;
+  --orb-2: #8a5bd6;
+
+  /* legacy bridge — old variable names used throughout the app,
+     remapped so every existing component re-themes automatically
+     without needing its own edit. New code should prefer the
+     semantic names above. */
+  --ink: var(--bg);
+  --ink-2: var(--surface-2);
+  --cream: var(--text);
+  --mute: var(--text-muted);
+  --gold: var(--accent);
+  --rose: var(--accent-2);
+  --violet: var(--chart-3);
+  --plum: var(--text);
+  color-scheme: light;
+}
+
+[data-theme="carousel"][data-mode="dark"] {
+  /* semantic tokens */
+  --bg: #210100;
+  --surface: rgba(254, 206, 121, 0.045);
+  --surface-hover: rgba(254, 206, 121, 0.075);
+  --surface-2: #2e0d04;
+  --text: #f7e6c8;
+  --text-muted: #c9a77e;
+  --line: rgba(247, 230, 200, 0.16);
+  --line-strong: rgba(247, 230, 200, 0.6);
+  --accent: #e6a341;
+  --accent-2: #c96047;
+  --gradient-primary: linear-gradient(135deg, #e6a341, #c96047);
+  --success: #7a9456;
+  --warning: #fece79;
+  --danger: #e0583a;
+  --info: #c96047;
+  --ring-track: rgba(247, 230, 200, 0.16);
+  --chart-1: #e6a341;
+  --chart-2: #fece79;
+  --chart-3: #c96047;
+  --chart-4: #e0583a;
+  --chart-5: #7a9456;
+  --chart-6: #d97b5e;
+  --heat-0: rgba(247,230,200,0.06);
+  --heat-1: rgba(254,206,121,0.35);
+  --heat-2: rgba(230,163,65,0.6);
+  --heat-3: rgba(201,96,71,0.8);
+  --heat-4: #e0583a;
+  --member-1: #e6a341;
+  --member-2: #c96047;
+  --member-3: #fece79;
+  --member-4: #7a9456;
+  --shadow: rgba(0, 0, 0, 0.5);
+  --grain-opacity: 0.035;
+  --orb-1: #e6a341;
+  --orb-2: #8c0902;
+
+  /* legacy bridge — old variable names used throughout the app,
+     remapped so every existing component re-themes automatically
+     without needing its own edit. New code should prefer the
+     semantic names above. */
+  --ink: var(--bg);
+  --ink-2: var(--surface-2);
+  --cream: var(--text);
+  --mute: var(--text-muted);
+  --gold: var(--accent);
+  --rose: var(--accent-2);
+  --violet: var(--chart-3);
+  --plum: var(--text);
+  color-scheme: dark;
+}
+
+[data-theme="carousel"][data-mode="light"] {
+  /* semantic tokens */
+  --bg: #fff8ea;
+  --surface: rgba(33, 1, 0, 0.035);
+  --surface-hover: rgba(33, 1, 0, 0.06);
+  --surface-2: #fffdf7;
+  --text: #210100;
+  --text-muted: #7a5a47;
+  --line: rgba(33, 1, 0, 0.13);
+  --line-strong: rgba(33, 1, 0, 0.55);
+  --accent: #8c0902;
+  --accent-2: #a04330;
+  --gradient-primary: linear-gradient(135deg, #8c0902, #a04330);
+  --success: #5c7238;
+  --warning: #8f5a0c;
+  --danger: #8c0902;
+  --info: #a04330;
+  --ring-track: rgba(33, 1, 0, 0.13);
+  --chart-1: #b3661c;
+  --chart-2: #9c681f;
+  --chart-3: #a04330;
+  --chart-4: #8c0902;
+  --chart-5: #5c7238;
+  --chart-6: #a85436;
+  --heat-0: #f8ecd6;
+  --heat-1: #f0cf8f;
+  --heat-2: #e6a341;
+  --heat-3: #c06035;
+  --heat-4: #8c0902;
+  --member-1: #8c0902;
+  --member-2: #a04330;
+  --member-3: #5c7238;
+  --member-4: #b3661c;
+  --shadow: rgba(33, 1, 0, 0.14);
+  --grain-opacity: 0.02;
+  --orb-1: #e6a341;
+  --orb-2: #8c0902;
+
+  /* legacy bridge — old variable names used throughout the app,
+     remapped so every existing component re-themes automatically
+     without needing its own edit. New code should prefer the
+     semantic names above. */
+  --ink: var(--bg);
+  --ink-2: var(--surface-2);
+  --cream: var(--text);
+  --mute: var(--text-muted);
+  --gold: var(--accent);
+  --rose: var(--accent-2);
+  --violet: var(--chart-3);
+  --plum: var(--text);
+  color-scheme: light;
+}
+
+[data-theme="burgundy"][data-mode="dark"] {
+  /* semantic tokens */
+  --bg: #2a1018;
+  --surface: rgba(242, 228, 208, 0.045);
+  --surface-hover: rgba(242, 228, 208, 0.075);
+  --surface-2: #3a1826;
+  --text: #f2e4d0;
+  --text-muted: #b79e8c;
+  --line: rgba(242, 228, 208, 0.16);
+  --line-strong: rgba(242, 228, 208, 0.6);
+  --accent: #c6a15b;
+  --accent-2: #d06288;
+  --gradient-primary: linear-gradient(135deg, #c6a15b, #d06288);
+  --success: #6e8a5c;
+  --warning: #d4a753;
+  --danger: #d25a7e;
+  --info: #d06288;
+  --ring-track: rgba(242, 228, 208, 0.16);
+  --chart-1: #c6a15b;
+  --chart-2: #d25a7e;
+  --chart-3: #d06288;
+  --chart-4: #6e8a5c;
+  --chart-5: #c97c8d;
+  --chart-6: #b79e8c;
+  --heat-0: rgba(242,228,208,0.06);
+  --heat-1: rgba(198,161,91,0.35);
+  --heat-2: rgba(198,161,91,0.6);
+  --heat-3: rgba(210,90,126,0.78);
+  --heat-4: #d06288;
+  --member-1: #c6a15b;
+  --member-2: #d25a7e;
+  --member-3: #6e8a5c;
+  --member-4: #c97c8d;
+  --shadow: rgba(0, 0, 0, 0.45);
+  --grain-opacity: 0.035;
+  --orb-1: #c6a15b;
+  --orb-2: #8f2948;
+
+  /* legacy bridge — old variable names used throughout the app,
+     remapped so every existing component re-themes automatically
+     without needing its own edit. New code should prefer the
+     semantic names above. */
+  --ink: var(--bg);
+  --ink-2: var(--surface-2);
+  --cream: var(--text);
+  --mute: var(--text-muted);
+  --gold: var(--accent);
+  --rose: var(--accent-2);
+  --violet: var(--chart-3);
+  --plum: var(--text);
+  color-scheme: dark;
+}
+
+[data-theme="burgundy"][data-mode="light"] {
+  /* semantic tokens */
+  --bg: #fbf5ea;
+  --surface: rgba(42, 16, 24, 0.035);
+  --surface-hover: rgba(42, 16, 24, 0.06);
+  --surface-2: #fffdf9;
+  --text: #2a1018;
+  --text-muted: #6e5850;
+  --line: rgba(42, 16, 24, 0.13);
+  --line-strong: rgba(42, 16, 24, 0.55);
+  --accent: #6e1734;
+  --accent-2: #8f2948;
+  --gradient-primary: linear-gradient(135deg, #6e1734, #8f2948);
+  --success: #4f6b40;
+  --warning: #7a5c26;
+  --danger: #8f2948;
+  --info: #6e1734;
+  --ring-track: rgba(42, 16, 24, 0.13);
+  --chart-1: #8f6b2e;
+  --chart-2: #8f2948;
+  --chart-3: #6e1734;
+  --chart-4: #4f6b40;
+  --chart-5: #8a4a58;
+  --chart-6: #6e5850;
+  --heat-0: #f6ecd8;
+  --heat-1: #e8cd8f;
+  --heat-2: #c6a15b;
+  --heat-3: #a2425f;
+  --heat-4: #6e1734;
+  --member-1: #6e1734;
+  --member-2: #8f2948;
+  --member-3: #4f6b40;
+  --member-4: #8a4a58;
+  --shadow: rgba(42, 16, 24, 0.14);
+  --grain-opacity: 0.02;
+  --orb-1: #c6a15b;
+  --orb-2: #8f2948;
+
+  /* legacy bridge — old variable names used throughout the app,
+     remapped so every existing component re-themes automatically
+     without needing its own edit. New code should prefer the
+     semantic names above. */
+  --ink: var(--bg);
+  --ink-2: var(--surface-2);
+  --cream: var(--text);
+  --mute: var(--text-muted);
+  --gold: var(--accent);
+  --rose: var(--accent-2);
+  --violet: var(--chart-3);
+  --plum: var(--text);
+  color-scheme: light;
+}
+
+[data-theme="strawberry"][data-mode="dark"] {
+  /* semantic tokens */
+  --bg: #1e0d0a;
+  --surface: rgba(251, 234, 230, 0.045);
+  --surface-hover: rgba(251, 234, 230, 0.075);
+  --surface-2: #2e1712;
+  --text: #fbeae6;
+  --text-muted: #c99c97;
+  --line: rgba(251, 234, 230, 0.16);
+  --line-strong: rgba(251, 234, 230, 0.6);
+  --accent: #ee666a;
+  --accent-2: #d1564f;
+  --gradient-primary: linear-gradient(135deg, #ee666a, #d1564f);
+  --success: #7ca860;
+  --warning: #d98a4d;
+  --danger: #dc5a50;
+  --info: #dc5a50;
+  --ring-track: rgba(251, 234, 230, 0.16);
+  --chart-1: #ee666a;
+  --chart-2: #d1564f;
+  --chart-3: #dc5a50;
+  --chart-4: #7ca860;
+  --chart-5: #d98a4d;
+  --chart-6: #c77b94;
+  --heat-0: rgba(251,234,230,0.06);
+  --heat-1: rgba(238,102,106,0.35);
+  --heat-2: rgba(238,102,106,0.6);
+  --heat-3: rgba(220,90,80,0.78);
+  --heat-4: #dc5a50;
+  --member-1: #ee666a;
+  --member-2: #d1564f;
+  --member-3: #7ca860;
+  --member-4: #d98a4d;
+  --shadow: rgba(0, 0, 0, 0.5);
+  --grain-opacity: 0.035;
+  --orb-1: #ee666a;
+  --orb-2: #bf353b;
+
+  /* legacy bridge — old variable names used throughout the app,
+     remapped so every existing component re-themes automatically
+     without needing its own edit. New code should prefer the
+     semantic names above. */
+  --ink: var(--bg);
+  --ink-2: var(--surface-2);
+  --cream: var(--text);
+  --mute: var(--text-muted);
+  --gold: var(--accent);
+  --rose: var(--accent-2);
+  --violet: var(--chart-3);
+  --plum: var(--text);
+  color-scheme: dark;
+}
+
+[data-theme="strawberry"][data-mode="light"] {
+  /* semantic tokens */
+  --bg: #fdf1ee;
+  --surface: rgba(30, 13, 10, 0.035);
+  --surface-hover: rgba(30, 13, 10, 0.06);
+  --surface-2: #fffbfa;
+  --text: #1e0d0a;
+  --text-muted: #7a5a56;
+  --line: rgba(30, 13, 10, 0.13);
+  --line-strong: rgba(30, 13, 10, 0.55);
+  --accent: #bf353b;
+  --accent-2: #550006;
+  --gradient-primary: linear-gradient(135deg, #bf353b, #550006);
+  --success: #3d4421;
+  --warning: #914f27;
+  --danger: #550006;
+  --info: #a85f2e;
+  --ring-track: rgba(30, 13, 10, 0.13);
+  --chart-1: #bf353b;
+  --chart-2: #550006;
+  --chart-3: #a85f2e;
+  --chart-4: #3d4421;
+  --chart-5: #8a4a5e;
+  --chart-6: #c94850;
+  --heat-0: #fbe8e4;
+  --heat-1: #f0b4b3;
+  --heat-2: #e08083;
+  --heat-3: #c2484c;
+  --heat-4: #550006;
+  --member-1: #bf353b;
+  --member-2: #550006;
+  --member-3: #3d4421;
+  --member-4: #8a4a5e;
+  --shadow: rgba(30, 13, 10, 0.14);
+  --grain-opacity: 0.02;
+  --orb-1: #ee666a;
+  --orb-2: #bf353b;
+
+  /* legacy bridge — old variable names used throughout the app,
+     remapped so every existing component re-themes automatically
+     without needing its own edit. New code should prefer the
+     semantic names above. */
+  --ink: var(--bg);
+  --ink-2: var(--surface-2);
+  --cream: var(--text);
+  --mute: var(--text-muted);
+  --gold: var(--accent);
+  --rose: var(--accent-2);
+  --violet: var(--chart-3);
+  --plum: var(--text);
+  color-scheme: light;
+}
+
+/* fallback before data-theme/data-mode are set (see index.html inline script) */
+:root {
+  color-scheme: dark;
+}

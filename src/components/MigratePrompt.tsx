@@ -13,7 +13,7 @@ function MigratePrompt({ onImport, onSkip }: Props) {
       style={{
         position: 'fixed',
         inset: 0,
-        background: 'rgba(89,13,34,0.45)',
+        background: 'rgba(0, 0, 0, 0.45)',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',

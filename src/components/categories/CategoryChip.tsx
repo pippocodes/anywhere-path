@@ -21,7 +21,7 @@ function CategoryChip({ categories, categoryId, size = 'sm' }: Props) {
         fontWeight: 600,
         padding: size === 'sm' ? '3px 9px' : '4px 11px',
         borderRadius: 999,
-        background: 'rgba(255,255,255,0.06)',
+        background: 'color-mix(in srgb, var(--text) 6%, transparent)',
         border: '1px solid var(--line)',
         color: 'var(--cream)',
         whiteSpace: 'nowrap',

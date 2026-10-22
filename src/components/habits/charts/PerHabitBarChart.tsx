@@ -28,7 +28,7 @@ function PerHabitBarChart({ data }: Props) {
             width={120}
           />
           <Tooltip
-            cursor={{ fill: 'rgba(246,237,228,0.03)' }}
+            cursor={{ fill: 'color-mix(in srgb, var(--text) 3%, transparent)' }}
             content={({ active, payload, label }) => <ChartTooltip active={active} label={label} value={payload?.[0]?.value as number} suffix="%" />}
           />
           <Bar dataKey="percent" radius={[0, 6, 6, 0]} isAnimationActive animationDuration={700} animationEasing="ease-out">

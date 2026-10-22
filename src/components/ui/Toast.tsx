@@ -17,9 +17,9 @@ interface ToastContextValue {
 const ToastContext = createContext<ToastContextValue | null>(null)
 
 const KIND_ACCENT: Record<ToastKind, string> = {
-  success: 'var(--gold)',
-  error: 'var(--rose)',
-  info: 'var(--violet)',
+  success: 'var(--success)',
+  error: 'var(--danger)',
+  info: 'var(--info)',
 }
 
 /** App-wide toast host — call `useToast().show(message, kind)` from anywhere beneath <ToastProvider>. Replaces ad hoc inline success/error banners. */
@@ -68,7 +68,7 @@ export function ToastProvider({ children }: { children: ReactNode }) {
                   padding: '12px 18px',
                   fontSize: 13.5,
                   color: 'var(--cream)',
-                  boxShadow: '0 12px 32px rgba(0,0,0,0.4)',
+                  boxShadow: '0 12px 32px var(--shadow)',
                   minWidth: 220,
                 }}
               >

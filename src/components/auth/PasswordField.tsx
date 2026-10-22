@@ -47,7 +47,7 @@ function PasswordField({ label, value, onChange, autoComplete, disabled, error, 
           disabled={disabled}
           onChange={(e) => onChange(e.target.value)}
           aria-invalid={!!error}
-          style={{ paddingRight: 56, borderColor: error ? 'rgba(232,121,155,0.6)' : undefined }}
+          style={{ paddingRight: 56, borderColor: error ? 'color-mix(in srgb, var(--danger) 60%, transparent)' : undefined }}
         />
         <button
           type="button"

@@ -61,7 +61,7 @@ function Navbar() {
           justifyContent: 'space-between',
           gap: 24,
           padding: '14px 48px',
-          background: scrolled ? 'rgba(14,9,18,0.72)' : 'transparent',
+          background: scrolled ? 'color-mix(in srgb, var(--bg) 72%, transparent)' : 'transparent',
           backdropFilter: scrolled ? 'blur(14px)' : 'none',
           borderBottom: `1px solid ${scrolled ? 'var(--line)' : 'transparent'}`,
           transition: 'background 0.3s var(--ease), border-color 0.3s var(--ease)',
@@ -192,7 +192,7 @@ function Navbar() {
                       border: '1px solid var(--line)',
                       borderRadius: 12,
                       padding: 6,
-                      boxShadow: '0 20px 50px rgba(0,0,0,0.5)',
+                      boxShadow: '0 20px 50px var(--shadow)',
                     }}
                   >
                     <DropdownLink to="/profile" onClick={() => setMenuOpen(false)}>

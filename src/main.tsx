@@ -4,6 +4,7 @@ import { BrowserRouter } from 'react-router-dom'
 import App from './App'
 import ErrorBoundary from './components/ErrorBoundary'
 import { AuthProvider } from './context/AuthContext'
+import { ThemeProvider } from './context/ThemeContext'
 import { AppProvider } from './context/AppContext'
 import './index.css'
 
@@ -15,9 +16,11 @@ createRoot(rootEl).render(
     <ErrorBoundary>
       <BrowserRouter>
         <AuthProvider>
-          <AppProvider>
-            <App />
-          </AppProvider>
+          <ThemeProvider>
+            <AppProvider>
+              <App />
+            </AppProvider>
+          </ThemeProvider>
         </AuthProvider>
       </BrowserRouter>
     </ErrorBoundary>

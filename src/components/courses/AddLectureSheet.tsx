@@ -131,8 +131,8 @@ function AddLectureSheet({ open, onClose, moduleName, onAdd }: Props) {
                       padding: '7px 10px',
                       borderRadius: 8,
                       fontSize: 12.5,
-                      background: l.error ? 'rgba(232,121,155,0.08)' : 'var(--surface)',
-                      border: `1px solid ${l.error ? 'rgba(232,121,155,0.3)' : 'var(--line)'}`,
+                      background: l.error ? 'color-mix(in srgb, var(--danger) 8%, transparent)' : 'var(--surface)',
+                      border: `1px solid ${l.error ? 'color-mix(in srgb, var(--danger) 30%, transparent)' : 'var(--line)'}`,
                       color: l.error ? 'var(--rose)' : 'var(--cream)',
                     }}
                   >

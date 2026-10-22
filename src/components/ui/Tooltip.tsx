@@ -51,7 +51,7 @@ function Tooltip({ content, children }: Props) {
                 color: 'var(--cream)',
                 fontSize: 12,
                 whiteSpace: 'nowrap',
-                boxShadow: '0 8px 24px rgba(0,0,0,0.4)',
+                boxShadow: '0 8px 24px var(--shadow)',
               }}
             >
               {content}
