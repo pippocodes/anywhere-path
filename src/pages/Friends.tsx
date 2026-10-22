@@ -79,7 +79,7 @@ function Friends() {
             </div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
               {friendsState.blocked.map((e) => (
-                <div key={e.friendship.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <div key={e.friendship.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 8 }}>
                   <span style={{ fontSize: 13.5 }}>{e.otherUsername}</span>
                   {e.friendship.blockedBy === user.id ? (
                     <button type="button" className="btn-outline" style={{ fontSize: 12 }} onClick={() => friendsState.unblock(e.friendship.id)}>
@@ -95,7 +95,7 @@ function Friends() {
         )}
 
         <div style={{ marginTop: 12 }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14 }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14, flexWrap: 'wrap', gap: 10 }}>
             <h2 style={{ fontSize: 18 }}>Shared tracking</h2>
             {friendsState.friends.length > 0 && (
               <button type="button" className="btn" onClick={() => openShare(null)}>

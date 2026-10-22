@@ -29,7 +29,7 @@ function FriendsList({ friends, onRemove, onBlock, onShare }: Props) {
       </div>
       <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
         {friends.map((e) => (
-          <div key={e.friendship.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 10 }}>
+          <div key={e.friendship.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
             <span style={{ fontSize: 13.5, fontWeight: 600 }}>{e.otherUsername}</span>
             {confirmingId === e.friendship.id ? (
               <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>

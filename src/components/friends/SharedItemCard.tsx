@@ -154,7 +154,7 @@ function SharedItemCard({
         </p>
       )}
 
-      <div style={{ display: 'flex', gap: 10 }}>
+      <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
         {isOwner ? (
           <button type="button" className="btn-outline" style={{ fontSize: 11.5, opacity: 0.75 }} onClick={() => onDelete(item.id)}>
             Delete this share

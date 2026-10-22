@@ -21,7 +21,7 @@ function FriendRequestsPanel({ incoming, outgoing, onAccept, onDecline, onCancel
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
             {incoming.map((e) => (
-              <div key={e.friendship.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <div key={e.friendship.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 8 }}>
                 <span style={{ fontSize: 13.5, fontWeight: 600 }}>{e.otherUsername}</span>
                 <div style={{ display: 'flex', gap: 8 }}>
                   <button type="button" className="btn" style={{ padding: '6px 14px', fontSize: 12 }} onClick={() => onAccept(e.friendship.id)}>
@@ -44,7 +44,7 @@ function FriendRequestsPanel({ incoming, outgoing, onAccept, onDecline, onCancel
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
             {outgoing.map((e) => (
-              <div key={e.friendship.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <div key={e.friendship.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 8 }}>
                 <span style={{ fontSize: 13.5, fontWeight: 600 }}>{e.otherUsername}</span>
                 <button type="button" className="btn-outline" style={{ fontSize: 12 }} onClick={() => onCancel(e.friendship.id)}>
                   Cancel

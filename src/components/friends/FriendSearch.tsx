@@ -66,7 +66,7 @@ function FriendSearch({ knownUserIds, onAdd }: Props) {
       )}
       <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
         {results.map((r) => (
-          <div key={r.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '6px 2px' }}>
+          <div key={r.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '6px 2px', flexWrap: 'wrap', gap: 8 }}>
             <span style={{ fontSize: 13.5, fontWeight: 600 }}>{r.username}</span>
             {knownUserIds.has(r.id) ? (
               <span style={{ fontSize: 11.5, color: 'var(--mute)' }}>Already connected</span>

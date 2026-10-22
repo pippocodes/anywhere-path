@@ -84,7 +84,7 @@ function NotificationBell() {
               position: 'absolute',
               right: 0,
               top: 'calc(100% + 10px)',
-              width: 300,
+              width: 'min(300px, calc(100vw - 32px))',
               maxHeight: 360,
               overflowY: 'auto',
               background: 'var(--ink-2)',
