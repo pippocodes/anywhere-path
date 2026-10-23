@@ -248,6 +248,15 @@ alter table public.profiles
   add constraint profiles_color_mode_check
     check (color_mode in ('system', 'light', 'dark'));
 
+-- Default changed to Carousel + System (theming round 2, Step 1). The
+-- one-time backfill of existing rows to match is run separately, NOT
+-- here — this file is re-run on every future migration, and an `update`
+-- left in it would reset everyone's theme choice back to carousel/system
+-- every single time, which is not what a "default" means.
+alter table public.profiles
+  alter column theme set default 'carousel',
+  alter column color_mode set default 'system';
+
 -- Case-insensitive uniqueness: "Alex" and "alex" are the same username.
 create unique index if not exists profiles_username_lower_idx on public.profiles (lower(username));
 

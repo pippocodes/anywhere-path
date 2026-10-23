@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable'
 import { AnimatePresence, motion } from 'framer-motion'
 import type { Course, Habit, HabitCategory, HabitMark, Plan } from '../../types'
@@ -29,10 +29,17 @@ interface Props {
 
 function CategorySection({ category, habits, courses, plans, dates, dayNumbers, month, year, referenceDate, onCycle, onCelebrate, onOfferNext, onManage, onShare }: Props) {
   const [collapsed, setCollapsed] = useState(false)
+  const todayThRef = useRef<HTMLTableCellElement | null>(null)
 
   const percent = monthCompletionPercent(habits, month, year)
   const bestActiveStreak = habits.reduce((max, h) => Math.max(max, computeCurrentStreak(h, referenceDate)), 0)
   const todayStr = toDateStr(referenceDate)
+
+  // Only matters on narrow screens where the grid actually overflows — on
+  // desktop the whole month fits, so this is a no-op scroll.
+  useEffect(() => {
+    todayThRef.current?.scrollIntoView?.({ block: 'nearest', inline: 'center' })
+  }, [dates, collapsed])
 
   // Checks, before vs. hypothetically after this tick, whether it's the
   // tick that newly completes a perfect day/week/month for this category —
@@ -142,10 +149,11 @@ function CategorySection({ category, habits, courses, plans, dates, dayNumbers, 
               <p style={{ fontSize: 13, color: 'var(--mute)' }}>No habits here yet — add one from Manage.</p>
             ) : (
               <div style={{ overflowX: 'auto' }}>
-                <table style={{ borderCollapse: 'collapse', width: '100%' }}>
+                <table className="habit-grid-table" style={{ borderCollapse: 'collapse', width: '100%' }}>
                   <thead>
                     <tr>
                       <th
+                        className="habit-grid-name-cell"
                         style={{
                           textAlign: 'left',
                           padding: '6px 12px',
@@ -154,7 +162,7 @@ function CategorySection({ category, habits, courses, plans, dates, dayNumbers, 
                           fontWeight: 600,
                           position: 'sticky',
                           left: 0,
-                          background: 'var(--ink-2)',
+                          background: 'var(--surface-opaque)',
                         }}
                       >
                         Habit
@@ -162,12 +170,13 @@ function CategorySection({ category, habits, courses, plans, dates, dayNumbers, 
                       {dayNumbers.map((d, i) => (
                         <th
                           key={d}
+                          ref={dates[i] === todayStr ? todayThRef : undefined}
+                          className="habit-grid-day-th"
                           style={{
                             padding: '4px 0',
                             fontSize: 10.5,
                             color: dates[i] === todayStr ? 'var(--gold)' : 'var(--mute)',
                             fontWeight: 600,
-                            minWidth: 44,
                           }}
                         >
                           {d}

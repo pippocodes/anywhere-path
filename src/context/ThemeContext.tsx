@@ -9,7 +9,7 @@ export type ColorMode = 'system' | 'light' | 'dark'
 export const THEME_KEYS = Object.keys(themeTokens.themes) as ThemeKey[]
 export const THEME_CATALOGUE = themeTokens.themes
 
-const DEFAULT_THEME: ThemeKey = 'plum'
+const DEFAULT_THEME: ThemeKey = 'carousel'
 const DEFAULT_MODE: ColorMode = 'system'
 const THEME_STORAGE_KEY = 'anywherePathTheme'
 const MODE_STORAGE_KEY = 'anywherePathColorMode'

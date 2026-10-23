@@ -16,6 +16,7 @@
   --bg: #0e0912;
   --surface: rgba(246, 237, 228, 0.045);
   --surface-hover: rgba(246, 237, 228, 0.075);
+  --surface-opaque: #18131b;
   --surface-2: #171020;
   --text: #f6ede4;
   --text-muted: #b9a9bd;
@@ -69,14 +70,15 @@
   --bg: #fbf5ef;
   --surface: rgba(23, 16, 32, 0.035);
   --surface-hover: rgba(23, 16, 32, 0.06);
+  --surface-opaque: #f3ede8;
   --surface-2: #fffcfa;
   --text: #0e0912;
   --text-muted: #6b5f72;
   --line: rgba(14, 9, 18, 0.13);
   --line-strong: rgba(14, 9, 18, 0.55);
   --accent: #c23d64;
-  --accent-2: #6a3fb0;
-  --gradient-primary: linear-gradient(135deg, #c23d64, #6a3fb0);
+  --accent-2: #7d4f0a;
+  --gradient-primary: linear-gradient(135deg, #c23d64, #7d4f0a);
   --success: #347849;
   --warning: #8f5a19;
   --danger: #b8324f;
@@ -122,6 +124,7 @@
   --bg: #210100;
   --surface: rgba(254, 206, 121, 0.045);
   --surface-hover: rgba(254, 206, 121, 0.075);
+  --surface-opaque: #2b0a05;
   --surface-2: #2e0d04;
   --text: #f7e6c8;
   --text-muted: #c9a77e;
@@ -175,6 +178,7 @@
   --bg: #fff8ea;
   --surface: rgba(33, 1, 0, 0.035);
   --surface-hover: rgba(33, 1, 0, 0.06);
+  --surface-opaque: #f7efe2;
   --surface-2: #fffdf7;
   --text: #210100;
   --text-muted: #7a5a47;
@@ -228,6 +232,7 @@
   --bg: #2a1018;
   --surface: rgba(242, 228, 208, 0.045);
   --surface-hover: rgba(242, 228, 208, 0.075);
+  --surface-opaque: #331a20;
   --surface-2: #3a1826;
   --text: #f2e4d0;
   --text-muted: #b79e8c;
@@ -281,6 +286,7 @@
   --bg: #fbf5ea;
   --surface: rgba(42, 16, 24, 0.035);
   --surface-hover: rgba(42, 16, 24, 0.06);
+  --surface-opaque: #f4ede3;
   --surface-2: #fffdf9;
   --text: #2a1018;
   --text-muted: #6e5850;
@@ -334,6 +340,7 @@
   --bg: #1e0d0a;
   --surface: rgba(251, 234, 230, 0.045);
   --surface-hover: rgba(251, 234, 230, 0.075);
+  --surface-opaque: #281714;
   --surface-2: #2e1712;
   --text: #fbeae6;
   --text-muted: #c99c97;
@@ -387,6 +394,7 @@
   --bg: #fdf1ee;
   --surface: rgba(30, 13, 10, 0.035);
   --surface-hover: rgba(30, 13, 10, 0.06);
+  --surface-opaque: #f5e9e6;
   --surface-2: #fffbfa;
   --text: #1e0d0a;
   --text-muted: #7a5a56;

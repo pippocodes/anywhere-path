@@ -14,6 +14,21 @@ const LINE_STRONG_ALPHA = { dark: 0.6, light: 0.55 }
 const SURFACE_ALPHA = { dark: 0.045, light: 0.035 }
 const SURFACE_HOVER_ALPHA = { dark: 0.075, light: 0.06 }
 
+function hexToRgb(hex) {
+  const n = parseInt(hex.replace('#', ''), 16)
+  return [(n >> 16) & 255, (n >> 8) & 255, n & 255]
+}
+function toHex(n) {
+  return Math.round(n).toString(16).padStart(2, '0')
+}
+/** The exact flat color a translucent `rgba(tintRgb, alpha)` surface renders as once composited over a solid bg — used for sticky/opaque cells that need to visually match a card's own (translucent) background without being see-through themselves. */
+function flattenOverBg(tintRgb, alpha, bgHex) {
+  const tint = tintRgb.split(',').map((v) => parseFloat(v.trim()))
+  const bg = hexToRgb(bgHex)
+  const mixed = tint.map((c, i) => c * alpha + bg[i] * (1 - alpha))
+  return `#${mixed.map(toHex).join('')}`
+}
+
 function block(themeKey, mode, t) {
   const lineA = LINE_ALPHA[mode]
   const lineStrongA = LINE_STRONG_ALPHA[mode]
@@ -23,6 +38,7 @@ function block(themeKey, mode, t) {
   const lineStrong = `rgba(${t.lineRgb}, ${lineStrongA})`
   const surface = `rgba(${t.surfaceTintRgb}, ${surfA})`
   const surfaceHover = `rgba(${t.surfaceTintRgb}, ${surfHoverA})`
+  const surfaceOpaque = flattenOverBg(t.surfaceTintRgb, surfA, t.bg)
   const shadow = `rgba(${t.shadowRgb}, ${t.shadowAlpha})`
   const gradient = `linear-gradient(135deg, ${t.accent}, ${t.accent2})`
 
@@ -37,6 +53,7 @@ function block(themeKey, mode, t) {
     `  --bg: ${t.bg};`,
     `  --surface: ${surface};`,
     `  --surface-hover: ${surfaceHover};`,
+    `  --surface-opaque: ${surfaceOpaque};`,
     `  --surface-2: ${t.surface2};`,
     `  --text: ${t.text};`,
     `  --text-muted: ${t.textMuted};`,

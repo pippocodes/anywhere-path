@@ -35,15 +35,18 @@ function HabitGridRow({ habit, courses, plans, dates, referenceDate, onCycle, on
       style={{ transform: CSS.Transform.toString(transform), transition, opacity: isDragging ? 0.6 : 1 }}
     >
       <td
+        className="habit-grid-name-cell"
         style={{
           padding: '8px 12px',
           fontSize: 13,
           fontWeight: 600,
           color: 'var(--cream)',
           whiteSpace: 'nowrap',
+          overflow: 'hidden',
+          textOverflow: 'ellipsis',
           position: 'sticky',
           left: 0,
-          background: 'var(--ink-2)',
+          background: 'var(--surface-opaque)',
         }}
       >
         <span

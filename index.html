@@ -4,6 +4,8 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Anywhere Path</title>
+    <!-- Must come before the inline script below, which looks it up synchronously. -->
+    <meta name="theme-color" content="#210100" />
     <!--
       Sets data-theme/data-mode on <html> synchronously, before first paint,
       so there's no flash of the wrong theme. Keep the theme keys, storage
@@ -12,22 +14,32 @@
     -->
     <script>
       (function () {
+        // Keep in sync with src/context/ThemeContext.tsx's DEFAULT_THEME /
+        // DEFAULT_MODE and src/theme-tokens.json's bg colors — this script
+        // can't import either module, it has to run standalone.
+        var THEME_BG = {
+          plum: { dark: '#0e0912', light: '#fbf5ef' },
+          carousel: { dark: '#210100', light: '#fff8ea' },
+          burgundy: { dark: '#2a1018', light: '#fbf5ea' },
+          strawberry: { dark: '#1e0d0a', light: '#fdf1ee' },
+        }
         try {
-          var THEME_KEYS = ['plum', 'carousel', 'burgundy', 'strawberry']
           var theme = localStorage.getItem('anywherePathTheme')
-          if (THEME_KEYS.indexOf(theme) === -1) theme = 'plum'
+          if (!THEME_BG[theme]) theme = 'carousel'
           var mode = localStorage.getItem('anywherePathColorMode')
           if (mode !== 'light' && mode !== 'dark' && mode !== 'system') mode = 'system'
           var resolved = mode === 'system' ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light') : mode
           document.documentElement.setAttribute('data-theme', theme)
           document.documentElement.setAttribute('data-mode', resolved)
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', THEME_BG[theme][resolved])
         } catch (e) {
-          document.documentElement.setAttribute('data-theme', 'plum')
-          document.documentElement.setAttribute('data-mode', 'dark')
+          var fallbackMode = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'
+          document.documentElement.setAttribute('data-theme', 'carousel')
+          document.documentElement.setAttribute('data-mode', fallbackMode)
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', THEME_BG.carousel[fallbackMode])
         }
       })()
     </script>
-    <meta name="theme-color" content="#0e0912" />
   </head>
   <body>
     <div id="root"></div>

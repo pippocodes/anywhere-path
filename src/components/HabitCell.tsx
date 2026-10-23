@@ -40,22 +40,12 @@ function HabitCell({ date, mark, onClick, today }: Props) {
       tabIndex={0}
       title={date}
       aria-label={`${date}: ${MARK_LABEL[mark]}`}
-      style={{
-        width: 44,
-        height: 44,
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        cursor: 'pointer',
-        margin: '0 auto',
-      }}
+      className="habit-cell-hit"
     >
       <div
-        className={`habit-cell habit-tick${popping ? ' habit-cell-pop' : ''}`}
+        className={`habit-cell habit-cell-dot habit-tick${popping ? ' habit-cell-pop' : ''}`}
         onAnimationEnd={() => setPopping(false)}
         style={{
-          width: 32,
-          height: 32,
           borderRadius: '50%',
           display: 'flex',
           alignItems: 'center',
