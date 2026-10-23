@@ -20,6 +20,13 @@ export interface FriendEntry {
   direction: 'incoming' | 'outgoing' // relative to the current user, for pending requests
 }
 
+/** One row from the people_you_can_add() RPC — a public profile not yet connected to the current user. */
+export interface PublicProfile {
+  id: string
+  username: string
+  about: string
+}
+
 export type SharedItemType = 'habit' | 'course'
 export type SharedMemberStatus = 'invited' | 'accepted' | 'left' | 'removed'
 

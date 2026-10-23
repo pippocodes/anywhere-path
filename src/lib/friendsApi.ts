@@ -3,6 +3,7 @@ import { supabase } from './supabaseClient'
 import type {
   Friendship,
   FriendEntry,
+  PublicProfile,
   SharedItem,
   SharedItemMember,
   SharedItemLogRow,
@@ -80,6 +81,14 @@ export async function searchUsers(query: string): Promise<{ id: string; username
   const { data, error } = await client.rpc('search_users', { query })
   if (error) throw error
   return (data ?? []) as { id: string; username: string }[]
+}
+
+/** One page of the "People you can add" directory — public profiles only, already excluding self/friends/pending/blocked server-side (see people_you_can_add() in schema.sql). Never filter this list further client-side. */
+export async function fetchPeopleYouCanAdd(limit: number, offset: number): Promise<PublicProfile[]> {
+  const client = requireClient()
+  const { data, error } = await client.rpc('people_you_can_add', { p_limit: limit, p_offset: offset })
+  if (error) throw error
+  return (data ?? []) as PublicProfile[]
 }
 
 // --- Friendships ---

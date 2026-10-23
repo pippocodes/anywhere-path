@@ -367,6 +367,50 @@ $$;
 grant execute on function public.email_for_username(text) to anon;
 
 -- ---------------------------------------------------------------------
+-- Profile rebuild (Settings redesign Step 3): public/private visibility,
+-- an optional "About me" blurb, and a 30-day username-change cooldown.
+-- All additive. is_public defaults to false, so every EXISTING account
+-- becomes private the moment this runs (the app isn't public yet) — no
+-- separate backfill needed, since a new NOT NULL column's own DEFAULT
+-- already applies to existing rows.
+-- ---------------------------------------------------------------------
+alter table public.profiles
+  add column if not exists is_public boolean not null default false,
+  add column if not exists about text not null default '',
+  add column if not exists username_changed_at timestamptz;
+
+alter table public.profiles
+  drop constraint if exists profiles_about_length_check;
+alter table public.profiles
+  add constraint profiles_about_length_check check (char_length(about) <= 160);
+
+-- Enforces the 30-day username-change cooldown server-side, independent
+-- of the client UI — mirrors shared_items_enforce_limit()'s prefixed-error
+-- convention so the client can detect this specific case and show a
+-- friendly "try again on <date>" message instead of a generic error.
+create or replace function public.profiles_enforce_username_cooldown()
+returns trigger
+language plpgsql
+security definer set search_path = public
+as $$
+begin
+  if new.username is distinct from old.username then
+    if old.username_changed_at is not null and old.username_changed_at > now() - interval '30 days' then
+      raise exception 'USERNAME_COOLDOWN: you can next change your username on %',
+        to_char(old.username_changed_at + interval '30 days', 'YYYY-MM-DD');
+    end if;
+    new.username_changed_at := now();
+  end if;
+  return new;
+end;
+$$;
+
+drop trigger if exists profiles_before_update_username_cooldown on public.profiles;
+create trigger profiles_before_update_username_cooldown
+  before update on public.profiles
+  for each row execute function public.profiles_enforce_username_cooldown();
+
+-- ---------------------------------------------------------------------
 -- plans — "plan how/when to finish something" (Roadmap Builder Step 3).
 -- Distinct from roadmap_docs (the older outline-text saved-roadmap
 -- system, untouched) and from roadmap_plans (the older courseId-keyed
@@ -544,6 +588,10 @@ create trigger friendships_before_insert_rate_limit
 -- DEFINER so it can read across profiles despite the select_own/
 -- select_connected RLS above (search must find people you're NOT yet
 -- connected to). Requires 3+ characters, excludes yourself, capped at 20.
+-- Profile rebuild (Step 3): a partial (prefix) match only surfaces PUBLIC
+-- profiles — a private profile is findable only by its exact full
+-- username, so private accounts can still be added by someone who already
+-- knows the whole name, but don't show up to casual prefix browsing.
 create or replace function public.search_users(query text)
 returns table (id uuid, username text)
 language sql
@@ -553,13 +601,82 @@ as $$
   select p.id, p.username
   from public.profiles p
   where length(trim(query)) >= 3
-    and p.username ilike trim(query) || '%'
     and p.id <> auth.uid()
+    and (
+      (p.is_public and p.username ilike trim(query) || '%')
+      or lower(p.username) = lower(trim(query))
+    )
   order by p.username
   limit 20
 $$;
 
 grant execute on function public.search_users(text) to authenticated;
+
+-- ---------------------------------------------------------------------
+-- profile_browse_log — rate-limits people_you_can_add() below, same
+-- shape/purpose as ai_generate_log. Written and read only from inside
+-- that SECURITY DEFINER function; never queried directly by the client
+-- (no grants, and RLS has no policies either way).
+-- ---------------------------------------------------------------------
+create table if not exists public.profile_browse_log (
+  id bigserial primary key,
+  user_id uuid not null references auth.users (id) on delete cascade,
+  created_at timestamptz not null default now()
+);
+
+create index if not exists profile_browse_log_user_created_idx on public.profile_browse_log (user_id, created_at);
+
+alter table public.profile_browse_log enable row level security;
+-- Deliberately no policies.
+
+-- Paginated "People you can add" directory for the Friends page: public
+-- profiles only, excluding yourself and anyone you already have a live
+-- relationship with (pending, accepted, or blocked — in either
+-- direction). All filtering happens here, server-side — the client never
+-- filters this list itself. Rate-limited to 30 calls/minute per user to
+-- discourage directory scraping.
+create or replace function public.people_you_can_add(p_limit integer default 20, p_offset integer default 0)
+returns table (id uuid, username text, about text)
+language plpgsql
+security definer set search_path = public
+as $$
+declare
+  recent_count integer;
+  capped_limit integer := least(greatest(p_limit, 1), 50);
+  capped_offset integer := greatest(p_offset, 0);
+begin
+  if auth.uid() is null then
+    raise exception 'Not signed in.';
+  end if;
+
+  select count(*) into recent_count
+  from public.profile_browse_log
+  where user_id = auth.uid() and created_at > now() - interval '1 minute';
+  if recent_count >= 30 then
+    raise exception 'Too many requests — please wait a moment.';
+  end if;
+
+  insert into public.profile_browse_log (user_id) values (auth.uid());
+
+  return query
+    select p.id, p.username, p.about
+    from public.profiles p
+    where p.is_public
+      and p.id <> auth.uid()
+      and not exists (
+        select 1 from public.friendships f
+        where (
+            (f.requester_id = auth.uid() and f.addressee_id = p.id)
+            or (f.addressee_id = auth.uid() and f.requester_id = p.id)
+          )
+          and f.status in ('pending', 'accepted', 'blocked')
+      )
+    order by p.username
+    limit capped_limit offset capped_offset;
+end;
+$$;
+
+grant execute on function public.people_you_can_add(integer, integer) to authenticated;
 
 -- ---------------------------------------------------------------------
 -- shared_items — one habit or course an owner has shared. `item_id` is a

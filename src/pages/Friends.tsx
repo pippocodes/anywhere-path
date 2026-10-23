@@ -3,6 +3,7 @@ import { useFriends } from '../hooks/useFriends'
 import FriendSearch from '../components/friends/FriendSearch'
 import FriendRequestsPanel from '../components/friends/FriendRequestsPanel'
 import FriendsList from '../components/friends/FriendsList'
+import PeopleYouCanAdd from '../components/friends/PeopleYouCanAdd'
 import RevealHeading from '../components/ui/RevealHeading'
 
 function Friends() {
@@ -37,6 +38,8 @@ function Friends() {
           onDecline={friendsState.decline}
           onCancel={friendsState.cancel}
         />
+
+        <PeopleYouCanAdd onAdd={friendsState.sendRequest} />
 
         <FriendsList friends={friendsState.friends} onRemove={friendsState.remove} onBlock={friendsState.block} />
 

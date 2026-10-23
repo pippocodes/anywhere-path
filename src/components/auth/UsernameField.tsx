@@ -7,14 +7,19 @@ interface Props {
   onChange: (value: string) => void
   onValidityChange?: (valid: boolean) => void
   disabled?: boolean
+  // Settings' "change username" card passes the account's current
+  // username here — typing back to the unchanged value skips the
+  // availability check entirely (it would otherwise show as "taken"
+  // against your own row) and reports as neutral, not available/taken.
+  currentValue?: string
 }
 
 const USERNAME_RE = /^[a-zA-Z0-9_]{3,20}$/
 
-type Status = 'idle' | 'invalid' | 'checking' | 'available' | 'taken' | 'error'
+type Status = 'idle' | 'invalid' | 'checking' | 'available' | 'taken' | 'error' | 'unchanged'
 
-/** Username field for the register form — live debounced availability check with an animated status indicator. */
-function UsernameField({ value, onChange, onValidityChange, disabled }: Props) {
+/** Username field for the register form (and Settings' change-username card) — live debounced availability check with an animated status indicator. */
+function UsernameField({ value, onChange, onValidityChange, disabled, currentValue }: Props) {
   const { checkUsernameAvailable } = useAuth()
   const id = useId()
   const [status, setStatus] = useState<Status>('idle')
@@ -27,6 +32,10 @@ function UsernameField({ value, onChange, onValidityChange, disabled }: Props) {
 
     if (!value) {
       setStatus('idle')
+      return
+    }
+    if (currentValue !== undefined && value.toLowerCase() === currentValue.toLowerCase()) {
+      setStatus('unchanged')
       return
     }
     if (!USERNAME_RE.test(value)) {
@@ -45,7 +54,7 @@ function UsernameField({ value, onChange, onValidityChange, disabled }: Props) {
 
     return () => clearTimeout(debounceRef.current)
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [value])
+  }, [value, currentValue])
 
   useEffect(() => {
     onValidityChange?.(status === 'available')

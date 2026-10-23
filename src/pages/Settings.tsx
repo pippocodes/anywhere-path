@@ -1,13 +1,10 @@
-import { useState, type FormEvent } from 'react'
-import { useAuth } from '../context/AuthContext'
 import { useTheme, THEME_KEYS, THEME_CATALOGUE, type ColorMode } from '../context/ThemeContext'
-import { useToast } from '../components/ui/Toast'
-import Card from '../components/ui/Card'
-import Button from '../components/ui/Button'
 import Pills from '../components/ui/Pills'
-import PasswordField from '../components/auth/PasswordField'
 import RevealHeading from '../components/ui/RevealHeading'
 import ThemeCard from '../components/settings/ThemeCard'
+import ProfileCard from '../components/settings/ProfileCard'
+import SecurityCard from '../components/settings/SecurityCard'
+import AccountCard from '../components/settings/AccountCard'
 
 const MODE_OPTIONS: { value: ColorMode; label: string }[] = [
   { value: 'system', label: 'System' },
@@ -16,45 +13,7 @@ const MODE_OPTIONS: { value: ColorMode; label: string }[] = [
 ]
 
 function Settings() {
-  const { username, user, updatePassword } = useAuth()
   const { theme, colorMode, resolvedMode, setTheme, setColorMode } = useTheme()
-  const { show } = useToast()
-
-  const [password, setPassword] = useState('')
-  const [confirm, setConfirm] = useState('')
-  const [confirmTouched, setConfirmTouched] = useState(false)
-  const [error, setError] = useState<string | null>(null)
-  const [submitting, setSubmitting] = useState(false)
-
-  const confirmError = confirmTouched && password !== confirm ? "Passwords don't match." : undefined
-
-  async function handleSubmit(e: FormEvent) {
-    e.preventDefault()
-    setError(null)
-
-    if (password.length < 6) {
-      setError('Password must be at least 6 characters.')
-      return
-    }
-    if (password !== confirm) {
-      setConfirmTouched(true)
-      setError("Passwords don't match.")
-      return
-    }
-
-    setSubmitting(true)
-    const { error } = await updatePassword(password)
-    setSubmitting(false)
-
-    if (error) {
-      setError(error)
-      return
-    }
-    setPassword('')
-    setConfirm('')
-    setConfirmTouched(false)
-    show('Password updated.', 'success')
-  }
 
   return (
     <div className="page" style={{ maxWidth: 680 }}>
@@ -99,40 +58,9 @@ function Settings() {
         </div>
       </div>
 
-      <Card style={{ marginBottom: 24 }}>
-        <h3 style={{ fontSize: 17, marginBottom: 14 }}>Account</h3>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 10, fontSize: 13.5 }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12 }}>
-            <span style={{ color: 'var(--mute)' }}>Username</span>
-            <span style={{ fontWeight: 600 }}>{username ?? '—'}</span>
-          </div>
-          <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12 }}>
-            <span style={{ color: 'var(--mute)' }}>Email</span>
-            <span style={{ fontWeight: 600, overflowWrap: 'anywhere' }}>{user?.email ?? '—'}</span>
-          </div>
-        </div>
-      </Card>
-
-      <Card>
-        <h3 style={{ fontSize: 17, marginBottom: 18 }}>Change password</h3>
-        {error && <div className="auth-notice auth-notice-error">{error}</div>}
-        <form onSubmit={handleSubmit}>
-          <PasswordField label="New password" value={password} onChange={setPassword} autoComplete="new-password" showStrength />
-          <PasswordField
-            label="Confirm new password"
-            value={confirm}
-            onChange={(v) => {
-              setConfirm(v)
-              setConfirmTouched(true)
-            }}
-            autoComplete="new-password"
-            error={confirmError}
-          />
-          <Button type="submit" loading={submitting}>
-            Update password
-          </Button>
-        </form>
-      </Card>
+      <ProfileCard />
+      <SecurityCard />
+      <AccountCard />
     </div>
   )
 }

@@ -25,8 +25,10 @@ export interface AuthContextValue {
   signOut: () => Promise<void>
   sendPasswordReset: (email: string) => Promise<AuthResult>
   updatePassword: (newPassword: string) => Promise<AuthResult>
+  changePassword: (currentPassword: string, newPassword: string) => Promise<AuthResult>
   checkUsernameAvailable: (username: string) => Promise<boolean | null>
   resendConfirmationEmail: (email: string) => Promise<AuthResult>
+  refreshUsername: () => Promise<void>
 }
 
 const GENERIC_LOGIN_ERROR = 'That email/username or password is incorrect.'
@@ -251,6 +253,40 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }
 
+  /**
+   * Settings' "change password" flow (as opposed to the reset-link recovery
+   * flow updatePassword above also serves) — re-authenticates with the
+   * CURRENT password via Supabase's own auth server before calling
+   * updateUser, so a logged-in-but-unattended session can't be used to
+   * silently change the password without knowing it.
+   */
+  async function changePassword(currentPassword: string, newPassword: string): Promise<AuthResult> {
+    if (!supabase) return { error: 'Supabase is not configured.' }
+    const email = session?.user?.email
+    if (!email) return { error: 'Not signed in.' }
+    try {
+      const { error: reauthError } = await supabase.auth.signInWithPassword({ email, password: currentPassword })
+      if (reauthError) {
+        devLog('changePassword reauth error', reauthError)
+        return { error: 'Current password is incorrect.', code: 'invalid_credentials' }
+      }
+      const { error } = await supabase.auth.updateUser({ password: newPassword })
+      if (error) devLog('changePassword update error', error)
+      return { error: error?.message ?? null }
+    } catch (err) {
+      devLog('changePassword threw', err instanceof Error ? err : { message: String(err) })
+      return { error: NETWORK_ERROR, code: 'network_error' }
+    }
+  }
+
+  /** Re-reads the username from `profiles` and updates the cached value — call after changing it in Settings so the navbar etc. reflect it immediately. */
+  async function refreshUsername(): Promise<void> {
+    const userId = session?.user?.id
+    if (!supabase || !userId) return
+    const { data } = await supabase.from('profiles').select('username').eq('id', userId).single()
+    if (data?.username) setUsername(data.username)
+  }
+
   const value: AuthContextValue = {
     user: session?.user ?? null,
     session,
@@ -262,8 +298,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     signOut,
     sendPasswordReset,
     updatePassword,
+    changePassword,
     checkUsernameAvailable,
     resendConfirmationEmail,
+    refreshUsername,
   }
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
