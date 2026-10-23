@@ -20,17 +20,19 @@ fine without this configured — the auth pages just show a setup notice instead
    re-run the whole file again — every statement is idempotent (`create table if not exists`,
    `drop policy if exists` before `create policy`, etc.), so running it again only adds what's
    missing.
-3. This creates 7 tables: `courses`, `roadmap_plans`, `roadmap_docs`, `habit_categories`, and
+3. This creates 9 tables: `courses`, `roadmap_plans`, `roadmap_docs`, `habit_categories`, and
    `habits` each have Row Level Security with a policy that only ever lets a signed-in user see
    or change rows where `user_id` matches their own `auth.uid()` — enforced by Postgres itself,
-   not by the app. `ai_generate_log` has RLS on with *no* policies at all (used only
-   by `/api/generate` via the service-role key, which bypasses RLS by design — see step 7).
+   not by the app. `ai_generate_log` and `ai_habit_insights_log` have RLS on with *no* policies
+   at all (used only by `/api/generate` and `/api/habit-insights` respectively via the
+   service-role key, which bypasses RLS by design — see steps 7-8). `habit_insights_cache` is the
+   same service-role-only shape, holding each user's most recent AI habit insights.
    `profiles` holds each account's username — RLS lets a user read/update only their own row,
    rows are created automatically by a trigger on signup (never inserted by the app directly),
    and two small SQL functions (`username_available`, `email_for_username`) back the live
    "is this username taken?" check and "log in with username" — see **How the app uses this**
    below for exactly what each returns.
-4. Check **Table Editor** in the sidebar — you should see all 7 tables, each with a
+4. Check **Table Editor** in the sidebar — you should see all 9 tables, each with a
    padlock icon (RLS enabled).
 
 ## 3. Get your API keys
@@ -149,6 +151,27 @@ is never exposed to visitors. It needs four environment variables, none of them 
 4. Generations are rate-limited to 5 per signed-in user per hour (see
    `RATE_LIMIT_MAX_REQUESTS`/`RATE_LIMIT_WINDOW_MS` in `api/_lib/outlineGeneration.ts` if you want
    to change that), logged in the `ai_generate_log` table from step 2.
+
+## 8. Set up AI Habit Insights (optional)
+
+At the top of the Habit Tracker's Tracker tab, "✦ AI Insights" shows a few short, specific
+observations about this month's habit data — what to focus on, what's working, and (occasionally)
+what to ease up on. It's entirely optional and uses the **same four environment variables as step
+7 above** — if you already set those up for "Generate with AI", this works too with no extra
+configuration. Without it, that spot on the page falls back to the existing rule-based insights
+(or a friendly empty state), never an error.
+
+It runs as its own Vercel serverless function (`api/habit-insights.ts`), receiving only
+*aggregated* stats built client-side (`src/utils/habitInsightStats.ts`) — habit names, category
+names, streaks, and percentages — never raw dates, notes, emails, or friends' data.
+
+- Results are cached per signed-in user per day in the `habit_insights_cache` table, so reopening
+  the Tracker tab the same day serves the cached result instantly instead of calling the model
+  again.
+- The manual "↻ Refresh" button forces a new generation, which (along with the very first
+  generation of the day) counts against a rate limit of 5 AI calls per user per 24 hours — see
+  `RATE_LIMIT_MAX_REQUESTS`/`RATE_LIMIT_WINDOW_MS` in `api/_lib/habitInsights.ts` — logged in the
+  `ai_habit_insights_log` table from step 2.
 
 ## How the app uses this
 

@@ -233,6 +233,11 @@ textarea {
   transition-duration: 0.08s;
 }
 
+.btn-outline:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
 .nav-link {
   font-weight: 500;
   font-size: 14.5px;

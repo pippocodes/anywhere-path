@@ -219,6 +219,40 @@ alter table public.ai_generate_log enable row level security;
 -- Deliberately no policies: this table is service-role-only.
 
 -- ---------------------------------------------------------------------
+-- ai_habit_insights_log — same shape and purpose as ai_generate_log
+-- above, but for /api/habit-insights: one row per actual AI call (a
+-- cache hit doesn't insert here), used only to rate-limit regeneration.
+-- ---------------------------------------------------------------------
+create table if not exists public.ai_habit_insights_log (
+  id bigserial primary key,
+  user_id uuid not null references auth.users (id) on delete cascade,
+  created_at timestamptz not null default now()
+);
+
+create index if not exists ai_habit_insights_log_user_created_idx on public.ai_habit_insights_log (user_id, created_at);
+
+alter table public.ai_habit_insights_log enable row level security;
+-- Deliberately no policies: this table is service-role-only.
+
+-- ---------------------------------------------------------------------
+-- habit_insights_cache — one row per user, holding the most recently
+-- generated AI habit insights and the date they were generated for, so
+-- the Tracker tab can show today's insights instantly on repeat visits
+-- without re-calling the model. Overwritten (upsert on user_id) by the
+-- next generation — deliberately no history kept here. Service-role-only,
+-- same as the tables above.
+-- ---------------------------------------------------------------------
+create table if not exists public.habit_insights_cache (
+  user_id uuid primary key references auth.users (id) on delete cascade,
+  insight_date date not null,
+  insights jsonb not null,
+  created_at timestamptz not null default now()
+);
+
+alter table public.habit_insights_cache enable row level security;
+-- Deliberately no policies: this table is service-role-only.
+
+-- ---------------------------------------------------------------------
 -- profiles — one row per account, holding the public username used for
 -- display ("logged in as ...") and for "log in with username" (see the
 -- email_for_username() function below). Created automatically by the
