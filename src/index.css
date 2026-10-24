@@ -34,10 +34,6 @@
   animation-timing-function: cubic-bezier(0.2, 0.8, 0.2, 1);
 }
 
-html {
-  color-scheme: dark;
-}
-
 body {
   margin: 0;
   font-family: var(--font-body);
@@ -83,10 +79,65 @@ button {
   cursor: pointer;
 }
 
-input,
+/* Base theming for every text-ish form control in the app — a single
+   shared default so no input/select/textarea ever falls through to the
+   browser's own (untheme-aware, often flat-grey-in-dark-mode) native
+   styling. Anything that needs a different look overrides specific
+   properties inline/via class — this only sets what's otherwise missing.
+   Excludes checkbox/radio, which keep native/custom rendering. */
+input:not([type='checkbox']):not([type='radio']),
 select,
 textarea {
   font-family: var(--font-body);
+  background: var(--surface);
+  color: var(--text);
+  border: 1px solid var(--line-strong);
+  border-radius: 10px;
+  padding: 10px 14px;
+  font-size: 14px;
+  transition: border-color 0.15s var(--ease), background 0.15s var(--ease), box-shadow 0.15s var(--ease);
+}
+
+input::placeholder,
+textarea::placeholder {
+  color: var(--text-muted);
+  opacity: 1;
+}
+
+input:not([type='checkbox']):not([type='radio']):focus,
+select:focus,
+textarea:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 22%, transparent);
+}
+
+input:disabled,
+select:disabled,
+textarea:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+input[aria-invalid='true'],
+textarea[aria-invalid='true'] {
+  border-color: var(--danger);
+}
+
+/* Chrome/Edge/Safari autofill paints its own background (often a bright
+   yellow or plain white) that ignores `background` entirely — the fix is
+   an inset box-shadow wide enough to fully cover the field, painted in a
+   themed colour, plus -webkit-text-fill-color to re-theme the autofilled
+   text itself (plain `color` doesn't reach it). The absurd transition
+   delay is the standard trick to stop the browser's own yellow flashing
+   in before this overrides it. */
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus {
+  -webkit-text-fill-color: var(--text);
+  -webkit-box-shadow: 0 0 0 1000px var(--surface) inset;
+  box-shadow: 0 0 0 1000px var(--surface) inset;
+  transition: background-color 9999s ease-in-out 0s;
 }
 
 :focus-visible {
@@ -298,22 +349,19 @@ textarea {
   margin-bottom: 8px;
 }
 
+/* Colour/border/focus-ring theming comes from the shared base rule above
+   (input/select/textarea) — this just covers .field's own layout (full
+   width, slightly larger padding/font) and its extra hover-tinted focus
+   background. */
 .field input,
 .field select {
   width: 100%;
   padding: 12px 14px;
-  border-radius: 10px;
-  border: 1px solid var(--line-strong);
-  background: var(--surface);
-  color: var(--cream);
   font-size: 14.5px;
-  transition: border-color 0.2s var(--ease), background 0.2s var(--ease);
 }
 
 .field input:focus,
 .field select:focus {
-  outline: none;
-  border-color: var(--gold);
   background: var(--surface-hover);
 }
 
