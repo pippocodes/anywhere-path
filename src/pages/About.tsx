@@ -1,8 +1,5 @@
-import packageJson from '../../package.json'
-import { creatorStory } from '../content/about'
 import RevealHeading from '../components/ui/RevealHeading'
 import Reveal from '../components/ui/Reveal'
-import Avatar from '../components/ui/Avatar'
 
 const PRINCIPLES = [
   {
@@ -21,18 +18,6 @@ const PRINCIPLES = [
     title: 'AI sees only what it needs',
     desc: 'The optional AI features (roadmap generation, habit insights) receive only the short goal you type or aggregated numbers computed from your own data — never your notes, friends, or anyone else\'s data.',
   },
-]
-
-const STACK = [
-  { name: 'React + TypeScript', note: 'the UI, type-checked end to end' },
-  { name: 'Vite', note: 'dev server and build' },
-  { name: 'React Router', note: 'routing' },
-  { name: 'Framer Motion', note: 'the animation throughout the app' },
-  { name: 'dnd-kit', note: 'drag-and-drop reordering' },
-  { name: 'Recharts', note: 'the Habit Tracker\'s charts' },
-  { name: 'Supabase', note: 'Postgres, auth, and row-level security' },
-  { name: 'Vercel', note: 'hosting and the serverless functions behind the AI features' },
-  { name: 'Anthropic Claude', note: 'the optional AI roadmap generation and habit insights' },
 ]
 
 function About() {
@@ -74,7 +59,7 @@ function About() {
         </Reveal>
       </div>
 
-      <Reveal as="section" delay={0.16} style={{ marginBottom: 40 }}>
+      <Reveal as="section" delay={0.16}>
         <div className="micro-label" style={{ marginBottom: 14 }}>
           Principles
         </div>
@@ -85,47 +70,6 @@ function About() {
               <p style={{ fontSize: 13, color: 'var(--mute)', lineHeight: 1.6, margin: 0 }}>{p.desc}</p>
             </div>
           ))}
-        </div>
-      </Reveal>
-
-      <Reveal as="section" delay={0.2} style={{ marginBottom: 40 }}>
-        <div className="micro-label" style={{ marginBottom: 14 }}>
-          Built with
-        </div>
-        <div className="card" style={{ padding: '18px 20px' }}>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-            {STACK.map((s) => (
-              <div key={s.name} style={{ display: 'flex', justifyContent: 'space-between', gap: 16, flexWrap: 'wrap', fontSize: 13.5 }}>
-                <span style={{ fontWeight: 600, color: 'var(--cream)' }}>{s.name}</span>
-                <span style={{ color: 'var(--mute)', textAlign: 'right' }}>{s.note}</span>
-              </div>
-            ))}
-          </div>
-          <p style={{ fontSize: 11.5, color: 'var(--mute)', marginTop: 14, marginBottom: 0 }}>
-            Straight from this project's own package.json — version {packageJson.version}.
-          </p>
-        </div>
-      </Reveal>
-
-      <Reveal as="section" delay={0.24}>
-        <div className="micro-label" style={{ marginBottom: 14 }}>
-          The person behind it
-        </div>
-        <div className="card" style={{ padding: '20px 22px' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 14, marginBottom: 14 }}>
-            <Avatar label={creatorStory.name} size={48} />
-            <div>
-              <div style={{ fontSize: 15.5, fontWeight: 600 }}>{creatorStory.name}</div>
-              <div style={{ fontSize: 12.5, color: 'var(--mute)' }}>{creatorStory.role}</div>
-            </div>
-          </div>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-            {creatorStory.paragraphs.map((p, i) => (
-              <p key={i} style={{ fontSize: 14, color: 'var(--mute)', lineHeight: 1.7, margin: 0 }}>
-                {p}
-              </p>
-            ))}
-          </div>
         </div>
       </Reveal>
     </div>
