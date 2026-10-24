@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { validateConfirmUsername } from './deleteAccount'
+import { validateConfirmUsername } from './deleteAccount.js'
 
 describe('validateConfirmUsername', () => {
   it('accepts an exact match', () => {

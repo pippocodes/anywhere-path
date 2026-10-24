@@ -4,9 +4,9 @@
 // tsconfig.api.json's `include`. Deliberately only ever includes habit
 // names, category names, and numeric stats — never notes, emails, or
 // friends' data, since this is the only data that reaches the model.
-import type { Habit, HabitCategory } from '../types'
-import { computeCurrentStreak, computeBestStreak, compareToLastMonth, monthCompletionPercent, toDateStr } from './habits'
-import { weekdayPattern, countPerfectDays } from './habitStats'
+import type { Habit, HabitCategory } from '../types.js'
+import { computeCurrentStreak, computeBestStreak, compareToLastMonth, monthCompletionPercent, toDateStr } from './habits.js'
+import { weekdayPattern, countPerfectDays } from './habitStats.js'
 
 export const MIN_DAYS_OF_DATA = 3
 const MAX_HABITS_SENT = 20

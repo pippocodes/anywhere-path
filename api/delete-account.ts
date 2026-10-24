@@ -1,6 +1,6 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node'
 import { createClient } from '@supabase/supabase-js'
-import { validateConfirmUsername } from './_lib/deleteAccount'
+import { validateConfirmUsername } from './_lib/deleteAccount.js'
 
 /**
  * POST /api/delete-account  { confirmUsername: string }  ->  { ok: true }

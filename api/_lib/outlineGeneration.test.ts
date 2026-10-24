@@ -5,8 +5,8 @@ import {
   cleanGeneratedOutline,
   buildUserPrompt,
   RATE_LIMIT_MAX_REQUESTS,
-} from './outlineGeneration'
-import { parseOutline } from '../../src/utils/outlineParser'
+} from './outlineGeneration.js'
+import { parseOutline } from '../../src/utils/outlineParser.js'
 
 describe('isRateLimited', () => {
   it('allows requests under the limit', () => {

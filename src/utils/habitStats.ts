@@ -1,5 +1,5 @@
-import type { Habit } from '../types'
-import { daysInMonth, isPerfectDay, monthDates, parseDateStr, toDateStr, yearlyCompletion } from './habits'
+import type { Habit } from '../types.js'
+import { daysInMonth, isPerfectDay, monthDates, parseDateStr, toDateStr, yearlyCompletion } from './habits.js'
 
 const WEEKDAY_LABELS = ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa']
 

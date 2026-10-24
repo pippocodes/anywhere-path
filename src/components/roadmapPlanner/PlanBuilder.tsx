@@ -353,13 +353,27 @@ function PlanBuilder({ editingPlan, onDoneEditing }: Props) {
 
           {sourceType === 'ai' && (
             <form onSubmit={handleGenerateAI} style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-              {aiError && <div className="auth-notice auth-notice-error">{aiError}</div>}
+              {aiError && (
+                <div className="auth-notice auth-notice-error">
+                  <div style={{ marginBottom: 10 }}>{aiError}</div>
+                  <button
+                    type="button"
+                    className="btn-outline"
+                    style={{ fontSize: 12.5 }}
+                    onClick={() => {
+                      setAiError(null)
+                      setSourceType('custom')
+                    }}
+                  >
+                    Switch to Custom goal
+                  </button>
+                </div>
+              )}
               <input
                 value={aiTopic}
                 onChange={(e) => setAiTopic(e.target.value)}
                 placeholder="Topic — e.g. Spanish for travel"
                 disabled={aiLoading}
-                style={{ padding: '10px 14px', borderRadius: 10, border: '1px solid var(--line)', fontSize: 14 }}
               />
               <textarea
                 value={aiDescription}
@@ -367,7 +381,7 @@ function PlanBuilder({ editingPlan, onDoneEditing }: Props) {
                 placeholder="Describe what you want to be able to do and any constraints…"
                 disabled={aiLoading}
                 rows={3}
-                style={{ padding: '10px 14px', borderRadius: 10, border: '1px solid var(--line)', fontSize: 14, resize: 'vertical' }}
+                style={{ resize: 'vertical' }}
               />
               <div>
                 <button className="btn" type="submit" disabled={aiLoading || (!aiTopic.trim() && !aiDescription.trim())}>
@@ -389,7 +403,7 @@ function PlanBuilder({ editingPlan, onDoneEditing }: Props) {
                   onChange={(e) => setAiTopic(e.target.value)}
                   placeholder="Goal — e.g. Finish my thesis draft"
                   disabled={aiLoading}
-                  style={{ flex: 1, padding: '9px 12px', borderRadius: 10, border: '1px solid var(--line)', fontSize: 13.5 }}
+                  style={{ flex: 1, padding: '9px 12px', fontSize: 13.5 }}
                 />
                 <button className="btn-secondary btn" type="submit" disabled={aiLoading || !aiTopic.trim()}>
                   {aiLoading ? 'Generating…' : 'Generate with AI'}

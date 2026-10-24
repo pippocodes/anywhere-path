@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest'
-import { isRateLimited, validateStats, parseInsightsResponse, buildUserPrompt, RATE_LIMIT_MAX_REQUESTS } from './habitInsights'
-import type { HabitInsightStats } from '../../src/utils/habitInsightStats'
+import { isRateLimited, validateStats, parseInsightsResponse, buildUserPrompt, RATE_LIMIT_MAX_REQUESTS } from './habitInsights.js'
+import type { HabitInsightStats } from '../../src/utils/habitInsightStats.js'
 
 const VALID_STATS = {
   referenceDate: '2026-10-23',

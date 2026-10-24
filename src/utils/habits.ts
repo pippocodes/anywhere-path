@@ -1,4 +1,4 @@
-import type { HabitMark, Habit } from '../types'
+import type { HabitMark, Habit } from '../types.js'
 
 export function toDateStr(date: Date): string {
   const y = date.getFullYear()

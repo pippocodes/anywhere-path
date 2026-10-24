@@ -1,6 +1,6 @@
 // Pure helpers for /api/habit-insights — kept framework/SDK-free so they're
 // directly unit-testable without mocking the Anthropic client or Supabase.
-import { MIN_DAYS_OF_DATA, type HabitInsightInput, type HabitInsightStats } from '../../src/utils/habitInsightStats'
+import { MIN_DAYS_OF_DATA, type HabitInsightInput, type HabitInsightStats } from '../../src/utils/habitInsightStats.js'
 
 export const RATE_LIMIT_MAX_REQUESTS = 5
 export const RATE_LIMIT_WINDOW_MS = 24 * 60 * 60 * 1000 // 24 hours

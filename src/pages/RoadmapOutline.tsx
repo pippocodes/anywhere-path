@@ -369,14 +369,7 @@ function RoadmapOutline() {
         value={title}
         onChange={(e) => setTitle(e.target.value)}
         placeholder="Roadmap name (defaults to your first topic)"
-        style={{
-          width: '100%',
-          padding: '12px 14px',
-          borderRadius: 10,
-          border: '1px solid var(--line)',
-          fontSize: 15,
-          marginBottom: 16,
-        }}
+        style={{ width: '100%', padding: '12px 14px', fontSize: 15, marginBottom: 16 }}
       />
 
       {aiOpen ? (
@@ -395,7 +388,23 @@ function RoadmapOutline() {
             Describe what you want to learn and how much time you have — e.g. "learn data structures in 8 weeks,
             1h/day". You can edit the result before saving.
           </p>
-          {aiError && <div className="auth-notice auth-notice-error" style={{ marginBottom: 12 }}>{aiError}</div>}
+          {aiError && (
+            <div className="auth-notice auth-notice-error" style={{ marginBottom: 12 }}>
+              <div style={{ marginBottom: 10 }}>{aiError}</div>
+              <button
+                type="button"
+                className="btn-outline"
+                style={{ fontSize: 12.5 }}
+                onClick={() => {
+                  setAiOpen(false)
+                  setAiError(null)
+                  setAiConfirmOverwrite(false)
+                }}
+              >
+                Switch to Custom goal
+              </button>
+            </div>
+          )}
           {aiConfirmOverwrite ? (
             <div className="outline-issues outline-issues-warning" style={{ marginBottom: 12 }}>
               This will replace what's currently in the editor. Generate anyway?
@@ -420,7 +429,7 @@ function RoadmapOutline() {
                 onChange={(e) => setAiGoal(e.target.value)}
                 placeholder="e.g. learn data structures in 8 weeks, 1h/day"
                 disabled={aiLoading}
-                style={{ flex: 1, padding: '10px 14px', borderRadius: 10, border: '1px solid var(--line)', fontSize: 14 }}
+                style={{ flex: 1, padding: '10px 14px', fontSize: 14 }}
               />
               <button className="btn" type="submit" disabled={aiLoading || !aiGoal.trim()}>
                 {aiLoading ? 'Generating…' : 'Generate'}

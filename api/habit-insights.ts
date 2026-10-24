@@ -1,7 +1,7 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node'
 import Anthropic from '@anthropic-ai/sdk'
 import { createClient } from '@supabase/supabase-js'
-import { isRateLimited, validateStats, parseInsightsResponse, buildSystemPrompt, buildUserPrompt, RATE_LIMIT_WINDOW_MS } from './_lib/habitInsights'
+import { isRateLimited, validateStats, parseInsightsResponse, buildSystemPrompt, buildUserPrompt, RATE_LIMIT_WINDOW_MS } from './_lib/habitInsights.js'
 
 /**
  * POST /api/habit-insights  { stats: HabitInsightStats, force?: boolean }  ->  { insights, cached }
@@ -18,6 +18,19 @@ import { isRateLimited, validateStats, parseInsightsResponse, buildSystemPrompt,
  * client falls back to rule-based insights in every one of those cases.
  */
 export default async function handler(req: VercelRequest, res: VercelResponse) {
+  // Belt-and-suspenders: whatever goes wrong anywhere in here, the caller
+  // always gets back JSON, never a bare platform error page it can't parse.
+  try {
+    return await handleHabitInsights(req, res)
+  } catch (err) {
+    console.error('Unhandled error in /api/habit-insights', err)
+    if (!res.headersSent) {
+      return res.status(500).json({ error: 'server_error', message: 'Something went wrong on our end — try again shortly.' })
+    }
+  }
+}
+
+async function handleHabitInsights(req: VercelRequest, res: VercelResponse) {
   if (req.method !== 'POST') {
     res.setHeader('Allow', 'POST')
     return res.status(405).json({ error: 'method_not_allowed', message: 'Use POST.' })
@@ -106,13 +119,19 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
   let insights: ReturnType<typeof parseInsightsResponse>
   try {
-    const response = await anthropic.messages.create({
-      model: 'claude-opus-5',
-      max_tokens: 1000,
-      output_config: { effort: 'medium' },
-      system: buildSystemPrompt(),
-      messages: [{ role: 'user', content: buildUserPrompt(stats) }],
-    })
+    const response = await anthropic.messages.create(
+      {
+        model: 'claude-opus-5',
+        max_tokens: 1000,
+        output_config: { effort: 'medium' },
+        system: buildSystemPrompt(),
+        messages: [{ role: 'user', content: buildUserPrompt(stats) }],
+      },
+      // Comfortably under this function's 60s maxDuration (vercel.json) —
+      // so this returns a controlled JSON error instead of the platform
+      // killing the function and returning its own non-JSON error page.
+      { timeout: 55_000 }
+    )
 
     if (response.stop_reason === 'refusal') {
       return res.status(502).json({ error: 'generation_failed', message: 'Could not generate insights right now.' })
@@ -128,6 +147,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     insights = parseInsightsResponse(text)
   } catch (err) {
     console.error('Habit insights generation failed', err)
+    if (err instanceof Anthropic.APIConnectionTimeoutError) {
+      return res.status(504).json({ error: 'timeout', message: 'Generating insights took too long and timed out — try again shortly.' })
+    }
     if (err instanceof Anthropic.RateLimitError) {
       return res
         .status(503)

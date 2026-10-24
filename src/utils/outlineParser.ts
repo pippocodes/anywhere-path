@@ -1,4 +1,4 @@
-import type { Duration, DurationUnit, OutlineError, OutlineNode, OutlineWarning, ParseResult } from '../types'
+import type { Duration, DurationUnit, OutlineError, OutlineNode, OutlineWarning, ParseResult } from '../types.js'
 
 const MAX_LEVEL = 3 // 0=topic, 1=subtopic, 2=module, 3=sub-module
 
