@@ -4,6 +4,10 @@ interface ImportMetaEnv {
   readonly VITE_APP_NAME: string
   readonly VITE_SUPABASE_URL: string
   readonly VITE_SUPABASE_ANON_KEY: string
+  // Optional — shows a "Still need help?" contact link on the Help page
+  // when set. Never invent a value for this; the section just hides
+  // itself when it's unset.
+  readonly VITE_SUPPORT_EMAIL?: string
 }
 
 interface ImportMeta {
