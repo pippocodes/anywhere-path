@@ -94,15 +94,15 @@ function Profile() {
         </div>
 
         <dl style={{ display: 'grid', gridTemplateColumns: '1fr', gap: 16, margin: 0 }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid var(--line)', paddingBottom: 14 }}>
+          <div className="settings-row" style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid var(--line)', paddingBottom: 14 }}>
             <dt style={{ fontSize: 13, color: 'var(--mute)' }}>Username</dt>
             <dd style={{ margin: 0, fontSize: 13.5, fontWeight: 600 }}>{username ?? '—'}</dd>
           </div>
-          <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid var(--line)', paddingBottom: 14 }}>
+          <div className="settings-row" style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid var(--line)', paddingBottom: 14 }}>
             <dt style={{ fontSize: 13, color: 'var(--mute)' }}>Email</dt>
-            <dd style={{ margin: 0, fontSize: 13.5, fontWeight: 600 }}>{user?.email}</dd>
+            <dd style={{ margin: 0, fontSize: 13.5, fontWeight: 600, overflowWrap: 'anywhere' }}>{user?.email}</dd>
           </div>
-          <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+          <div className="settings-row" style={{ display: 'flex', justifyContent: 'space-between' }}>
             <dt style={{ fontSize: 13, color: 'var(--mute)' }}>Member since</dt>
             <dd style={{ margin: 0, fontSize: 13.5, fontWeight: 600 }}>
               {loading ? <Skeleton width={110} height={14} /> : formatDate(createdAt)}

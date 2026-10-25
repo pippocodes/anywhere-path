@@ -20,7 +20,7 @@ function AccountCard() {
     <>
       <Card style={{ marginBottom: 24 }}>
         <h3 style={{ fontSize: 17, marginBottom: 14 }}>Account</h3>
-        <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12, fontSize: 13.5, marginBottom: 20 }}>
+        <div className="settings-row" style={{ display: 'flex', justifyContent: 'space-between', gap: 12, fontSize: 13.5, marginBottom: 20 }}>
           <span style={{ color: 'var(--mute)' }}>Email</span>
           <span style={{ fontWeight: 600, overflowWrap: 'anywhere' }}>{user?.email ?? '—'}</span>
         </div>

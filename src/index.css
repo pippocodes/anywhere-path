@@ -420,6 +420,16 @@ input:-webkit-autofill:focus {
   body:has(.bottom-tab-bar) {
     padding-bottom: calc(60px + env(safe-area-inset-bottom));
   }
+
+  /* Settings/Profile label+value rows: stack instead of squeezing side by side. */
+  .settings-row {
+    flex-direction: column;
+    align-items: flex-start !important;
+    gap: 8px;
+  }
+  .settings-row > *:last-child {
+    align-self: flex-start;
+  }
 }
 
 .outline-layout {

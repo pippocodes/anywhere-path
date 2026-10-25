@@ -183,7 +183,7 @@ function ProfileCard() {
             </div>
           </div>
 
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 16 }}>
+          <div className="settings-row" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 16 }}>
             <div>
               <div style={{ fontSize: 13.5, fontWeight: 600, marginBottom: 2 }}>{isPublic ? 'Public' : 'Private'} profile</div>
               <div style={{ fontSize: 11.5, color: 'var(--mute)' }}>
