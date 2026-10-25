@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import type { FriendEntry } from '../../types/friends'
+import Avatar from '../ui/Avatar'
 
 interface Props {
   friends: FriendEntry[]
@@ -26,29 +27,11 @@ function FriendsList({ friends, onRemove, onBlock }: Props) {
       <div className="micro-label" style={{ marginBottom: 10 }}>
         Friends ({friends.length})
       </div>
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: 12 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 280px))', gap: 12 }}>
         {friends.map((e, i) => (
           <div key={e.friendship.id} className="card" style={{ padding: '16px 18px', display: 'flex', flexDirection: 'column', gap: 12 }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-              <span
-                style={{
-                  width: 40,
-                  height: 40,
-                  borderRadius: '50%',
-                  background: `var(--member-${(i % 4) + 1})`,
-                  color: 'var(--ink)',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  fontFamily: 'var(--font-display)',
-                  fontStyle: 'italic',
-                  fontWeight: 600,
-                  fontSize: 16,
-                  flexShrink: 0,
-                }}
-              >
-                {e.otherUsername.charAt(0).toUpperCase()}
-              </span>
+              <Avatar label={e.otherUsername} size={40} colorIndex={i} />
               <span style={{ fontSize: 14, fontWeight: 600, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                 {e.otherUsername}
               </span>

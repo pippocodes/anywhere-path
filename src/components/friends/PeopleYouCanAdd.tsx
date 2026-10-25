@@ -80,7 +80,7 @@ function PeopleYouCanAdd({ onAdd }: Props) {
         <div className="micro-label" style={{ marginBottom: 10 }}>
           People you can add
         </div>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: 12 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 280px))', gap: 12 }}>
           {[0, 1, 2].map((i) => (
             <div key={i} className="card" style={{ padding: '16px 18px' }}>
               <Skeleton width={40} height={40} radius={20} style={{ marginBottom: 10 }} />
@@ -104,7 +104,7 @@ function PeopleYouCanAdd({ onAdd }: Props) {
           {error}
         </div>
       )}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: 12 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 280px))', gap: 12 }}>
         {people.map((p, i) => {
           const requested = requestedIds.has(p.id)
           return (
