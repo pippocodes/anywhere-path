@@ -3,17 +3,32 @@ import { useNavigate } from 'react-router-dom'
 import { AnimatePresence, motion } from 'framer-motion'
 import { useFriends } from '../../hooks/useFriends'
 import { useSharedItems } from '../../hooks/useSharedItems'
+import { useTodayItems } from '../../hooks/useTodayItems'
 
-/** Bell icon with a live badge for incoming friend requests + share invites — in-app only, no email, per spec. */
+/**
+ * Bell icon with a live badge for incoming friend requests, share invites,
+ * and now "Today" reminders (habits/plan steps/course topics/roadmap steps/
+ * shared trackers due today, computed from data already loaded — see
+ * useTodayItems). Kept as one bell with distinct sections rather than a
+ * second icon or a banner: the phone top bar only has room for one bell,
+ * and friend requests (social invites) and Today items (personal reminders)
+ * read as different categories even sharing one panel.
+ */
 function NotificationBell() {
   const { incomingRequests, accept, decline } = useFriends()
   const { items, acceptInvite, declineInvite } = useSharedItems()
+  const todayItems = useTodayItems()
   const navigate = useNavigate()
   const [open, setOpen] = useState(false)
   const rootRef = useRef<HTMLDivElement>(null)
 
   const invites = items.filter((i) => i.myStatus === 'invited')
-  const count = incomingRequests.length + invites.length
+  const count = incomingRequests.length + invites.length + todayItems.length
+
+  function handleTodayItemClick(href: string) {
+    setOpen(false)
+    navigate(href)
+  }
 
   function handleAcceptInvite(sharedItemId: string) {
     acceptInvite(sharedItemId)
@@ -133,6 +148,35 @@ function NotificationBell() {
                     </div>
                   </div>
                 ))}
+                {todayItems.length > 0 && (
+                  <div style={{ borderTop: '1px solid var(--line)', paddingTop: 10, marginTop: (incomingRequests.length + invites.length) > 0 ? 2 : 0 }}>
+                    <div style={{ fontSize: 10.5, fontWeight: 700, letterSpacing: 0.4, textTransform: 'uppercase', color: 'var(--mute)', padding: '0 6px 6px' }}>
+                      Today
+                    </div>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                      {todayItems.map((t) => (
+                        <button
+                          key={t.id}
+                          onClick={() => handleTodayItemClick(t.href)}
+                          style={{
+                            display: 'block',
+                            width: '100%',
+                            textAlign: 'left',
+                            background: 'none',
+                            border: 'none',
+                            padding: '6px 6px',
+                            borderRadius: 8,
+                            fontSize: 13,
+                            fontWeight: 600,
+                            color: 'var(--cream)',
+                          }}
+                        >
+                          {t.title}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
               </div>
             )}
             <button
