@@ -4,6 +4,8 @@ import { AnimatePresence, motion } from 'framer-motion'
 import { useAuth } from '../context/AuthContext'
 import Button from './ui/Button'
 import NotificationBell from './friends/NotificationBell'
+import PhoneTopBar from './nav/PhoneTopBar'
+import BottomTabBar from './nav/BottomTabBar'
 
 const NAV_ITEMS = [
   { to: '/', label: 'Home', end: true },
@@ -52,6 +54,7 @@ function Navbar() {
   return (
     <>
       <nav
+        className={user ? 'navbar-root navbar-root-phone-app' : 'navbar-root'}
         style={{
           position: 'sticky',
           top: 0,
@@ -259,6 +262,9 @@ function Navbar() {
           </button>
         </div>
       </nav>
+
+      <PhoneTopBar />
+      <BottomTabBar />
 
       <MobileSheet
         open={mobileOpen}

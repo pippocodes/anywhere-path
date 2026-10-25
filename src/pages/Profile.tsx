@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { NavLink } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import { supabase } from '../lib/supabaseClient'
 import Card from '../components/ui/Card'
@@ -38,10 +39,17 @@ function Profile() {
 
   return (
     <div className="page" style={{ maxWidth: 640 }}>
-      <RevealHeading as="h1" className="page-title">
-        Profile
-      </RevealHeading>
-      <p className="page-subtitle">Your account, at a glance.</p>
+      <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 16, flexWrap: 'wrap' }}>
+        <div>
+          <RevealHeading as="h1" className="page-title">
+            Profile
+          </RevealHeading>
+          <p className="page-subtitle">Your account, at a glance.</p>
+        </div>
+        <NavLink to="/settings" className="btn btn-secondary" style={{ flexShrink: 0 }}>
+          Settings
+        </NavLink>
+      </div>
 
       <Card>
         <div style={{ display: 'flex', alignItems: 'center', gap: 20, marginBottom: 28 }}>

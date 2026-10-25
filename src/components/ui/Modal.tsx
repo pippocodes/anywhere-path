@@ -1,6 +1,7 @@
 import { useEffect, useRef, type ReactNode } from 'react'
 import { AnimatePresence, motion, useReducedMotion } from 'framer-motion'
 import { createPortal } from 'react-dom'
+import { useIsPhone } from '../../hooks/useIsPhone'
 
 interface Props {
   open: boolean
@@ -14,9 +15,17 @@ interface Props {
 const FOCUSABLE_SELECTOR =
   'a[href], button:not([disabled]), textarea:not([disabled]), input:not([disabled]), select:not([disabled]), [tabindex]:not([tabindex="-1"])'
 
-/** Centered glass dialog (variant="center") or a right-hand side sheet (variant="sheet") — used for confirmations, the auth modal, and habit/category management. */
+/**
+ * Centered glass dialog (variant="center") or a right-hand side sheet (variant="sheet") —
+ * used for confirmations, the auth modal, and habit/category management. On phones
+ * (<768px), a "sheet" automatically renders as a bottom sheet instead of a side sheet —
+ * handled internally here so every existing call site gets the phone-friendly layout
+ * for free, with no prop changes needed anywhere else.
+ */
 function Modal({ open, onClose, children, variant = 'center', title, width = 440 }: Props) {
   const reduceMotion = useReducedMotion()
+  const isPhone = useIsPhone()
+  const isPhoneSheet = variant === 'sheet' && isPhone
   const panelRef = useRef<HTMLDivElement>(null)
   const previouslyFocused = useRef<HTMLElement | null>(null)
 
@@ -58,10 +67,21 @@ function Modal({ open, onClose, children, variant = 'center', title, width = 440
     }
   }, [open])
 
-  const panelInitial =
-    variant === 'sheet' ? { x: '100%', opacity: 1 } : { opacity: 0, scale: 0.96, y: 12 }
-  const panelAnimate = variant === 'sheet' ? { x: 0, opacity: 1 } : { opacity: 1, scale: 1, y: 0 }
-  const panelExit = variant === 'sheet' ? { x: '100%', opacity: 1 } : { opacity: 0, scale: 0.96, y: 12 }
+  const panelInitial = isPhoneSheet
+    ? { y: '100%', opacity: 1 }
+    : variant === 'sheet'
+      ? { x: '100%', opacity: 1 }
+      : { opacity: 0, scale: 0.96, y: 12 }
+  const panelAnimate = isPhoneSheet
+    ? { y: 0, opacity: 1 }
+    : variant === 'sheet'
+      ? { x: 0, opacity: 1 }
+      : { opacity: 1, scale: 1, y: 0 }
+  const panelExit = isPhoneSheet
+    ? { y: '100%', opacity: 1 }
+    : variant === 'sheet'
+      ? { x: '100%', opacity: 1 }
+      : { opacity: 0, scale: 0.96, y: 12 }
 
   return createPortal(
     <AnimatePresence>
@@ -79,8 +99,8 @@ function Modal({ open, onClose, children, variant = 'center', title, width = 440
             background: 'rgba(0, 0, 0, 0.6)',
             backdropFilter: 'blur(4px)',
             display: 'flex',
-            justifyContent: variant === 'sheet' ? 'flex-end' : 'center',
-            alignItems: variant === 'sheet' ? 'stretch' : 'center',
+            justifyContent: isPhoneSheet ? 'center' : variant === 'sheet' ? 'flex-end' : 'center',
+            alignItems: isPhoneSheet ? 'flex-end' : variant === 'sheet' ? 'stretch' : 'center',
             padding: variant === 'sheet' ? 0 : 20,
           }}
         >
@@ -99,13 +119,13 @@ function Modal({ open, onClose, children, variant = 'center', title, width = 440
               background: 'var(--ink-2)',
               border: '1px solid var(--line)',
               boxShadow: 'var(--shadow-soft)',
-              width: variant === 'sheet' ? Math.min(width, 440) : '100%',
-              maxWidth: variant === 'sheet' ? 440 : width,
-              height: variant === 'sheet' ? '100%' : undefined,
-              maxHeight: variant === 'sheet' ? undefined : '85vh',
+              width: isPhoneSheet ? '100%' : variant === 'sheet' ? Math.min(width, 440) : '100%',
+              maxWidth: isPhoneSheet ? '100%' : variant === 'sheet' ? 440 : width,
+              height: isPhoneSheet ? 'auto' : variant === 'sheet' ? '100%' : undefined,
+              maxHeight: isPhoneSheet ? '85vh' : variant === 'sheet' ? undefined : '85vh',
               overflowY: 'auto',
-              borderRadius: variant === 'sheet' ? 0 : 16,
-              padding: '28px 28px',
+              borderRadius: isPhoneSheet ? '20px 20px 0 0' : variant === 'sheet' ? 0 : 16,
+              padding: isPhoneSheet ? '24px 24px max(24px, env(safe-area-inset-bottom))' : '28px 28px',
             }}
           >
             {title && (

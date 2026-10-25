@@ -399,6 +399,29 @@ input:-webkit-autofill:focus {
   }
 }
 
+/*
+ * Phone app chrome (<768px): once signed in, the hamburger + full-screen sheet above
+ * is replaced by a slim top bar (logo/bell/avatar) and a fixed bottom tab bar, so this
+ * block always sits right after the 860px block it overrides for this narrower range.
+ * Signed-out visitors are unaffected — nav.navbar-root-phone-app is only added when a
+ * user is present (see Navbar.tsx), so they keep the hamburger + sheet at every width
+ * below 860px.
+ */
+@media (max-width: 767px) {
+  nav.navbar-root-phone-app {
+    display: none !important;
+  }
+  .phone-top-bar {
+    display: flex !important;
+  }
+  .bottom-tab-bar {
+    display: flex !important;
+  }
+  body:has(.bottom-tab-bar) {
+    padding-bottom: calc(60px + env(safe-area-inset-bottom));
+  }
+}
+
 .outline-layout {
   display: grid;
   grid-template-columns: 1fr 1fr;
