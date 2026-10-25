@@ -440,7 +440,7 @@ function PlanBuilder({ editingPlan, onDoneEditing }: Props) {
             ))}
           </div>
         )}
-        <div style={{ display: 'flex', gap: 8 }}>
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
           <input
             ref={newStepTitleRef}
             value={newStepTitle}
@@ -452,7 +452,7 @@ function PlanBuilder({ editingPlan, onDoneEditing }: Props) {
               }
             }}
             placeholder="Add a step…"
-            style={{ flex: 1, padding: '8px 12px', borderRadius: 8, border: '1px solid var(--line)', fontSize: 13 }}
+            style={{ flex: '1 1 160px', minWidth: 0, padding: '8px 12px', borderRadius: 8, border: '1px solid var(--line)', fontSize: 13 }}
           />
           <input
             value={newStepDuration}
@@ -464,7 +464,7 @@ function PlanBuilder({ editingPlan, onDoneEditing }: Props) {
               }
             }}
             placeholder="e.g. 1h 30m"
-            style={{ width: 120, padding: '8px 12px', borderRadius: 8, border: '1px solid var(--line)', fontSize: 13 }}
+            style={{ flex: '0 1 120px', minWidth: 0, padding: '8px 12px', borderRadius: 8, border: '1px solid var(--line)', fontSize: 13 }}
           />
           <button type="button" className="btn-outline" onClick={addCustomStep} disabled={!newStepTitle.trim()}>
             Add

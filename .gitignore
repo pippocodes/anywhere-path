@@ -13,5 +13,7 @@ make-test-user.cjs
 seed-audit-data.cjs
 screenshot-audit.cjs
 screenshot-year-view.cjs
+screenshot-responsive-audit.cjs
 verify-centering.cjs
 .test-user-id
+.screenshots/
