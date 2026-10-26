@@ -39,22 +39,10 @@ function Profile() {
 
   return (
     <div className="page" style={{ maxWidth: 640 }}>
-      <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 16, flexWrap: 'wrap' }}>
-        <div>
-          <RevealHeading as="h1" className="page-title">
-            Profile
-          </RevealHeading>
-          <p className="page-subtitle">Your account, at a glance.</p>
-        </div>
-        <div style={{ display: 'flex', gap: 8, flexShrink: 0, flexWrap: 'wrap' }}>
-          <NavLink to="/settings/profile" className="btn" style={{ flexShrink: 0 }}>
-            Edit profile
-          </NavLink>
-          <NavLink to="/settings" className="btn btn-secondary" style={{ flexShrink: 0 }}>
-            Settings
-          </NavLink>
-        </div>
-      </div>
+      <RevealHeading as="h1" className="page-title">
+        Profile
+      </RevealHeading>
+      <p className="page-subtitle">Your account, at a glance.</p>
 
       <Card>
         <div style={{ display: 'flex', alignItems: 'center', gap: 20, marginBottom: 28 }}>
@@ -115,6 +103,15 @@ function Profile() {
           </div>
         </dl>
       </Card>
+
+      <div style={{ display: 'flex', gap: 10, marginTop: 16 }}>
+        <NavLink to="/settings/profile" className="btn" style={{ flex: 1 }}>
+          Edit profile
+        </NavLink>
+        <NavLink to="/settings" className="btn btn-secondary" style={{ flex: 1 }}>
+          Settings
+        </NavLink>
+      </div>
     </div>
   )
 }
