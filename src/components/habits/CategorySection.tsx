@@ -29,6 +29,7 @@ interface Props {
 
 function CategorySection({ category, habits, courses, plans, dates, dayNumbers, month, year, referenceDate, onCycle, onCelebrate, onOfferNext, onManage, onShare }: Props) {
   const [collapsed, setCollapsed] = useState(false)
+  const [scrolled, setScrolled] = useState(false)
   const todayThRef = useRef<HTMLTableCellElement | null>(null)
 
   const percent = monthCompletionPercent(habits, month, year)
@@ -148,7 +149,7 @@ function CategorySection({ category, habits, courses, plans, dates, dayNumbers, 
             {habits.length === 0 ? (
               <p style={{ fontSize: 13, color: 'var(--mute)' }}>No habits here yet — add one from Manage.</p>
             ) : (
-              <div style={{ overflowX: 'auto' }}>
+              <div style={{ overflowX: 'auto' }} onScroll={(e) => setScrolled(e.currentTarget.scrollLeft > 0)}>
                 <table className="habit-grid-table" style={{ borderCollapse: 'collapse', width: '100%' }}>
                   <thead>
                     <tr>
@@ -162,7 +163,9 @@ function CategorySection({ category, habits, courses, plans, dates, dayNumbers, 
                           fontWeight: 600,
                           position: 'sticky',
                           left: 0,
-                          background: 'var(--surface-opaque)',
+                          background: 'var(--surface)',
+                          backdropFilter: 'blur(14px)',
+                          boxShadow: scrolled ? 'inset -8px 0 8px -8px rgba(0,0,0,.35)' : 'none',
                         }}
                       >
                         Habit
@@ -196,6 +199,7 @@ function CategorySection({ category, habits, courses, plans, dates, dayNumbers, 
                           referenceDate={referenceDate}
                           onCycle={handleCellClick}
                           onShare={onShare}
+                          scrolled={scrolled}
                         />
                       ))}
                     </SortableContext>

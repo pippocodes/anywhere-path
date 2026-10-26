@@ -17,9 +17,10 @@ interface Props {
   referenceDate: Date
   onCycle: (habitId: string, date: string) => void
   onShare?: (habitId: string) => void
+  scrolled?: boolean
 }
 
-function HabitGridRow({ habit, courses, plans, dates, referenceDate, onCycle, onShare }: Props) {
+function HabitGridRow({ habit, courses, plans, dates, referenceDate, onCycle, onShare, scrolled }: Props) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: habit.id })
   const navigate = useNavigate()
   const streak = computeCurrentStreak(habit, referenceDate)
@@ -46,7 +47,9 @@ function HabitGridRow({ habit, courses, plans, dates, referenceDate, onCycle, on
           textOverflow: 'ellipsis',
           position: 'sticky',
           left: 0,
-          background: 'var(--surface-opaque)',
+          background: 'var(--surface)',
+          backdropFilter: 'blur(14px)',
+          boxShadow: scrolled ? 'inset -8px 0 8px -8px rgba(0,0,0,.35)' : 'none',
         }}
       >
         <span
