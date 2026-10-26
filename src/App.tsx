@@ -223,7 +223,7 @@ function AnimatedRoutes() {
 function App() {
   return (
     <ToastProvider>
-      <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', position: 'relative' }}>
+      <div style={{ minHeight: '100dvh', display: 'flex', flexDirection: 'column', position: 'relative' }}>
         <AmbientBackground />
         <Spotlight />
         <ScrollProgress />

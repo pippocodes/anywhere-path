@@ -54,7 +54,7 @@ function BottomTabBar() {
             justifyContent: 'center',
             gap: 3,
             padding: '8px 4px 10px',
-            minHeight: 56,
+            minHeight: 60,
           }}
         >
           {({ isActive }) => (
@@ -108,7 +108,7 @@ function BottomTabBar() {
           justifyContent: 'center',
           gap: 3,
           padding: '8px 4px 10px',
-          minHeight: 56,
+          minHeight: 60,
         }}
       >
         {({ isActive }) => (
