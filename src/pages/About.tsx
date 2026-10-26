@@ -20,12 +20,20 @@ const PRINCIPLES = [
   },
 ]
 
-function About() {
-  return (
-    <div className="page" style={{ maxWidth: 720 }}>
-      <RevealHeading as="h1" className="page-title" style={{ marginBottom: 24 }}>
-        About Us
-      </RevealHeading>
+interface Props {
+  // Renders without its own .page wrapper/heading when true — used by
+  // /settings/about, which already supplies both via SettingsSectionHeader.
+  embedded?: boolean
+}
+
+function About({ embedded = false }: Props = {}) {
+  const content = (
+    <>
+      {!embedded && (
+        <RevealHeading as="h1" className="page-title" style={{ marginBottom: 24 }}>
+          About Us
+        </RevealHeading>
+      )}
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: 16, fontSize: 16, lineHeight: 1.8, color: 'var(--mute)', marginBottom: 40 }}>
         <Reveal as="section">
@@ -72,6 +80,13 @@ function About() {
           ))}
         </div>
       </Reveal>
+    </>
+  )
+
+  if (embedded) return content
+  return (
+    <div className="page" style={{ maxWidth: 720 }}>
+      {content}
     </div>
   )
 }

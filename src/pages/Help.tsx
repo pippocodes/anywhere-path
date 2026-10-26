@@ -172,7 +172,15 @@ function FaqAccordionItem({ item, delay }: { item: FaqItem; delay: number }) {
   )
 }
 
-function Help() {
+interface Props {
+  // Renders without its own .page wrapper/heading when true — used by
+  // /settings/help, which already supplies both via SettingsSectionHeader,
+  // so this is never nested inside another .page (which would double the
+  // padding). The standalone /help route keeps the default, unembedded.
+  embedded?: boolean
+}
+
+function Help({ embedded = false }: Props = {}) {
   const [query, setQuery] = useState('')
   const supportEmail = (import.meta.env.VITE_SUPPORT_EMAIL as string | undefined)?.trim()
 
@@ -184,14 +192,18 @@ function Help() {
     )
   }, [query])
 
-  return (
-    <div className="page" style={{ maxWidth: 720 }}>
-      <RevealHeading as="h1" className="page-title" style={{ marginBottom: 10 }}>
-        Help
-      </RevealHeading>
-      <p className="page-subtitle" style={{ marginBottom: 24 }}>
-        Search, or browse by category.
-      </p>
+  const content = (
+    <>
+      {!embedded && (
+        <>
+          <RevealHeading as="h1" className="page-title" style={{ marginBottom: 10 }}>
+            Help
+          </RevealHeading>
+          <p className="page-subtitle" style={{ marginBottom: 24 }}>
+            Search, or browse by category.
+          </p>
+        </>
+      )}
 
       <input
         value={query}
@@ -236,6 +248,13 @@ function Help() {
           </a>
         </div>
       )}
+    </>
+  )
+
+  if (embedded) return content
+  return (
+    <div className="page" style={{ maxWidth: 720 }}>
+      {content}
     </div>
   )
 }

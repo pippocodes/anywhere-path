@@ -23,6 +23,14 @@ const About = lazy(() => import('./pages/About'))
 const Help = lazy(() => import('./pages/Help'))
 const Profile = lazy(() => import('./pages/Profile'))
 const Settings = lazy(() => import('./pages/Settings'))
+const AppearanceSettings = lazy(() => import('./pages/settings/AppearanceSettings'))
+const ProfileSettings = lazy(() => import('./pages/settings/ProfileSettings'))
+const SecuritySettings = lazy(() => import('./pages/settings/SecuritySettings'))
+const AccountSettings = lazy(() => import('./pages/settings/AccountSettings'))
+const NotificationsSettings = lazy(() => import('./pages/settings/NotificationsSettings'))
+const AiPrivacySettings = lazy(() => import('./pages/settings/AiPrivacySettings'))
+const HelpSettings = lazy(() => import('./pages/settings/HelpSettings'))
+const AboutSettings = lazy(() => import('./pages/settings/AboutSettings'))
 const NotFound = lazy(() => import('./pages/NotFound'))
 const Login = lazy(() => import('./pages/auth/Login'))
 const SignUp = lazy(() => import('./pages/auth/SignUp'))
@@ -137,6 +145,70 @@ function AnimatedRoutes() {
               element={
                 <ProtectedRoute demoHeading="Create a free account to manage settings">
                   <Settings />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/settings/appearance"
+              element={
+                <ProtectedRoute demoHeading="Create a free account to manage settings">
+                  <AppearanceSettings />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/settings/profile"
+              element={
+                <ProtectedRoute demoHeading="Create a free account to manage settings">
+                  <ProfileSettings />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/settings/security"
+              element={
+                <ProtectedRoute demoHeading="Create a free account to manage settings">
+                  <SecuritySettings />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/settings/notifications"
+              element={
+                <ProtectedRoute demoHeading="Create a free account to manage settings">
+                  <NotificationsSettings />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/settings/ai-privacy"
+              element={
+                <ProtectedRoute demoHeading="Create a free account to manage settings">
+                  <AiPrivacySettings />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/settings/help"
+              element={
+                <ProtectedRoute demoHeading="Create a free account to manage settings">
+                  <HelpSettings />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/settings/about"
+              element={
+                <ProtectedRoute demoHeading="Create a free account to manage settings">
+                  <AboutSettings />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/settings/account"
+              element={
+                <ProtectedRoute demoHeading="Create a free account to manage settings">
+                  <AccountSettings />
                 </ProtectedRoute>
               }
             />

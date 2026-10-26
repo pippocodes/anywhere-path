@@ -46,9 +46,14 @@ function Profile() {
           </RevealHeading>
           <p className="page-subtitle">Your account, at a glance.</p>
         </div>
-        <NavLink to="/settings" className="btn btn-secondary" style={{ flexShrink: 0 }}>
-          Settings
-        </NavLink>
+        <div style={{ display: 'flex', gap: 8, flexShrink: 0, flexWrap: 'wrap' }}>
+          <NavLink to="/settings/profile" className="btn" style={{ flexShrink: 0 }}>
+            Edit profile
+          </NavLink>
+          <NavLink to="/settings" className="btn btn-secondary" style={{ flexShrink: 0 }}>
+            Settings
+          </NavLink>
+        </div>
       </div>
 
       <Card>
