@@ -11,6 +11,7 @@ import { ToastProvider } from './components/ui/Toast'
 import RoadmapDemo from './components/demo/RoadmapDemo'
 import HabitsDemo from './components/demo/HabitsDemo'
 import CoursesDemo from './components/demo/CoursesDemo'
+import CatchUpTrigger from './components/habits/CatchUpTrigger'
 
 const Home = lazy(() => import('./pages/Home'))
 const Courses = lazy(() => import('./pages/Courses'))
@@ -229,6 +230,7 @@ function App() {
         <ScrollProgress />
         <Navbar />
         <AnimatedRoutes />
+        <CatchUpTrigger />
         <footer
           style={{
             position: 'relative',
