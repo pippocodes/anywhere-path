@@ -15,13 +15,14 @@
     <script>
       (function () {
         // Keep in sync with src/context/ThemeContext.tsx's DEFAULT_THEME /
-        // DEFAULT_MODE and src/theme-tokens.json's bg colors — this script
+        // DEFAULT_MODE and src/theme-tokens.json's surface2 colors (the
+        // bottom tab bar's own background, not the page bg) — this script
         // can't import either module, it has to run standalone.
         var THEME_BG = {
-          plum: { dark: '#0e0912', light: '#fbf5ef' },
-          carousel: { dark: '#210100', light: '#fff8ea' },
-          burgundy: { dark: '#2a1018', light: '#fbf5ea' },
-          strawberry: { dark: '#1e0d0a', light: '#fdf1ee' },
+          plum: { dark: '#171020', light: '#fffcfa' },
+          carousel: { dark: '#2e0d04', light: '#fffdf7' },
+          burgundy: { dark: '#3a1826', light: '#fffdf9' },
+          strawberry: { dark: '#2e1712', light: '#fffbfa' },
         }
         try {
           var theme = localStorage.getItem('anywherePathTheme')

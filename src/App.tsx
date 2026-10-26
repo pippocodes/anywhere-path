@@ -12,6 +12,7 @@ import RoadmapDemo from './components/demo/RoadmapDemo'
 import HabitsDemo from './components/demo/HabitsDemo'
 import CoursesDemo from './components/demo/CoursesDemo'
 import CatchUpTrigger from './components/habits/CatchUpTrigger'
+import DebugOverlay from './components/DebugOverlay'
 
 const Home = lazy(() => import('./pages/Home'))
 const Courses = lazy(() => import('./pages/Courses'))
@@ -244,6 +245,7 @@ function App() {
         >
           © {new Date().getFullYear()} {import.meta.env.VITE_APP_NAME ?? 'Anywhere Path'}. All rights reserved.
         </footer>
+        <DebugOverlay />
       </div>
     </ToastProvider>
   )

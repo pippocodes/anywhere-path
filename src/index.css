@@ -420,6 +420,13 @@ input:-webkit-autofill:focus {
   body:has(.bottom-tab-bar) {
     padding-bottom: calc(60px + env(safe-area-inset-bottom));
   }
+  /* Whatever the phone's own OS/browser chrome draws below the fixed bar
+     (home-indicator area, overscroll rubber-banding) shows the <html>
+     canvas color, not the bar's — matching them means that strip blends
+     with the bar instead of reading as a gap underneath it. */
+  html:has(.bottom-tab-bar) {
+    background: var(--ink-2);
+  }
 
   /* Settings/Profile label+value rows: stack instead of squeezing side by side. */
   .settings-row {

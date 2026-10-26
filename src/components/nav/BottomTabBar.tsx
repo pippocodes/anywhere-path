@@ -33,6 +33,7 @@ function BottomTabBar() {
         left: 0,
         right: 0,
         bottom: 0,
+        height: 'calc(60px + env(safe-area-inset-bottom))',
         zIndex: 55,
         alignItems: 'stretch',
         justifyContent: 'space-around',

@@ -29,8 +29,11 @@ function resolveMode(mode: ColorMode): 'light' | 'dark' {
   return mode === 'system' ? (systemPrefersDark() ? 'dark' : 'light') : mode
 }
 
+// Matches the bottom tab bar's own background (--ink-2 / surface2), not the
+// page bg — otherwise the OS-drawn strip below the bar on phones (status
+// bar / home-indicator area) is a visibly different color from the bar.
 const THEME_COLOR_META: Record<ThemeKey, { dark: string; light: string }> = Object.fromEntries(
-  THEME_KEYS.map((key) => [key, { dark: themeTokens.themes[key].dark.bg, light: themeTokens.themes[key].light.bg }])
+  THEME_KEYS.map((key) => [key, { dark: themeTokens.themes[key].dark.surface2, light: themeTokens.themes[key].light.surface2 }])
 ) as Record<ThemeKey, { dark: string; light: string }>
 
 /** Writes data-theme/data-mode onto <html> and updates the browser theme-color meta tag — the one place that actually touches the DOM for theming, so every call site (initial load, a user click, a cross-device sync) goes through the same path. */
