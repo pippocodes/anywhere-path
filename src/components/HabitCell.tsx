@@ -38,7 +38,6 @@ function HabitCell({ date, mark, onClick, today }: Props) {
       }}
       role="button"
       tabIndex={0}
-      title={date}
       aria-label={`${date}: ${MARK_LABEL[mark]}`}
       className="habit-cell-hit"
     >
