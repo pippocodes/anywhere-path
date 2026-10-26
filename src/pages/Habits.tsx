@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
-import { useLocation } from 'react-router-dom'
+import { useLocation, useNavigate } from 'react-router-dom'
 import { createPortal } from 'react-dom'
 import { AnimatePresence, motion } from 'framer-motion'
 import {
@@ -88,6 +88,7 @@ function sortByOrder<T extends { order: number }>(items: T[]): T[] {
 function Habits() {
   const { user } = useAuth()
   const location = useLocation()
+  const navigate = useNavigate()
   const isPhone = useIsPhone()
   const {
     data,
@@ -120,11 +121,26 @@ function Habits() {
   const [nextOffer, setNextOffer] = useState<NextItemOffer | null>(null)
   const [shareOpen, setShareOpen] = useState(false)
   const [preselectedHabitId, setPreselectedHabitId] = useState<string | null>(null)
+  const [preselectedFriendId, setPreselectedFriendId] = useState<string | null>(null)
 
   function openShare(habitId: string | null) {
     setPreselectedHabitId(habitId)
+    setPreselectedFriendId(null)
     setShareOpen(true)
   }
+
+  // Arriving here from a friend's profile page's "Share a tracker" button
+  // (see FriendProfile.tsx) — state is consumed once then cleared so
+  // back/forward navigation doesn't reopen the modal.
+  useEffect(() => {
+    const friendId = (location.state as { shareWithFriendId?: string } | null)?.shareWithFriendId
+    if (!friendId) return
+    setPreselectedHabitId(null)
+    setPreselectedFriendId(friendId)
+    setShareOpen(true)
+    navigate(location.pathname + location.hash, { replace: true, state: {} })
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [location.state])
 
   function handleConfirmNextOffer() {
     if (!nextOffer) return
@@ -555,6 +571,7 @@ function Habits() {
         habits={data.habits}
         friends={friendsState.friends}
         preselectedHabitId={preselectedHabitId}
+        preselectedFriendId={preselectedFriendId}
         ownedSharedItemCount={sharedState.items.filter((i) => i.isOwner).length}
         onShare={sharedState.share}
       />

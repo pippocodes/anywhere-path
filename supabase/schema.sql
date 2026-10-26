@@ -685,6 +685,50 @@ $$;
 
 grant execute on function public.people_you_can_add(integer, integer) to authenticated;
 
+-- Friend profile page: returns exactly (id, username, about, created_at)
+-- for ONE username — never selects from auth.users, so an email can never
+-- be part of the result shape regardless of what the client asks for.
+-- Visible when the caller is the profile owner, the profile is public, or
+-- the caller has an ACCEPTED friendship with it (pending/blocked don't
+-- count here, unlike profiles_select_connected above, which is deliberately
+-- broader for "can I see a username at all" purposes elsewhere in the app).
+-- Returns zero rows — not an error — when none of that holds, so a client
+-- can't distinguish "private" from "doesn't exist" by the error shape.
+create or replace function public.get_friend_profile(p_username text)
+returns table (id uuid, username text, about text, created_at timestamptz)
+language plpgsql
+security definer set search_path = public
+stable
+as $$
+declare
+  v_viewer uuid := auth.uid();
+begin
+  if v_viewer is null then
+    return;
+  end if;
+
+  return query
+    select p.id, p.username, p.about, p.created_at
+    from public.profiles p
+    where lower(p.username) = lower(trim(p_username))
+      and (
+        p.id = v_viewer
+        or p.is_public
+        or exists (
+          select 1 from public.friendships f
+          where f.status = 'accepted'
+            and (
+              (f.requester_id = v_viewer and f.addressee_id = p.id)
+              or (f.addressee_id = v_viewer and f.requester_id = p.id)
+            )
+        )
+      )
+    limit 1;
+end;
+$$;
+
+grant execute on function public.get_friend_profile(text) to authenticated;
+
 -- ---------------------------------------------------------------------
 -- shared_items — one habit or course an owner has shared. `item_id` is a
 -- loose text reference (polymorphic: a habits.id or courses.id) rather

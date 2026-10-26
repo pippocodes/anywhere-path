@@ -1,5 +1,5 @@
 import type { HabitMark } from '../types'
-import { toDateStr } from './habits'
+import { toDateStr, monthDates } from './habits'
 
 /** One row from shared_item_logs — a single member's state on a single day. */
 export interface SharedLog {
@@ -66,4 +66,20 @@ export function finishOrderFor(
 /** True once every member is fully done for `date`. */
 export function isTogetherComplete(logs: SharedLog[], memberIds: string[], date: string): boolean {
   return memberIds.length > 0 && memberIds.every((id) => stateFor(logs, id, date) === 2)
+}
+
+/** This month's "together" completion, averaged across members (full=1, partial=0.5) — mirrors monthCompletionPercent's own math for the personal tracker. */
+export function monthTogetherPercent(logs: SharedLog[], memberIds: string[], month: number, year: number): number {
+  const dates = monthDates(month, year)
+  if (memberIds.length === 0 || dates.length === 0) return 0
+
+  let total = 0
+  let earned = 0
+  for (const id of memberIds) {
+    for (const date of dates) {
+      total++
+      earned += stateFor(logs, id, date) / 2
+    }
+  }
+  return total === 0 ? 0 : Math.round((earned / total) * 100)
 }

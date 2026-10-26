@@ -23,6 +23,7 @@ const Habits = lazy(() => import('./pages/Habits'))
 const Friends = lazy(() => import('./pages/Friends'))
 const About = lazy(() => import('./pages/About'))
 const Help = lazy(() => import('./pages/Help'))
+const FriendProfile = lazy(() => import('./pages/FriendProfile'))
 const Profile = lazy(() => import('./pages/Profile'))
 const Settings = lazy(() => import('./pages/Settings'))
 const AppearanceSettings = lazy(() => import('./pages/settings/AppearanceSettings'))
@@ -129,6 +130,14 @@ function AnimatedRoutes() {
               element={
                 <ProtectedRoute demoHeading="Create a free account to add friends and share tracking">
                   <Friends />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/friends/:username"
+              element={
+                <ProtectedRoute demoHeading="Create a free account to add friends and share tracking">
+                  <FriendProfile />
                 </ProtectedRoute>
               }
             />

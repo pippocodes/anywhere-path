@@ -3,6 +3,7 @@ import { supabase } from './supabaseClient'
 import type {
   Friendship,
   FriendEntry,
+  FriendProfile,
   PublicProfile,
   SharedItem,
   SharedItemMember,
@@ -89,6 +90,22 @@ export async function fetchPeopleYouCanAdd(limit: number, offset: number): Promi
   const { data, error } = await client.rpc('people_you_can_add', { p_limit: limit, p_offset: offset })
   if (error) throw error
   return (data ?? []) as PublicProfile[]
+}
+
+/**
+ * One friend's public-facing profile for /friends/:username — backed by
+ * get_friend_profile() (see schema.sql), which enforces the visibility
+ * rule (owner, public, or accepted friend) server-side and never selects
+ * from auth.users, so this can never return an email. Null means not
+ * found OR not visible — the RPC deliberately doesn't distinguish those.
+ */
+export async function fetchFriendProfile(username: string): Promise<FriendProfile | null> {
+  const client = requireClient()
+  const { data, error } = await client.rpc('get_friend_profile', { p_username: username })
+  if (error) throw error
+  const row = (data ?? [])[0] as { id: string; username: string; about: string; created_at: string } | undefined
+  if (!row) return null
+  return { id: row.id, username: row.username, about: row.about, createdAt: row.created_at }
 }
 
 // --- Friendships ---

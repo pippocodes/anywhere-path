@@ -27,6 +27,14 @@ export interface PublicProfile {
   about: string
 }
 
+/** The get_friend_profile() RPC's result — never includes email; see schema.sql for the visibility rule. */
+export interface FriendProfile {
+  id: string
+  username: string
+  about: string
+  createdAt: string
+}
+
 export type SharedItemType = 'habit' | 'course'
 export type SharedMemberStatus = 'invited' | 'accepted' | 'left' | 'removed'
 

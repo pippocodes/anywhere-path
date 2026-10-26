@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { Link } from 'react-router-dom'
 import type { FriendEntry } from '../../types/friends'
 import Avatar from '../ui/Avatar'
 
@@ -43,12 +44,15 @@ function FriendsList({ friends, onRemove, onBlock }: Props) {
               borderBottom: i < friends.length - 1 ? '1px solid var(--line)' : 'none',
             }}
           >
-            <div style={{ display: 'flex', alignItems: 'center', gap: 12, minWidth: 0 }}>
+            <Link
+              to={`/friends/${e.otherUsername}`}
+              style={{ display: 'flex', alignItems: 'center', gap: 12, minWidth: 0, color: 'inherit' }}
+            >
               <Avatar label={e.otherUsername} size={40} colorIndex={i} />
               <span style={{ fontSize: 14, fontWeight: 600, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                 @{e.otherUsername}
               </span>
-            </div>
+            </Link>
 
             {confirming?.id === e.friendship.id ? (
               <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
