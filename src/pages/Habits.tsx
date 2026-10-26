@@ -14,6 +14,7 @@ import {
 import { arrayMove, sortableKeyboardCoordinates } from '@dnd-kit/sortable'
 import { useAuth } from '../context/AuthContext'
 import { useApp } from '../hooks/useApp'
+import { useIsPhone } from '../hooks/useIsPhone'
 import { useFriends } from '../hooks/useFriends'
 import { useSharedItems } from '../hooks/useSharedItems'
 import {
@@ -86,6 +87,7 @@ function sortByOrder<T extends { order: number }>(items: T[]): T[] {
 function Habits() {
   const { user } = useAuth()
   const location = useLocation()
+  const isPhone = useIsPhone()
   const {
     data,
     cycleHabitMark,
@@ -415,23 +417,47 @@ function Habits() {
               />
             ) : (
               <>
-                <MonthStats
-                  completionPercent={overallPercent}
-                  currentStreak={bestCurrentStreak}
-                  bestStreak={bestStreakEver}
-                  perfectDays={perfectDays}
-                  comparison={monthComparison}
-                  dailyValues={dailySeries.map((d) => d.percent)}
-                />
+                {isPhone ? (
+                  <>
+                    <div className="card" style={{ display: 'flex', alignItems: 'center', gap: 18, marginBottom: 20 }}>
+                      <ProgressRing percent={overallPercent} size={104} label="this month" gradient />
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <MonthStats
+                          completionPercent={overallPercent}
+                          currentStreak={bestCurrentStreak}
+                          bestStreak={bestStreakEver}
+                          perfectDays={perfectDays}
+                          comparison={monthComparison}
+                          dailyValues={dailySeries.map((d) => d.percent)}
+                          compact
+                        />
+                      </div>
+                    </div>
+                    <div className="card" style={{ marginBottom: 24 }}>
+                      <DailyCompletionChart data={dailySeries} />
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    <MonthStats
+                      completionPercent={overallPercent}
+                      currentStreak={bestCurrentStreak}
+                      bestStreak={bestStreakEver}
+                      perfectDays={perfectDays}
+                      comparison={monthComparison}
+                      dailyValues={dailySeries.map((d) => d.percent)}
+                    />
 
-                <div style={{ display: 'grid', gridTemplateColumns: 'minmax(220px, 320px) 1fr', gap: 20, marginBottom: 24 }}>
-                  <div className="card" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 10, minHeight: 300 }}>
-                    <ProgressRing percent={overallPercent} size={200} label="this month" gradient />
-                  </div>
-                  <div className="card" style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
-                    <DailyCompletionChart data={dailySeries} />
-                  </div>
-                </div>
+                    <div style={{ display: 'grid', gridTemplateColumns: 'minmax(220px, 320px) 1fr', gap: 20, marginBottom: 24 }}>
+                      <div className="card" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 10, minHeight: 300 }}>
+                        <ProgressRing percent={overallPercent} size={200} label="this month" gradient />
+                      </div>
+                      <div className="card" style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+                        <DailyCompletionChart data={dailySeries} />
+                      </div>
+                    </div>
+                  </>
+                )}
 
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: 20, marginBottom: 24 }}>
                   <div className="card">
