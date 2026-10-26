@@ -1,5 +1,6 @@
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from 'recharts'
 import ChartTooltip from './ChartTooltip'
+import { useIsPhone } from '../../../hooks/useIsPhone'
 
 const MONTH_LABELS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
 
@@ -10,6 +11,7 @@ interface Props {
 
 /** The Year view's 12-month completion bar chart. */
 function MonthlyBarChart({ values, activeMonth }: Props) {
+  const isPhone = useIsPhone()
   const data = values.map((percent, i) => ({ month: MONTH_LABELS[i], percent }))
 
   return (
@@ -19,13 +21,28 @@ function MonthlyBarChart({ values, activeMonth }: Props) {
       </div>
       <ResponsiveContainer width="100%" height={300}>
         <BarChart data={data} margin={{ top: 4, right: 8, left: -24, bottom: 0 }} barCategoryGap={8}>
-          <XAxis dataKey="month" tick={{ fill: 'var(--mute)', fontSize: 11 }} axisLine={false} tickLine={false} />
+          <XAxis
+            dataKey="month"
+            interval={0}
+            tickFormatter={(v: string) => (isPhone ? v[0] : v)}
+            tick={{ fill: 'var(--mute)', fontSize: isPhone ? 10 : 11 }}
+            axisLine={false}
+            tickLine={false}
+          />
           <YAxis domain={[0, 100]} tick={{ fill: 'var(--mute)', fontSize: 10.5 }} axisLine={false} tickLine={false} width={32} tickFormatter={(v) => `${v}%`} />
           <Tooltip
             cursor={{ fill: 'color-mix(in srgb, var(--text) 3%, transparent)' }}
             content={({ active, payload, label }) => <ChartTooltip active={active} label={label} value={payload?.[0]?.value as number} suffix="%" />}
           />
-          <Bar dataKey="percent" radius={[6, 6, 0, 0]} isAnimationActive animationDuration={800} animationEasing="ease-out">
+          <Bar
+            dataKey="percent"
+            radius={[6, 6, 0, 0]}
+            isAnimationActive
+            animationDuration={800}
+            animationEasing="ease-out"
+            minPointSize={2}
+            background={{ fill: 'var(--ring-track)' }}
+          >
             {data.map((_, i) => (
               <Cell key={i} fill={i === activeMonth ? 'var(--chart-2)' : 'var(--chart-1)'} fillOpacity={i === activeMonth ? 1 : 0.55} />
             ))}
