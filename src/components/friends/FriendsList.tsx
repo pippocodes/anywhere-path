@@ -8,9 +8,11 @@ interface Props {
   onBlock: (friendshipId: string) => void
 }
 
-/** Accepted friends as a grid of small profile cards — avatar initial, username, Remove/Block. Sharing now happens from the Habit Tracker page (Step 2), not here. */
+type Confirming = { id: string; action: 'remove' | 'block' } | null
+
+/** Accepted friends as rows in one full-width card (matching FriendSearch), each with avatar + @username and Remove/Block — both confirmed before firing. Sharing now happens from the Habit Tracker page (Step 2), not here. */
 function FriendsList({ friends, onRemove, onBlock }: Props) {
-  const [confirmingId, setConfirmingId] = useState<string | null>(null)
+  const [confirming, setConfirming] = useState<Confirming>(null)
 
   if (friends.length === 0) {
     return (
@@ -27,42 +29,59 @@ function FriendsList({ friends, onRemove, onBlock }: Props) {
       <div className="micro-label" style={{ marginBottom: 10 }}>
         Friends ({friends.length})
       </div>
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 280px))', gap: 12 }}>
+      <div className="card" style={{ padding: '18px 20px' }}>
         {friends.map((e, i) => (
-          <div key={e.friendship.id} className="card" style={{ padding: '16px 18px', display: 'flex', flexDirection: 'column', gap: 12 }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+          <div
+            key={e.friendship.id}
+            style={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              flexWrap: 'wrap',
+              gap: 8,
+              padding: '10px 4px',
+              borderBottom: i < friends.length - 1 ? '1px solid var(--line)' : 'none',
+            }}
+          >
+            <div style={{ display: 'flex', alignItems: 'center', gap: 12, minWidth: 0 }}>
               <Avatar label={e.otherUsername} size={40} colorIndex={i} />
               <span style={{ fontSize: 14, fontWeight: 600, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                {e.otherUsername}
+                @{e.otherUsername}
               </span>
             </div>
 
-            {confirmingId === e.friendship.id ? (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-                <span style={{ fontSize: 11.5, color: 'var(--mute)' }}>Remove this friend?</span>
-                <div style={{ display: 'flex', gap: 8 }}>
-                  <button
-                    type="button"
-                    className="btn-outline"
-                    style={{ color: 'var(--danger)', fontSize: 11.5 }}
-                    onClick={() => {
-                      onRemove(e.friendship.id)
-                      setConfirmingId(null)
-                    }}
-                  >
-                    Yes, remove
-                  </button>
-                  <button type="button" className="btn-outline" style={{ fontSize: 11.5 }} onClick={() => setConfirmingId(null)}>
-                    Cancel
-                  </button>
-                </div>
+            {confirming?.id === e.friendship.id ? (
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+                <span style={{ fontSize: 11.5, color: 'var(--mute)' }}>
+                  {confirming.action === 'remove' ? 'Remove this friend?' : 'Block this friend?'}
+                </span>
+                <button
+                  type="button"
+                  className="btn-outline"
+                  style={{ color: 'var(--danger)', fontSize: 11.5 }}
+                  onClick={() => {
+                    if (confirming.action === 'remove') onRemove(e.friendship.id)
+                    else onBlock(e.friendship.id)
+                    setConfirming(null)
+                  }}
+                >
+                  {confirming.action === 'remove' ? 'Yes, remove' : 'Yes, block'}
+                </button>
+                <button type="button" className="btn-outline" style={{ fontSize: 11.5 }} onClick={() => setConfirming(null)}>
+                  Cancel
+                </button>
               </div>
             ) : (
               <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-                <button type="button" className="btn-outline" style={{ fontSize: 12 }} onClick={() => setConfirmingId(e.friendship.id)}>
+                <button type="button" className="btn-outline" style={{ fontSize: 12 }} onClick={() => setConfirming({ id: e.friendship.id, action: 'remove' })}>
                   Remove
                 </button>
-                <button type="button" className="btn-outline" style={{ fontSize: 12, opacity: 0.75 }} onClick={() => onBlock(e.friendship.id)}>
+                <button
+                  type="button"
+                  className="btn-outline"
+                  style={{ fontSize: 12, opacity: 0.75 }}
+                  onClick={() => setConfirming({ id: e.friendship.id, action: 'block' })}
+                >
                   Block
                 </button>
               </div>

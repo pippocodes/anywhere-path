@@ -80,11 +80,20 @@ function PeopleYouCanAdd({ onAdd }: Props) {
         <div className="micro-label" style={{ marginBottom: 10 }}>
           People you can add
         </div>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 280px))', gap: 12 }}>
+        <div className="card" style={{ padding: '18px 20px' }}>
           {[0, 1, 2].map((i) => (
-            <div key={i} className="card" style={{ padding: '16px 18px' }}>
-              <Skeleton width={40} height={40} radius={20} style={{ marginBottom: 10 }} />
-              <Skeleton width="60%" height={13} />
+            <div
+              key={i}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: 12,
+                padding: '10px 4px',
+                borderBottom: i < 2 ? '1px solid var(--line)' : 'none',
+              }}
+            >
+              <Skeleton width={40} height={40} radius={20} />
+              <Skeleton width="40%" height={13} />
             </div>
           ))}
         </div>
@@ -104,24 +113,39 @@ function PeopleYouCanAdd({ onAdd }: Props) {
           {error}
         </div>
       )}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 280px))', gap: 12 }}>
+      <div className="card" style={{ padding: '18px 20px' }}>
         {people.map((p, i) => {
           const requested = requestedIds.has(p.id)
           return (
-            <div key={p.id} className="card" style={{ padding: '16px 18px', display: 'flex', flexDirection: 'column', gap: 12 }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+            <div
+              key={p.id}
+              style={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                flexWrap: 'wrap',
+                gap: 8,
+                padding: '10px 4px',
+                borderBottom: i < people.length - 1 ? '1px solid var(--line)' : 'none',
+              }}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', gap: 12, minWidth: 0 }}>
                 <Avatar label={p.username} size={40} colorIndex={i} />
-                <span style={{ fontSize: 14, fontWeight: 600, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                  {p.username}
-                </span>
+                <div style={{ minWidth: 0 }}>
+                  <div style={{ fontSize: 14, fontWeight: 600, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                    @{p.username}
+                  </div>
+                  {p.about && (
+                    <div style={{ fontSize: 12, color: 'var(--mute)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: 220 }}>
+                      {p.about}
+                    </div>
+                  )}
+                </div>
               </div>
-              {p.about && (
-                <p style={{ fontSize: 12.5, color: 'var(--mute)', margin: 0, lineHeight: 1.5 }}>{p.about}</p>
-              )}
               <button
                 type="button"
                 className="btn-outline"
-                style={{ fontSize: 12, alignSelf: 'flex-start' }}
+                style={{ fontSize: 12, flexShrink: 0 }}
                 onClick={() => handleAdd(p.id)}
                 disabled={requested || addingId === p.id}
               >
