@@ -18,7 +18,7 @@ function CategoryYearRings({ categories, habitsByCategory, year }: Props) {
       <div className="micro-label" style={{ marginBottom: 12 }}>
         By Category
       </div>
-      <div style={{ display: 'flex', gap: 24, flexWrap: 'wrap' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(84px, 1fr))', gap: '20px 12px', justifyItems: 'center' }}>
         {categories.map((cat, i) => {
           const percent = categoryYearlyPercent(habitsByCategory.get(cat.id) ?? [], year)
           return (
@@ -29,8 +29,19 @@ function CategoryYearRings({ categories, habitsByCategory, year }: Props) {
               transition={{ duration: 0.4, delay: i * 0.08, ease: [0.2, 0.8, 0.2, 1] }}
               style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8 }}
             >
-              <ProgressRing percent={percent} size={96} color={cat.color} />
-              <span style={{ fontSize: 12, color: 'var(--mute)' }}>{cat.name}</span>
+              <ProgressRing percent={percent} size={68} color={cat.color} />
+              <span
+                style={{
+                  fontSize: 12,
+                  color: 'var(--mute)',
+                  maxWidth: 84,
+                  overflow: 'hidden',
+                  textOverflow: 'ellipsis',
+                  whiteSpace: 'nowrap',
+                }}
+              >
+                {cat.name}
+              </span>
             </motion.div>
           )
         })}
