@@ -53,7 +53,7 @@ describe('CategorySection celebration trigger', () => {
     const onCelebrate = vi.fn()
     render(<Harness initialHabits={[habit('h1', 0)]} onCelebrate={onCelebrate} />)
 
-    const cell = screen.getByTitle('2024-01-01')
+    const cell = screen.getByLabelText(/^2024-01-01:/)
     fireEvent.click(cell) // 0 -> 1 (partial) — not a completion
     expect(onCelebrate).not.toHaveBeenCalled()
 
@@ -66,7 +66,7 @@ describe('CategorySection celebration trigger', () => {
     const onCelebrate = vi.fn()
     render(<Harness initialHabits={[habit('h1', 0), habit('h2', 1)]} onCelebrate={onCelebrate} />)
 
-    const cells = screen.getAllByTitle('2024-01-01')
+    const cells = screen.getAllByLabelText(/^2024-01-01:/)
     fireEvent.click(cells[0])
     fireEvent.click(cells[0]) // h1 -> done, h2 still untouched
     expect(onCelebrate).not.toHaveBeenCalled()
@@ -76,7 +76,7 @@ describe('CategorySection celebration trigger', () => {
     const onCelebrate = vi.fn()
     render(<Harness initialHabits={[habit('h1', 0), habit('h2', 1)]} onCelebrate={onCelebrate} />)
 
-    const cells = screen.getAllByTitle('2024-01-01')
+    const cells = screen.getAllByLabelText(/^2024-01-01:/)
     fireEvent.click(cells[0])
     fireEvent.click(cells[0]) // h1 -> done
     expect(onCelebrate).not.toHaveBeenCalled()
@@ -91,7 +91,7 @@ describe('CategorySection celebration trigger', () => {
     const onCelebrate = vi.fn()
     render(<Harness initialHabits={[habit('h1', 0, { '2024-01-01': 2 })]} onCelebrate={onCelebrate} />)
 
-    const cell = screen.getByTitle('2024-01-01')
+    const cell = screen.getByLabelText(/^2024-01-01:/)
     fireEvent.click(cell) // 2 -> 0
     fireEvent.click(cell) // 0 -> 1
     expect(onCelebrate).not.toHaveBeenCalled()
