@@ -56,13 +56,13 @@ function ResetPassword() {
       return
     }
     setDone(true)
-    setTimeout(() => navigate('/roadmap', { replace: true }), 1500)
+    setTimeout(() => navigate('/', { replace: true }), 1500)
   }
 
   if (done) {
     return (
       <AuthLayout title="Password updated">
-        <div className="auth-notice auth-notice-success">You're all set — taking you to your roadmap…</div>
+        <div className="auth-notice auth-notice-success">You're all set — taking you home…</div>
       </AuthLayout>
     )
   }

@@ -38,7 +38,7 @@ function AuthCallback() {
     if (urlError || loading || !user || announced) return
     setAnnounced(true)
     show("You're confirmed and signed in — welcome!", 'success')
-    navigate('/roadmap', { replace: true })
+    navigate('/', { replace: true })
   }, [urlError, loading, user, announced, navigate, show])
 
   if (urlError) {

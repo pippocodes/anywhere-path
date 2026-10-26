@@ -55,7 +55,7 @@ function LoginForm({ onSwitchToRegister }: { onSwitchToRegister: () => void }) {
   const { signIn, resendConfirmationEmail, configured } = useAuth()
   const navigate = useNavigate()
   const location = useLocation()
-  const redirectTo = (location.state as { from?: string } | null)?.from ?? '/roadmap'
+  const redirectTo = (location.state as { from?: string } | null)?.from ?? '/'
 
   const [identifier, setIdentifier] = useState('')
   const [password, setPassword] = useState('')
