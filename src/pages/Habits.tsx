@@ -165,6 +165,16 @@ function Habits() {
   }, [activeHabits])
 
   const uncategorized = habitsByCategory.get(UNCATEGORIZED_ID) ?? []
+  // Every category with at least one habit gets a ring on the Year tab,
+  // including the synthetic "Uncategorized" group — activeCategories alone
+  // (the real named categories from data.habitCategories) was missing it.
+  const categoriesWithUncategorized = useMemo(
+    () =>
+      uncategorized.length > 0
+        ? [...activeCategories, { id: UNCATEGORIZED_ID, name: 'Uncategorized', color: 'var(--mute)', archived: false, order: activeCategories.length }]
+        : activeCategories,
+    [activeCategories, uncategorized.length]
+  )
 
   const overallPercent = monthCompletionPercent(activeHabits, month, year)
   const bestStreakEver = activeHabits.reduce((max, h) => Math.max(max, computeBestStreak(h)), 0)
@@ -509,7 +519,7 @@ function Habits() {
             </div>
 
             <div className="card" style={{ marginBottom: 24 }}>
-              <CategoryYearRings categories={activeCategories} habitsByCategory={habitsByCategory} year={year} />
+              <CategoryYearRings categories={categoriesWithUncategorized} habitsByCategory={habitsByCategory} year={year} />
             </div>
           </motion.div>
         )}
