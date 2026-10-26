@@ -1,16 +1,17 @@
-import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from 'recharts'
-import ChartTooltip from './ChartTooltip'
 import ChartEmptyState from './ChartEmptyState'
 
 interface Props {
-  data: { name: string; percent: number }[]
+  data: { name: string; percent: number; color: string }[]
 }
 
-const BAR_COLORS = ['var(--chart-1)', 'var(--chart-2)', 'var(--chart-3)', 'var(--chart-4)', 'var(--chart-5)', 'var(--chart-6)']
-
-/** One horizontal bar per habit, showing this month's completion — sorted by the caller. */
+/**
+ * One row per habit, showing this month's completion — plain HTML, not a
+ * chart library. Recharts' bars filled the whole card and triggered a
+ * stuck hover tooltip with only a couple of habits; a fixed-height row list
+ * has no such failure mode and its height naturally follows the habit
+ * count instead of stretching to fill a fixed chart area.
+ */
 function PerHabitBarChart({ data }: Props) {
-  const height = Math.max(data.length * 34, 280)
   const hasData = data.length > 0
 
   return (
@@ -21,28 +22,40 @@ function PerHabitBarChart({ data }: Props) {
       {!hasData ? (
         <ChartEmptyState height={280} message="Add a habit to see how each one's doing" />
       ) : (
-        <ResponsiveContainer width="100%" height={height}>
-          <BarChart data={data} layout="vertical" margin={{ top: 0, right: 16, left: 0, bottom: 0 }} barCategoryGap={10}>
-            <XAxis type="number" domain={[0, 100]} hide />
-            <YAxis
-              type="category"
-              dataKey="name"
-              tick={{ fill: 'var(--cream)', fontSize: 12 }}
-              axisLine={false}
-              tickLine={false}
-              width={120}
-            />
-            <Tooltip
-              cursor={{ fill: 'color-mix(in srgb, var(--text) 3%, transparent)' }}
-              content={({ active, payload, label }) => <ChartTooltip active={active} label={label} value={payload?.[0]?.value as number} suffix="%" />}
-            />
-            <Bar dataKey="percent" radius={[0, 6, 6, 0]} isAnimationActive animationDuration={700} animationEasing="ease-out">
-              {data.map((_, i) => (
-                <Cell key={i} fill={BAR_COLORS[i % BAR_COLORS.length]} />
-              ))}
-            </Bar>
-          </BarChart>
-        </ResponsiveContainer>
+        <div style={{ display: 'flex', flexDirection: 'column' }}>
+          {data.map((d) => (
+            <div key={d.name} style={{ display: 'flex', alignItems: 'center', gap: 12, height: 44 }}>
+              <div
+                style={{
+                  flex: '0 1 40%',
+                  minWidth: 0,
+                  overflow: 'hidden',
+                  textOverflow: 'ellipsis',
+                  whiteSpace: 'nowrap',
+                  fontSize: 13,
+                  color: 'var(--cream)',
+                }}
+              >
+                {d.name}
+              </div>
+              <div style={{ flex: 1, minWidth: 0, height: 8, borderRadius: 4, background: 'var(--line)', overflow: 'hidden' }}>
+                <div style={{ width: `${d.percent}%`, height: '100%', borderRadius: 4, background: d.color }} />
+              </div>
+              <div
+                style={{
+                  width: 38,
+                  flexShrink: 0,
+                  textAlign: 'right',
+                  fontSize: 12,
+                  color: 'var(--mute)',
+                  fontVariantNumeric: 'tabular-nums',
+                }}
+              >
+                {d.percent}%
+              </div>
+            </div>
+          ))}
+        </div>
       )}
     </div>
   )

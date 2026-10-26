@@ -180,12 +180,22 @@ function Habits() {
   )
 
   const dailySeries = useMemo(() => dailyCompletionSeries(activeHabits, month, year), [activeHabits, month, year])
+  const categoryColorById = useMemo(() => {
+    const map = new Map<string, string>()
+    for (const c of data.habitCategories) map.set(c.id, c.color)
+    return map
+  }, [data.habitCategories])
   const perHabitSeries = useMemo(
     () =>
       perHabitCompletion(activeHabits, month, year)
         .sort((a, b) => b.percent - a.percent)
-        .map((d) => ({ name: d.habit.name, percent: d.percent })),
-    [activeHabits, month, year]
+        .map((d) => ({
+          name: d.habit.name,
+          percent: d.percent,
+          // 'var(--mute)' matches the synthetic Uncategorized category's own color below.
+          color: (d.habit.categoryId && categoryColorById.get(d.habit.categoryId)) || 'var(--mute)',
+        })),
+    [activeHabits, month, year, categoryColorById]
   )
   const weekdaySeries = useMemo(() => weekdayPattern(activeHabits, month, year), [activeHabits, month, year])
 
