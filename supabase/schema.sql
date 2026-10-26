@@ -410,6 +410,13 @@ create trigger profiles_before_update_username_cooldown
   before update on public.profiles
   for each row execute function public.profiles_enforce_username_cooldown();
 
+-- Mobile fixes round 2, Fix 7/9: controls whether the daily "catch-up"
+-- popup (pending habits/tasks due today) is allowed to show. On by
+-- default; the popup itself is still gated on there being pending items
+-- and not having already shown today (tracked client-side).
+alter table public.profiles
+  add column if not exists catchup_reminder_enabled boolean not null default true;
+
 -- ---------------------------------------------------------------------
 -- plans — "plan how/when to finish something" (Roadmap Builder Step 3).
 -- Distinct from roadmap_docs (the older outline-text saved-roadmap
