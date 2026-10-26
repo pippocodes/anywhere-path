@@ -6,7 +6,9 @@ import { cycleMark, monthCompletionPercent, computeCurrentStreak, isPerfectDay, 
 import { findNextIncompleteTopic, findNextIncompletePlanStep } from '../../utils/nextIncomplete'
 import type { NextItemOffer } from './NextStepOfferModal'
 import HabitGridRow from './HabitGridRow'
+import HabitGridPhone from './HabitGridPhone'
 import CountUp from '../motion/CountUp'
+import { useIsPhone } from '../../hooks/useIsPhone'
 
 export type CelebrationKind = 'day' | 'week' | 'month'
 
@@ -31,6 +33,7 @@ function CategorySection({ category, habits, courses, plans, dates, dayNumbers, 
   const [collapsed, setCollapsed] = useState(false)
   const [scrolled, setScrolled] = useState(false)
   const todayThRef = useRef<HTMLTableCellElement | null>(null)
+  const isPhone = useIsPhone()
 
   const percent = monthCompletionPercent(habits, month, year)
   const bestActiveStreak = habits.reduce((max, h) => Math.max(max, computeCurrentStreak(h, referenceDate)), 0)
@@ -148,6 +151,15 @@ function CategorySection({ category, habits, courses, plans, dates, dayNumbers, 
           >
             {habits.length === 0 ? (
               <p style={{ fontSize: 13, color: 'var(--mute)' }}>No habits here yet — add one from Manage.</p>
+            ) : isPhone ? (
+              <HabitGridPhone
+                habits={habits}
+                dates={dates}
+                dayNumbers={dayNumbers}
+                referenceDate={referenceDate}
+                onCycle={handleCellClick}
+                onShare={onShare}
+              />
             ) : (
               <div style={{ overflowX: 'auto' }} onScroll={(e) => setScrolled(e.currentTarget.scrollLeft > 0)}>
                 <table className="habit-grid-table" style={{ borderCollapse: 'collapse', width: '100%' }}>

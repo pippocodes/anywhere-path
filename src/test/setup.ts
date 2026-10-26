@@ -29,3 +29,21 @@ if (typeof window !== 'undefined' && !window.localStorage) {
   }
   Object.defineProperty(window, 'localStorage', { value: new MemoryStorage(), configurable: true })
 }
+
+// jsdom doesn't implement matchMedia at all. Components that branch on
+// viewport width (useIsPhone, ThemeContext's prefers-color-scheme check)
+// call it unconditionally, so tests need at least a no-op stand-in —
+// defaults to "doesn't match" (desktop), same as every test's existing
+// expectations before any such component called it.
+if (typeof window !== 'undefined' && !window.matchMedia) {
+  window.matchMedia = (query: string) => ({
+    matches: false,
+    media: query,
+    onchange: null,
+    addListener: () => {},
+    removeListener: () => {},
+    addEventListener: () => {},
+    removeEventListener: () => {},
+    dispatchEvent: () => false,
+  })
+}

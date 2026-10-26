@@ -559,6 +559,23 @@ input:-webkit-autofill:focus {
   width: 170px;
 }
 
+.habit-grid-days-scroll {
+  scrollbar-width: thin;
+}
+
+.habit-grid-days-scroll::-webkit-scrollbar {
+  height: 3px;
+}
+
+.habit-grid-days-scroll::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.habit-grid-days-scroll::-webkit-scrollbar-thumb {
+  background: color-mix(in srgb, var(--text) 18%, transparent);
+  border-radius: 999px;
+}
+
 .habit-cell-hit {
   width: 22px;
   height: 22px;
