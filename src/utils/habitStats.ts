@@ -88,6 +88,18 @@ export function totalTicksInYear(habits: Habit[], year: number): number {
   return total
 }
 
+/** Total number of non-empty ticks (partial + done) logged across the given month — the Month tab's "Check-ins" stat. */
+export function totalTicksInMonth(habits: Habit[], month: number, year: number): number {
+  const dates = new Set(monthDates(month, year))
+  let total = 0
+  for (const h of habits) {
+    for (const date in h.marks) {
+      if (dates.has(date) && h.marks[date] > 0) total++
+    }
+  }
+  return total
+}
+
 /** Yearly completion percentage for one category's habits — for the per-category yearly rings. */
 export function categoryYearlyPercent(habits: Habit[], year: number): number {
   const monthly = yearlyCompletion(habits, year)

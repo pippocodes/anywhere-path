@@ -35,6 +35,7 @@ import {
   yearHeatmapData,
   bestMonthOfYear,
   totalTicksInYear,
+  totalTicksInMonth,
 } from '../utils/habitStats'
 import { generateSuggestions } from '../utils/suggestions'
 import CategorySection, { type CelebrationKind } from '../components/habits/CategorySection'
@@ -169,6 +170,7 @@ function Habits() {
   const bestStreakEver = activeHabits.reduce((max, h) => Math.max(max, computeBestStreak(h)), 0)
   const bestCurrentStreak = activeHabits.reduce((max, h) => Math.max(max, computeCurrentStreak(h, referenceDate)), 0)
   const perfectDays = countPerfectDays(activeHabits, month, year)
+  const checkInsThisMonth = totalTicksInMonth(activeHabits, month, year)
   const doneToday = activeHabits.filter((h) => h.marks[todayStr] === 2).length
   const monthComparison = useMemo(() => compareToLastMonth(activeHabits, referenceDate), [activeHabits, referenceDate])
 
@@ -419,14 +421,20 @@ function Habits() {
               <>
                 {isPhone ? (
                   <>
-                    <div className="card" style={{ display: 'flex', alignItems: 'center', gap: 18, marginBottom: 20 }}>
-                      <ProgressRing percent={overallPercent} size={104} label="this month" gradient />
+                    <div className="card" style={{ display: 'flex', alignItems: 'center', gap: 18, marginBottom: 20, padding: '24px 20px' }}>
+                      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8, flexShrink: 0 }}>
+                        <ProgressRing percent={overallPercent} size={100} gradient />
+                        <div className="micro-label" style={{ fontSize: 9.5, letterSpacing: '0.08em', whiteSpace: 'nowrap' }}>
+                          This month
+                        </div>
+                      </div>
                       <div style={{ flex: 1, minWidth: 0 }}>
                         <MonthStats
                           completionPercent={overallPercent}
                           currentStreak={bestCurrentStreak}
                           bestStreak={bestStreakEver}
                           perfectDays={perfectDays}
+                          checkIns={checkInsThisMonth}
                           comparison={monthComparison}
                           dailyValues={dailySeries.map((d) => d.percent)}
                           compact
@@ -444,6 +452,7 @@ function Habits() {
                       currentStreak={bestCurrentStreak}
                       bestStreak={bestStreakEver}
                       perfectDays={perfectDays}
+                      checkIns={checkInsThisMonth}
                       comparison={monthComparison}
                       dailyValues={dailySeries.map((d) => d.percent)}
                     />

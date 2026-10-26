@@ -14,17 +14,19 @@ interface Props {
   currentStreak: number
   bestStreak: number
   perfectDays: number
+  checkIns: number // total non-empty ticks this month — the compact grid's 4th tile, replacing the duplicate Completion number
   comparison: MonthComparison
   dailyValues: number[] // this month's daily completion %, for the sparkline
-  // Renders the same 4 numbers as plain tiles (no per-tile card chrome, no
-  // sparkline/delta) meant to sit inside a parent card next to the month
-  // ring — used on phones (see Habits.tsx) where the full card-grid version
-  // below is too tall. Desktop/tablet always get the full version.
+  // Renders as a tight 2x2 grid of plain tiles (no per-tile card chrome, no
+  // sparkline/delta, shorter one-line labels) meant to sit inside a parent
+  // card next to the month ring — used on phones (see Habits.tsx) where the
+  // full card-grid version below is too tall. Desktop/tablet always get the
+  // full version.
   compact?: boolean
 }
 
 /** The four-up count-up stat row at the top of the Month view — big Cormorant numerals, gold micro-labels; Completion also gets a vs-last-month delta and a trend sparkline, since those are the only two metrics here with a meaningful comparison. */
-function MonthStats({ completionPercent, currentStreak, bestStreak, perfectDays, comparison, dailyValues, compact = false }: Props) {
+function MonthStats({ completionPercent, currentStreak, bestStreak, perfectDays, checkIns, comparison, dailyValues, compact = false }: Props) {
   const stats: Stat[] = [
     { value: completionPercent, suffix: '%', label: 'Completion' },
     { value: currentStreak, label: 'Current Streak' },
@@ -33,14 +35,23 @@ function MonthStats({ completionPercent, currentStreak, bestStreak, perfectDays,
   ]
 
   if (compact) {
+    // Shorter, one-line labels — the shared .micro-label class's 0.25em
+    // letter-spacing (fine for a full-width card) is too wide for a tile
+    // this narrow, so it's overridden here rather than in the shared class.
+    const compactStats: Stat[] = [
+      { value: checkIns, label: 'Check-ins' },
+      { value: currentStreak, label: 'Streak' },
+      { value: bestStreak, label: 'Best streak' },
+      { value: perfectDays, label: 'Perfect days' },
+    ]
     return (
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 14 }}>
-        {stats.map((s) => (
+        {compactStats.map((s) => (
           <div key={s.label} style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
             <div style={{ fontFamily: 'var(--font-display)', fontStyle: 'italic', fontWeight: 600, fontSize: 24, lineHeight: 1 }}>
               <CountUp value={s.value} suffix={s.suffix ?? ''} />
             </div>
-            <div className="micro-label" style={{ fontSize: 9.5 }}>
+            <div className="micro-label" style={{ fontSize: 9.5, letterSpacing: '0.04em', whiteSpace: 'nowrap' }}>
               {s.label}
             </div>
           </div>

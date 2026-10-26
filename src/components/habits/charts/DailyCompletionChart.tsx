@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from 'recharts'
 import ChartTooltip from './ChartTooltip'
 import ChartEmptyState from './ChartEmptyState'
@@ -9,9 +10,22 @@ interface Props {
 /** Daily completion across the month — an animated gradient-filled area chart. Falls back to a ghost placeholder rather than a misleadingly flat line when nothing's been ticked yet. */
 function DailyCompletionChart({ data }: Props) {
   const hasData = data.some((d) => d.percent > 0)
+  // Recharts' hover-tracking Tooltip has no "release" signal on touch devices
+  // — a tap opens it but there's no mouseleave to close it again, so it gets
+  // stuck open. Only mounting <Tooltip> while actively pressed (mouse down
+  // or touch active) means it's never rendered at all outside that window —
+  // trivially fixing both "stuck on load" and "stuck after tap."
+  const [pressed, setPressed] = useState(false)
 
   return (
-    <div>
+    <div
+      onMouseDown={() => setPressed(true)}
+      onMouseUp={() => setPressed(false)}
+      onMouseLeave={() => setPressed(false)}
+      onTouchStart={() => setPressed(true)}
+      onTouchEnd={() => setPressed(false)}
+      onTouchCancel={() => setPressed(false)}
+    >
       <div className="micro-label" style={{ marginBottom: 12 }}>
         Daily Completion
       </div>
@@ -36,12 +50,14 @@ function DailyCompletionChart({ data }: Props) {
               width={32}
               tickFormatter={(v) => `${v}%`}
             />
-            <Tooltip
-              cursor={{ stroke: 'var(--line)' }}
-              content={({ active, payload, label }) => (
-                <ChartTooltip active={active} label={`Day ${label}`} value={payload?.[0]?.value as number} suffix="%" />
-              )}
-            />
+            {pressed && (
+              <Tooltip
+                cursor={{ stroke: 'var(--line)' }}
+                content={({ active, payload, label }) => (
+                  <ChartTooltip active={active} label={`Day ${label}`} value={payload?.[0]?.value as number} suffix="%" />
+                )}
+              />
+            )}
             <Area
               type="monotone"
               dataKey="percent"
