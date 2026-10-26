@@ -5,8 +5,10 @@ interface Metrics {
   visualViewportHeight: number | null
   screenHeight: number
   safeAreaInsetBottom: string
+  barTop: number | null
   barBottom: number | null
   barHeight: number | null
+  labelBottomToViewportBottom: number | null
   documentClientHeight: number
   displayModeStandalone: boolean
 }
@@ -22,14 +24,21 @@ function measure(): Metrics {
 
   const bar = document.querySelector('.bottom-tab-bar')
   const barRect = bar ? bar.getBoundingClientRect() : null
+  // The label span is the last child of the first tab link — same text
+  // node the user sees, so its bottom edge is what "labels sit N px above
+  // the gesture area" is actually measuring.
+  const label = document.querySelector('.bottom-tab-bar a span:last-child')
+  const labelRect = label ? label.getBoundingClientRect() : null
 
   return {
     innerHeight: window.innerHeight,
     visualViewportHeight: window.visualViewport ? window.visualViewport.height : null,
     screenHeight: window.screen.height,
     safeAreaInsetBottom,
+    barTop: barRect ? barRect.top : null,
     barBottom: barRect ? barRect.bottom : null,
     barHeight: barRect ? barRect.height : null,
+    labelBottomToViewportBottom: labelRect ? window.innerHeight - labelRect.bottom : null,
     documentClientHeight: document.documentElement.clientHeight,
     displayModeStandalone: window.matchMedia('(display-mode: standalone)').matches,
   }
@@ -68,8 +77,10 @@ function DebugOverlay() {
     ['visualViewport.height', metrics.visualViewportHeight ?? 'n/a'],
     ['screen.height', metrics.screenHeight],
     ['env(safe-area-inset-bottom)', metrics.safeAreaInsetBottom],
-    ['bar.getBoundingClientRect().bottom', metrics.barBottom ?? 'no bar mounted'],
+    ['bar rect top', metrics.barTop ?? 'no bar mounted'],
+    ['bar rect bottom', metrics.barBottom ?? 'no bar mounted'],
     ['bar height', metrics.barHeight ?? 'n/a'],
+    ['label bottom -> viewport bottom', metrics.labelBottomToViewportBottom ?? 'n/a'],
     ['documentElement.clientHeight', metrics.documentClientHeight],
     ['display-mode: standalone', String(metrics.displayModeStandalone)],
   ]

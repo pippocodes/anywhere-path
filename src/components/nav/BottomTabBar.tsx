@@ -33,13 +33,13 @@ function BottomTabBar() {
         left: 0,
         right: 0,
         bottom: 0,
-        height: 'calc(60px + env(safe-area-inset-bottom))',
+        height: 'calc(60px + env(safe-area-inset-bottom, 0px))',
         zIndex: 55,
         alignItems: 'stretch',
         justifyContent: 'space-around',
         background: 'var(--ink-2)',
         borderTop: '1px solid var(--line)',
-        paddingBottom: 'env(safe-area-inset-bottom)',
+        paddingBottom: 'env(safe-area-inset-bottom, 0px)',
       }}
     >
       {TABS.map((tab) => (
