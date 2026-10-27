@@ -2,6 +2,7 @@ import { useMemo, useRef, useState, type FormEvent } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
 import { useApp } from '../../hooks/useApp'
 import { useAuth } from '../../context/AuthContext'
+import { useIsPhone } from '../../hooks/useIsPhone'
 import { useToast } from '../ui/Toast'
 import Pills from '../ui/Pills'
 import CategorySelect from '../categories/CategorySelect'
@@ -52,6 +53,7 @@ function PlanBuilder({ editingPlan, onDoneEditing }: Props) {
   const { data, addPlan, updatePlan, addHabitCategory, renameHabitCategory, setHabitCategoryColor, deleteHabitCategory } = useApp()
   const { session } = useAuth()
   const { show: showToast } = useToast()
+  const isPhone = useIsPhone()
 
   const init = editingPlan
     ? {
@@ -572,7 +574,16 @@ function PlanBuilder({ editingPlan, onDoneEditing }: Props) {
             {schedule.items.map((item) => (
               <div
                 key={item.stepId}
-                style={{ display: 'flex', justifyContent: 'space-between', gap: 12, padding: '8px 4px', borderBottom: '1px solid var(--line)', fontSize: 13 }}
+                style={{
+                  display: 'flex',
+                  flexDirection: isPhone ? 'column' : 'row',
+                  justifyContent: isPhone ? 'flex-start' : 'space-between',
+                  alignItems: isPhone ? 'flex-start' : 'center',
+                  gap: isPhone ? 4 : 12,
+                  padding: '8px 4px',
+                  borderBottom: '1px solid var(--line)',
+                  fontSize: 13,
+                }}
               >
                 <span style={{ color: 'var(--cream)', minWidth: 0 }}>{item.title}</span>
                 <span style={{ flexShrink: 0, display: 'flex', gap: 10, alignItems: 'center' }}>

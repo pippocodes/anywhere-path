@@ -1,12 +1,12 @@
 import { NavLink } from 'react-router-dom'
 import { motion, useReducedMotion } from 'framer-motion'
-import { HomeIcon, CoursesIcon, HabitsIcon, FriendsIcon } from './tabIcons'
-import Avatar from '../ui/Avatar'
+import { HomeIcon, CoursesIcon, RoadmapIcon, HabitsIcon, FriendsIcon } from './tabIcons'
 import { useAuth } from '../../context/AuthContext'
 
 const TABS = [
   { to: '/', label: 'Home', end: true, Icon: HomeIcon },
   { to: '/courses', label: 'Courses', end: false, Icon: CoursesIcon },
+  { to: '/roadmap', label: 'Roadmap', end: false, Icon: RoadmapIcon },
   { to: '/habits', label: 'Habits', end: false, Icon: HabitsIcon },
   { to: '/friends', label: 'Friends', end: false, Icon: FriendsIcon },
 ]
@@ -15,10 +15,11 @@ const TABS = [
  * Fixed bottom tab bar shown only on phones (<768px, gated via CSS in index.css — this
  * component always mounts, same approach already used for the desktop nav's hamburger
  * trigger). Hidden entirely so long as the user isn't signed in — the whole app is
- * gated behind auth for every one of these destinations except Home.
+ * gated behind auth for every one of these destinations except Home. Profile isn't a
+ * tab here — it stays reachable through the avatar in PhoneTopBar.tsx.
  */
 function BottomTabBar() {
-  const { user, username } = useAuth()
+  const { user } = useAuth()
   const reduceMotion = useReducedMotion()
 
   if (!user) return null
@@ -99,30 +100,6 @@ function BottomTabBar() {
           )}
         </NavLink>
       ))}
-      <NavLink
-        to="/profile"
-        style={{
-          flex: 1,
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-          justifyContent: 'center',
-          gap: 3,
-          padding: '8px 4px 10px',
-          minHeight: 60,
-        }}
-      >
-        {({ isActive }) => (
-          <>
-            <span style={{ opacity: isActive ? 1 : 0.65, transition: 'opacity 0.15s var(--ease)' }}>
-              <Avatar label={username ?? '?'} size={22} />
-            </span>
-            <span style={{ fontSize: 10.5, fontWeight: 600, color: isActive ? 'var(--cream)' : 'var(--mute)' }}>
-              Profile
-            </span>
-          </>
-        )}
-      </NavLink>
     </nav>
   )
 }
