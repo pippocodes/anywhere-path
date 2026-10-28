@@ -139,11 +139,12 @@ is never exposed to visitors. It needs four environment variables, none of them 
    **API**), the **service_role** key (also under Project API keys, below anon public). This key
    bypasses RLS — it's what lets the function verify who's calling it and log usage for rate
    limiting, and it must **never** be prefixed `VITE_` or otherwise reach the browser.
-3. Set these four variables — locally in `.env`/`.env.local`, and on Vercel for deployment (CLI
+3. Set these five variables — locally in `.env`/`.env.local`, and on Vercel for deployment (CLI
    `vercel env add <NAME> production`, or dashboard → Project → **Settings** → **Environment
    Variables**; redeploy after adding them):
    ```
    ANTHROPIC_API_KEY=sk-ant-...
+   ANTHROPIC_MODEL=claude-haiku-5-5                      # read by api/_lib/aiModel.ts — no fallback
    SUPABASE_URL=https://xxxxxxxxxxxx.supabase.co       # same project URL as VITE_SUPABASE_URL
    SUPABASE_ANON_KEY=eyJhbGciOi...                      # same value as VITE_SUPABASE_ANON_KEY
    SUPABASE_SERVICE_ROLE_KEY=eyJhbGciOi...               # from step 2 above — keep this one secret
@@ -151,27 +152,6 @@ is never exposed to visitors. It needs four environment variables, none of them 
 4. Generations are rate-limited to 5 per signed-in user per hour (see
    `RATE_LIMIT_MAX_REQUESTS`/`RATE_LIMIT_WINDOW_MS` in `api/_lib/outlineGeneration.ts` if you want
    to change that), logged in the `ai_generate_log` table from step 2.
-
-## 8. Set up AI Habit Insights (optional)
-
-At the top of the Habit Tracker's Tracker tab, "✦ AI Insights" shows a few short, specific
-observations about this month's habit data — what to focus on, what's working, and (occasionally)
-what to ease up on. It's entirely optional and uses the **same four environment variables as step
-7 above** — if you already set those up for "Generate with AI", this works too with no extra
-configuration. Without it, that spot on the page falls back to the existing rule-based insights
-(or a friendly empty state), never an error.
-
-It runs as its own Vercel serverless function (`api/habit-insights.ts`), receiving only
-*aggregated* stats built client-side (`src/utils/habitInsightStats.ts`) — habit names, category
-names, streaks, and percentages — never raw dates, notes, emails, or friends' data.
-
-- Results are cached per signed-in user per day in the `habit_insights_cache` table, so reopening
-  the Tracker tab the same day serves the cached result instantly instead of calling the model
-  again.
-- The manual "↻ Refresh" button forces a new generation, which (along with the very first
-  generation of the day) counts against a rate limit of 5 AI calls per user per 24 hours — see
-  `RATE_LIMIT_MAX_REQUESTS`/`RATE_LIMIT_WINDOW_MS` in `api/_lib/habitInsights.ts` — logged in the
-  `ai_habit_insights_log` table from step 2.
 
 ## How the app uses this
 

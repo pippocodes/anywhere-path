@@ -41,7 +41,7 @@ import { generateSuggestions } from '../utils/suggestions'
 import CategorySection, { type CelebrationKind } from '../components/habits/CategorySection'
 import ProgressRing from '../components/habits/ProgressRing'
 import TodayStrip from '../components/habits/TodayStrip'
-import AIInsightsPanel from '../components/habits/AIInsightsPanel'
+import SuggestionsPanel from '../components/habits/SuggestionsPanel'
 import SharedTrackersSection from '../components/habits/SharedTrackersSection'
 import Confetti from '../components/habits/Confetti'
 import HabitManageSheet from '../components/habits/HabitManageSheet'
@@ -357,9 +357,7 @@ function Habits() {
           <motion.div key="tracker" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} transition={{ duration: 0.25 }}>
             <TodayStrip doneToday={doneToday} totalHabits={activeHabits.length} currentStreak={bestCurrentStreak} />
 
-            {hasAnyHabits && (
-              <AIInsightsPanel habits={data.habits} categories={data.habitCategories} referenceDate={referenceDate} suggestions={suggestions} />
-            )}
+            {hasAnyHabits && <SuggestionsPanel suggestions={suggestions} />}
 
             <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
               <AnimatePresence initial={false}>

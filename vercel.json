@@ -1,7 +1,6 @@
 {
   "rewrites": [{ "source": "/((?!api/).*)", "destination": "/index.html" }],
   "functions": {
-    "api/generate.ts": { "maxDuration": 60 },
-    "api/habit-insights.ts": { "maxDuration": 60 }
+    "api/generate.ts": { "maxDuration": 60 }
   }
 }

@@ -11,5 +11,5 @@
     "noEmit": true,
     "types": ["node"]
   },
-  "include": ["api", "src/utils/outlineParser.ts", "src/utils/habitInsightStats.ts", "src/utils/habits.ts", "src/utils/habitStats.ts", "src/types.ts"]
+  "include": ["api", "src/utils/outlineParser.ts", "src/utils/habits.ts", "src/utils/habitStats.ts", "src/types.ts"]
 }
