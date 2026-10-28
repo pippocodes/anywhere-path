@@ -2,6 +2,7 @@ import type { VercelRequest, VercelResponse } from '@vercel/node'
 import Anthropic from '@anthropic-ai/sdk'
 import { createClient } from '@supabase/supabase-js'
 import { isRateLimited, validateStats, parseInsightsResponse, buildSystemPrompt, buildUserPrompt, RATE_LIMIT_WINDOW_MS } from './_lib/habitInsights.js'
+import { getAnthropicModel } from './_lib/aiModel.js'
 
 /**
  * POST /api/habit-insights  { stats: HabitInsightStats, force?: boolean }  ->  { insights, cached }
@@ -40,10 +41,12 @@ async function handleHabitInsights(req: VercelRequest, res: VercelResponse) {
   const supabaseAnonKey = process.env.SUPABASE_ANON_KEY || process.env.VITE_SUPABASE_ANON_KEY
   const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY
   const anthropicApiKey = process.env.ANTHROPIC_API_KEY
+  const anthropicModel = getAnthropicModel()
 
-  if (!supabaseUrl || !supabaseAnonKey || !serviceRoleKey || !anthropicApiKey) {
+  if (!supabaseUrl || !supabaseAnonKey || !serviceRoleKey || !anthropicApiKey || !anthropicModel) {
     const missing = [
       !anthropicApiKey && 'ANTHROPIC_API_KEY',
+      !anthropicModel && 'ANTHROPIC_MODEL',
       !supabaseUrl && 'SUPABASE_URL',
       !supabaseAnonKey && 'SUPABASE_ANON_KEY',
       !serviceRoleKey && 'SUPABASE_SERVICE_ROLE_KEY',
@@ -121,7 +124,7 @@ async function handleHabitInsights(req: VercelRequest, res: VercelResponse) {
   try {
     const response = await anthropic.messages.create(
       {
-        model: 'claude-opus-5',
+        model: anthropicModel,
         max_tokens: 1000,
         output_config: { effort: 'medium' },
         system: buildSystemPrompt(),
