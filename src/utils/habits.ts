@@ -48,28 +48,45 @@ export function monthCompletionPercent(habits: Habit[], month: number, year: num
   return total === 0 ? 0 : Math.round((earned / total) * 100)
 }
 
-// Streaks only count fully-"done" (mark 2) days — a partial day doesn't
-// extend a streak, matching the filled-in "Done" legend color.
+// A fully-"done" (mark 2) day extends a streak. A partial (mark 1) day is
+// transparent to it — doesn't break it, doesn't extend it either. Only an
+// empty/cleared (mark 0) day breaks it. See the Help page FAQ for the
+// user-facing wording this matches.
 
 /**
- * The streak currently in progress, ending at `today` — or at yesterday if
- * today isn't marked done yet, so an in-progress day doesn't read as a
- * broken streak before it's even over.
+ * The streak currently in progress, ending at `today`. Today only gets a
+ * one-time grace period (not counted as a break yet) when it's completely
+ * empty — still in progress, not decided either way. A partial today is
+ * treated like a partial any other day: transparent, same as the main loop.
  */
 export function computeCurrentStreak(habit: Habit, today: Date = new Date()): number {
   let cursor = today
-  if ((habit.marks[toDateStr(cursor)] ?? 0) !== 2) {
+  if ((habit.marks[toDateStr(cursor)] ?? 0) === 0) {
     cursor = addDays(cursor, -1)
   }
   let streak = 0
-  while ((habit.marks[toDateStr(cursor)] ?? 0) === 2) {
-    streak++
+  while (true) {
+    const mark = habit.marks[toDateStr(cursor)] ?? 0
+    if (mark === 0) break
+    if (mark === 2) streak++
     cursor = addDays(cursor, -1)
   }
   return streak
 }
 
-/** The longest run of consecutive "done" days anywhere in the habit's history. */
+/** True when every day strictly between `from` and `from + diffDays` is partial (mark 1). */
+function isGapAllPartial(habit: Habit, from: Date, diffDays: number): boolean {
+  for (let offset = 1; offset < diffDays; offset++) {
+    if ((habit.marks[toDateStr(addDays(from, offset))] ?? 0) !== 1) return false
+  }
+  return true
+}
+
+/**
+ * The longest run of "done" days anywhere in the habit's history, where a
+ * gap made up entirely of partial days doesn't end the run (matches
+ * computeCurrentStreak) — only a gap containing an empty/cleared day does.
+ */
 export function computeBestStreak(habit: Habit): number {
   const doneDates = Object.keys(habit.marks)
     .filter((d) => habit.marks[d] === 2)
@@ -81,7 +98,7 @@ export function computeBestStreak(habit: Habit): number {
   for (let i = 1; i < doneDates.length; i++) {
     const prev = parseDateStr(doneDates[i - 1])
     const diffDays = Math.round((parseDateStr(doneDates[i]).getTime() - prev.getTime()) / 86_400_000)
-    run = diffDays === 1 ? run + 1 : 1
+    run = isGapAllPartial(habit, prev, diffDays) ? run + 1 : 1
     best = Math.max(best, run)
   }
   return best

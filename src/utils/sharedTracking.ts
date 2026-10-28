@@ -20,10 +20,11 @@ export function stateFor(logs: SharedLog[], userId: string, date: string): Habit
 }
 
 /**
- * The shared streak: consecutive days (ending today, or yesterday if today
- * isn't fully done by everyone yet) on which EVERY given member was fully
- * done (state 2) — mirrors computeCurrentStreak's "only full days count,
- * today-in-progress isn't a broken streak" rule from the personal tracker.
+ * The shared streak, ending today. A day breaks it only if at least one
+ * member did nothing at all (state 0) that day. A day where everyone did at
+ * least something but not everyone finished doesn't break it, but doesn't
+ * add to it either — same transparent-partial rule as computeCurrentStreak.
+ * Today gets the same one-time grace for being still fully undecided.
  */
 export function computeSharedStreak(logs: SharedLog[], memberIds: string[], today: Date = new Date()): number {
   if (memberIds.length === 0) return 0
@@ -31,13 +32,18 @@ export function computeSharedStreak(logs: SharedLog[], memberIds: string[], toda
   function allDoneOn(date: string): boolean {
     return memberIds.every((id) => stateFor(logs, id, date) === 2)
   }
+  function allAtLeastPartialOn(date: string): boolean {
+    return memberIds.every((id) => stateFor(logs, id, date) >= 1)
+  }
 
   let cursor = today
-  if (!allDoneOn(toDateStr(cursor))) cursor = addDays(cursor, -1)
+  if (!allAtLeastPartialOn(toDateStr(cursor))) cursor = addDays(cursor, -1)
 
   let streak = 0
-  while (allDoneOn(toDateStr(cursor))) {
-    streak++
+  while (true) {
+    const date = toDateStr(cursor)
+    if (!allAtLeastPartialOn(date)) break
+    if (allDoneOn(date)) streak++
     cursor = addDays(cursor, -1)
   }
   return streak

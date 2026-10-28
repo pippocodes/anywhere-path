@@ -92,14 +92,20 @@ describe('computeCurrentStreak', () => {
   it("a partial (1) day for today doesn't add to or erase yesterday's streak", () => {
     const today = new Date(2024, 0, 10)
     const h = habit({ '2024-01-10': 1, '2024-01-09': 2 })
-    // Today isn't conclusively done, so it's treated like "not yet marked":
-    // the streak is evaluated as of yesterday, which was done.
+    // Partial is transparent on any day, today included: it's skipped over,
+    // so the streak just reflects what was already alive through yesterday.
     expect(computeCurrentStreak(h, today)).toBe(1)
   })
 
-  it('a partial (1) day in the middle of a streak does break it', () => {
+  it('a partial (1) day in the middle of a streak does not break it', () => {
     const today = new Date(2024, 0, 10)
     const h = habit({ '2024-01-10': 2, '2024-01-09': 1, '2024-01-08': 2 })
+    expect(computeCurrentStreak(h, today)).toBe(2)
+  })
+
+  it('an empty (0) day in the middle of a streak does break it', () => {
+    const today = new Date(2024, 0, 10)
+    const h = habit({ '2024-01-10': 2, '2024-01-09': 0, '2024-01-08': 2 })
     expect(computeCurrentStreak(h, today)).toBe(1)
   })
 })
@@ -119,6 +125,25 @@ describe('computeBestStreak', () => {
 
   it('is 0 when nothing is ever marked done', () => {
     expect(computeBestStreak(habit({ '2024-01-01': 1 }))).toBe(0)
+  })
+
+  it('a gap of all-partial days does not break the run', () => {
+    const h = habit({
+      '2024-01-01': 2,
+      '2024-01-02': 1,
+      '2024-01-03': 2,
+    })
+    expect(computeBestStreak(h)).toBe(2)
+  })
+
+  it('a gap containing even one empty day still breaks the run', () => {
+    const h = habit({
+      '2024-01-01': 2,
+      '2024-01-02': 1,
+      '2024-01-03': 0,
+      '2024-01-04': 2,
+    })
+    expect(computeBestStreak(h)).toBe(1)
   })
 })
 

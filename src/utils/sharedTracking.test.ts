@@ -30,13 +30,26 @@ describe('computeSharedStreak', () => {
     expect(computeSharedStreak(logs, ['a', 'b'], today)).toBe(1)
   })
 
-  it('breaks the streak at the first earlier day any one member was not fully done', () => {
+  it('does not break the streak when everyone did at least something on a day, even if not everyone finished', () => {
     const today = new Date(2024, 0, 10)
     const logs: SharedLog[] = [
       { userId: 'a', date: '2024-01-10', state: 2 },
       { userId: 'b', date: '2024-01-10', state: 2 },
       { userId: 'a', date: '2024-01-09', state: 2 },
-      { userId: 'b', date: '2024-01-09', state: 1 }, // only partial — breaks it here
+      { userId: 'b', date: '2024-01-09', state: 1 }, // only partial — doesn't break it, doesn't add either
+      { userId: 'a', date: '2024-01-08', state: 2 },
+      { userId: 'b', date: '2024-01-08', state: 2 },
+    ]
+    expect(computeSharedStreak(logs, ['a', 'b'], today)).toBe(2)
+  })
+
+  it('breaks the streak at the first earlier day any one member did nothing at all', () => {
+    const today = new Date(2024, 0, 10)
+    const logs: SharedLog[] = [
+      { userId: 'a', date: '2024-01-10', state: 2 },
+      { userId: 'b', date: '2024-01-10', state: 2 },
+      { userId: 'a', date: '2024-01-09', state: 2 },
+      { userId: 'b', date: '2024-01-09', state: 0 }, // nothing at all — breaks it here
       { userId: 'a', date: '2024-01-08', state: 2 },
       { userId: 'b', date: '2024-01-08', state: 2 },
     ]
