@@ -1,8 +1,10 @@
 // Pure helpers for /api/generate — kept framework/SDK-free so they're
 // directly unit-testable without mocking the Anthropic client or Supabase.
 
-export const RATE_LIMIT_MAX_REQUESTS = 5
-export const RATE_LIMIT_WINDOW_MS = 60 * 60 * 1000 // 1 hour
+// Free-plan limit: everyone is on the free plan today (no billing backend
+// exists yet), so this is the only tier.
+export const RATE_LIMIT_MAX_REQUESTS = 2
+export const RATE_LIMIT_WINDOW_MS = 7 * 24 * 60 * 60 * 1000 // 1 week, rolling
 
 /** True once a user has made `RATE_LIMIT_MAX_REQUESTS` or more calls within the current window. */
 export function isRateLimited(requestCountInWindow: number): boolean {

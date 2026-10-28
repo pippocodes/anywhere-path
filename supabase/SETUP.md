@@ -149,9 +149,10 @@ is never exposed to visitors. It needs four environment variables, none of them 
    SUPABASE_ANON_KEY=eyJhbGciOi...                      # same value as VITE_SUPABASE_ANON_KEY
    SUPABASE_SERVICE_ROLE_KEY=eyJhbGciOi...               # from step 2 above — keep this one secret
    ```
-4. Generations are rate-limited to 5 per signed-in user per hour (see
-   `RATE_LIMIT_MAX_REQUESTS`/`RATE_LIMIT_WINDOW_MS` in `api/_lib/outlineGeneration.ts` if you want
-   to change that), logged in the `ai_generate_log` table from step 2.
+4. Generations are rate-limited to 2 per signed-in user per rolling week — the free-plan limit,
+   and currently the only plan (see `RATE_LIMIT_MAX_REQUESTS`/`RATE_LIMIT_WINDOW_MS` in
+   `api/_lib/outlineGeneration.ts` if you want to change that), logged in the `ai_generate_log`
+   table from step 2.
 
 ## How the app uses this
 

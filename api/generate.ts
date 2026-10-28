@@ -101,7 +101,7 @@ async function handleGenerate(req: VercelRequest, res: VercelResponse) {
   if (isRateLimited(count ?? 0)) {
     return res.status(429).json({
       error: 'rate_limited',
-      message: "You've reached the hourly limit for AI generation. Try again later, or write the outline by hand.",
+      message: "You've used your 2 free AI outlines for this week. Try again next week, or write the outline by hand.",
     })
   }
 
