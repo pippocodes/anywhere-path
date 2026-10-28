@@ -16,7 +16,7 @@ const PRINCIPLES = [
   },
   {
     title: 'AI sees only what it needs',
-    desc: 'The optional AI features (roadmap generation, habit insights) receive only the short goal you type or aggregated numbers computed from your own data — never your notes, friends, or anyone else\'s data.',
+    desc: 'The optional AI roadmap generation receives only the short goal you type — never your notes, friends, or anyone else\'s data.',
   },
 ]
 

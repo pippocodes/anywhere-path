@@ -58,11 +58,6 @@ const FAQ_CATEGORIES: FaqCategory[] = [
         a: 'Tap once for partial, twice for fully done, a third time to clear it. Only a fully-done day counts toward a streak — a partial day doesn\'t break one, but it doesn\'t extend one either.',
       },
       {
-        id: 'ai-insights-data',
-        q: 'What does the AI Insights card see?',
-        a: 'Only aggregated numbers computed from your own data — streaks, completion percentages, and habit names — never your notes, friends, or anyone else\'s data. It needs a few days of tracking history before it has enough to say anything useful, and if it\'s ever unavailable the card quietly falls back to simpler rule-based insights instead of showing an error.',
-      },
-      {
         id: 'shared-limit',
         q: 'How many trackers can I share with friends?',
         a: 'Two, on the free plan — shared from the Habit Tracker page once you\'re connected with someone.',
