@@ -1,10 +1,22 @@
 import { usePosts } from '../../hooks/usePosts'
+import { useToast } from '../ui/Toast'
+import { getErrorMessage } from '../../lib/friendsApi'
 import PostComposer from './PostComposer'
 import PostCard from './PostCard'
+import type { CheerEmoji } from '../../types/posts'
 
 /** The community feed: compose a post, see everyone's (visible to you) newest first. */
 function Feed() {
   const { loading, error, posts, post, cheer, uncheer } = usePosts()
+  const { show: showToast } = useToast()
+
+  function handleCheer(postId: string, emoji: CheerEmoji) {
+    cheer(postId, emoji).catch((err) => showToast(getErrorMessage(err, 'Could not cheer — try again.'), 'error'))
+  }
+
+  function handleUncheer(postId: string) {
+    uncheer(postId).catch((err) => showToast(getErrorMessage(err, 'Could not remove your cheer — try again.'), 'error'))
+  }
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
@@ -27,8 +39,8 @@ function Feed() {
           <PostCard
             key={detail.post.id}
             detail={detail}
-            onCheer={(emoji) => cheer(detail.post.id, emoji)}
-            onUncheer={() => uncheer(detail.post.id)}
+            onCheer={(emoji) => handleCheer(detail.post.id, emoji)}
+            onUncheer={() => handleUncheer(detail.post.id)}
           />
         ))
       )}

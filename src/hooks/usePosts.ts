@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { useAuth } from '../context/AuthContext'
 import { fetchFeed, createPost, updatePost, deletePost, setCheer, removeCheer } from '../lib/postsApi'
 import { getErrorMessage } from '../lib/friendsApi'
@@ -72,15 +72,29 @@ export function usePosts(): UsePostsResult {
   // Cheering is a high-frequency, low-stakes tap — update the one affected
   // post locally instead of refetching the whole feed (unlike post/edit/
   // remove above, which are rare enough that a full refresh is fine).
+  //
+  // Network responses aren't guaranteed to arrive in request order, so a
+  // quick "no wait, this emoji instead" re-tap could otherwise have the
+  // FIRST tap's response land last and overwrite the second one. This ref
+  // tracks the latest request per post; a response only gets applied if
+  // it's still the most recent one for that post by the time it resolves.
+  const latestCheerRequest = useRef<Map<string, symbol>>(new Map())
+
   async function cheer(postId: string, emoji: CheerEmoji) {
     if (!user) return
+    const token = Symbol()
+    latestCheerRequest.current.set(postId, token)
     await setCheer(postId, user.id, emoji)
+    if (latestCheerRequest.current.get(postId) !== token) return
     setPosts((prev) => prev.map((d) => (d.post.id === postId ? applyCheer(d, user.id, emoji) : d)))
   }
 
   async function uncheer(postId: string) {
     if (!user) return
+    const token = Symbol()
+    latestCheerRequest.current.set(postId, token)
     await removeCheer(postId, user.id)
+    if (latestCheerRequest.current.get(postId) !== token) return
     setPosts((prev) => prev.map((d) => (d.post.id === postId ? clearCheer(d, user.id) : d)))
   }
 
