@@ -81,6 +81,46 @@ describe('evaluatePostSuggestions', () => {
     expect(result?.draft).toContain('Anatomy')
   })
 
+  it('also finds a module whose OWN topics are done even when it also has an unfinished sub-module', () => {
+    const c = course({
+      name: 'Anatomy',
+      modules: [
+        module_({
+          id: 'm1',
+          name: 'Skeletal',
+          topics: [topic({ id: 't1', done: true })],
+          modules: [module_({ id: 'm1a', topics: [topic({ id: 't2', done: false })] })],
+        }),
+      ],
+    })
+    const result = evaluatePostSuggestions({ ...emptyData, courses: [c] }, today)
+    // m1 itself isn't fully done (its sub-module m1a isn't), but nothing
+    // here should be reported finished until m1a is done too.
+    expect(result).toBeNull()
+  })
+
+  it('finds the shallowest fully-done module, not just leaves', () => {
+    const c = course({
+      name: 'Anatomy',
+      modules: [
+        module_({
+          id: 'm1',
+          name: 'Upper Body',
+          topics: [],
+          modules: [
+            module_({ id: 'm1a', topics: [topic({ id: 't1', done: true })] }),
+            module_({ id: 'm1b', topics: [topic({ id: 't2', done: true })] }),
+          ],
+        }),
+        module_({ id: 'm2', name: 'Lower Body', topics: [topic({ id: 't3', done: false })] }),
+      ],
+    })
+    const result = evaluatePostSuggestions({ ...emptyData, courses: [c] }, today)
+    // m1's whole subtree (m1a + m1b) is done, so m1 itself — the shallower
+    // module — is reported, not one of its already-done children.
+    expect(result).toMatchObject({ id: 'module-finished:c1:m1' })
+  })
+
   it('a finished course outranks a finished module in the same data', () => {
     // Every topic in every module is done -> whole course is finished too.
     const c = course({ modules: [module_({ id: 'm1', topics: [topic({ done: true })] })] })
@@ -121,6 +161,24 @@ describe('evaluatePostSuggestions', () => {
     expect(evaluatePostSuggestions({ ...emptyData, habits: [h8] }, today)?.rule).not.toBe('streak-7')
   })
 
+  it('keys a streak milestone by habit, not by date — the same 7-day streak gives the same id whether checked today or tomorrow before marking', () => {
+    const marks: Record<string, 0 | 1 | 2> = {}
+    for (let i = 0; i < 7; i++) {
+      const d = new Date(today)
+      d.setDate(d.getDate() - i)
+      marks[`${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`] = 2
+    }
+    const h = habit(marks)
+    const tomorrow = new Date(today)
+    tomorrow.setDate(tomorrow.getDate() + 1)
+    // Tomorrow isn't marked yet — computeCurrentStreak gives an unmarked
+    // "today" a grace day, so this still reads as the same 7-day streak.
+    const resultToday = evaluatePostSuggestions({ ...emptyData, habits: [h] }, today)
+    const resultTomorrow = evaluatePostSuggestions({ ...emptyData, habits: [h] }, tomorrow)
+    expect(resultToday).toMatchObject({ rule: 'streak-7' })
+    expect(resultToday?.id).toBe(resultTomorrow?.id)
+  })
+
   it('a 30-day streak outranks a finished module', () => {
     const marks: Record<string, 0 | 1 | 2> = {}
     for (let i = 0; i < 30; i++) {
@@ -157,20 +215,29 @@ describe('evaluatePostSuggestions', () => {
     expect(result?.rule).toBe('module-finished')
   })
 
-  it('suggests a comeback: today active, the 7 days before were fully inactive', () => {
-    const marks: Record<string, 0 | 1 | 2> = { '2026-10-29': 2 }
+  it('suggests a comeback: today active, the 7 days before were fully inactive, with real history before that', () => {
+    // Oct 15 is well before the inactive window (Oct 22-28) -> genuine
+    // prior activity, not just a habit that didn't exist yet.
+    const marks: Record<string, 0 | 1 | 2> = { '2026-10-29': 2, '2026-10-15': 2 }
     const h = habit(marks)
     const result = evaluatePostSuggestions({ ...emptyData, habits: [h] }, today)
     expect(result).toMatchObject({ id: 'comeback:2026-10-29', rule: 'comeback' })
   })
 
   it('does not suggest a comeback if any of the 7 prior days had activity', () => {
-    const h = habit({ '2026-10-29': 2, '2026-10-25': 1 })
+    const h = habit({ '2026-10-29': 2, '2026-10-25': 1, '2026-10-15': 2 })
     expect(evaluatePostSuggestions({ ...emptyData, habits: [h] }, today)).toBeNull()
   })
 
   it('does not suggest a comeback if today itself has no activity', () => {
-    const h = habit({})
+    const h = habit({ '2026-10-15': 2 })
+    expect(evaluatePostSuggestions({ ...emptyData, habits: [h] }, today)).toBeNull()
+  })
+
+  it('does not treat a brand-new habit\'s very first mark as a "comeback" — there is no real history before the blank week', () => {
+    // Only ever marked once, today. The 7 days "before" read as inactive
+    // only because the habit didn't exist yet, not because of a break.
+    const h = habit({ '2026-10-29': 2 })
     expect(evaluatePostSuggestions({ ...emptyData, habits: [h] }, today)).toBeNull()
   })
 

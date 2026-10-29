@@ -64,7 +64,14 @@ function suggestCourseFinished(courses: Course[]): PostSuggestion | null {
   return null
 }
 
-/** "You finished a module!" — a leaf module (no sub-modules) is fully done, but its course as a whole isn't (otherwise "course finished" already covers it). */
+/**
+ * "You finished a module!" — some module in the tree (counting its own
+ * topics plus every descendant's) is fully done, but its course as a whole
+ * isn't (otherwise "course finished" already covers it). Checked at every
+ * level, not just leaves — a module can have both its own topics AND
+ * sub-modules at once, and BFS order means the shallowest fully-done one
+ * is returned first.
+ */
 function suggestModuleFinished(courses: Course[]): PostSuggestion | null {
   for (const course of courses) {
     const courseTotals = course.modules.reduce(
@@ -79,29 +86,35 @@ function suggestModuleFinished(courses: Course[]): PostSuggestion | null {
     const stack: CourseModule[] = [...course.modules]
     while (stack.length > 0) {
       const module = stack.shift()!
-      const children = module.modules ?? []
-      if (children.length === 0) {
-        if (module.topics.length > 0 && module.topics.every((t) => t.done)) {
-          return {
-            id: `module-finished:${course.id}:${module.id}`,
-            rule: 'module-finished',
-            draft: `Just finished the "${module.name}" module in "${course.name}"! 📘`,
-          }
+      const counts = countTopics(module)
+      if (counts.total > 0 && counts.done === counts.total) {
+        return {
+          id: `module-finished:${course.id}:${module.id}`,
+          rule: 'module-finished',
+          draft: `Just finished the "${module.name}" module in "${course.name}"! 📘`,
         }
-      } else {
-        stack.push(...children)
       }
+      stack.push(...(module.modules ?? []))
     }
   }
   return null
 }
 
-/** A streak reached exactly `target` days today (not ">= target", so it fires once, the day the streak hits that number, not every day after). */
+/**
+ * A streak reached exactly `target` days today (not ">= target", so it
+ * fires on the day the streak hits that number, not every day after). The
+ * id has no date in it — just habit + target, a one-time-per-habit
+ * milestone like every other rule here. A dated id would double-fire:
+ * computeCurrentStreak gives an unmarked "today" one grace day (it quietly
+ * looks at yesterday instead), so checking again tomorrow before marking
+ * today can still read as exactly `target` — same streak, different date,
+ * which a dated id would wrongly treat as a brand new achievement.
+ */
 function suggestStreakMilestone(habits: Habit[], referenceDate: Date, target: 7 | 30): PostSuggestion | null {
   for (const habit of habits) {
     if (computeCurrentStreak(habit, referenceDate) === target) {
       return {
-        id: `streak-${target}:${habit.id}:${toDateStr(referenceDate)}`,
+        id: `streak-${target}:${habit.id}`,
         rule: target === 30 ? 'streak-30' : 'streak-7',
         draft: `${target}-day streak on "${habit.name}"! 🔥`,
       }
@@ -129,12 +142,20 @@ function isFullyInactive(habits: Habit[], date: string): boolean {
   return habits.every((h) => (h.marks[date] ?? 0) === 0)
 }
 
+/** True if some habit has a real (non-zero) mark strictly before `date` — i.e. there's actual history predating the "missed week", not just a habit that didn't exist yet. */
+function hasHistoryBefore(habits: Habit[], date: string): boolean {
+  return habits.some((h) => Object.keys(h.marks).some((d) => d < date && (h.marks[d] ?? 0) > 0))
+}
+
 /**
- * "Welcome back" — today has at least one habit marked, and every one of
- * the 7 days strictly before today was fully inactive across all active
- * habits. Keyed by today's date, so it only ever fires on the comeback day
- * itself: tomorrow, today (now active) falls inside the "7 days before"
- * window, which breaks the all-inactive condition.
+ * "Welcome back" — today has at least one habit marked, every one of the
+ * 7 days strictly before today was fully inactive across all active
+ * habits, AND there's real activity predating that inactive week (so a
+ * brand-new habit's very first mark — whose entire "history" is trivially
+ * blank — doesn't read as a comeback from a break that never happened).
+ * Keyed by today's date, so it only ever fires on the comeback day itself:
+ * tomorrow, today (now active) falls inside the "7 days before" window,
+ * which breaks the all-inactive condition.
  */
 function suggestComeback(habits: Habit[], referenceDate: Date): PostSuggestion | null {
   if (habits.length === 0) return null
@@ -146,6 +167,9 @@ function suggestComeback(habits: Habit[], referenceDate: Date): PostSuggestion |
     const date = toDateStr(addDays(referenceDate, -i))
     if (!isFullyInactive(habits, date)) return null
   }
+
+  const inactiveWeekStart = toDateStr(addDays(referenceDate, -7))
+  if (!hasHistoryBefore(habits, inactiveWeekStart)) return null
 
   return {
     id: `comeback:${today}`,
