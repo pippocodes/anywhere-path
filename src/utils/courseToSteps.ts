@@ -41,10 +41,12 @@ export function groupStepsByModule(steps: PlanStep[]): PlanStepGroup[] {
     if (moduleTitle !== null && last?.moduleTitle === moduleTitle) {
       last.steps.push(step)
     } else {
-      // The first step's id (stable, unique) rather than a positional index,
-      // so an open/closed group doesn't flip when an earlier step is edited
-      // or removed and the groups re-flow.
-      groups.push({ key: step.id, moduleTitle, steps: [step] })
+      // moduleTitle itself (stable — only a step's own `title` is editable,
+      // never its moduleTitle) rather than the first step's id, so an open
+      // group doesn't collapse on its own just because its first step was
+      // removed. Ungrouped steps (moduleTitle === null) use their own id,
+      // since each is already its own single-item bucket.
+      groups.push({ key: moduleTitle ?? step.id, moduleTitle, steps: [step] })
     }
   }
   return groups
