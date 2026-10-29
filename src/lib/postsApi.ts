@@ -116,3 +116,16 @@ export async function deletePost(postId: string): Promise<void> {
   const { error } = await client.from('posts').delete().eq('id', postId)
   if (error) throw error
 }
+
+/** Sets (or replaces) the caller's own cheer on a post — one cheer per person per post, upsert on the (post_id, user_id) primary key. */
+export async function setCheer(postId: string, userId: string, emoji: CheerEmoji): Promise<void> {
+  const client = requireClient()
+  const { error } = await client.from('cheers').upsert({ post_id: postId, user_id: userId, emoji })
+  if (error) throw error
+}
+
+export async function removeCheer(postId: string, userId: string): Promise<void> {
+  const client = requireClient()
+  const { error } = await client.from('cheers').delete().eq('post_id', postId).eq('user_id', userId)
+  if (error) throw error
+}

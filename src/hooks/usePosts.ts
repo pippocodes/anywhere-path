@@ -1,8 +1,9 @@
 import { useCallback, useEffect, useState } from 'react'
 import { useAuth } from '../context/AuthContext'
-import { fetchFeed, createPost, updatePost, deletePost } from '../lib/postsApi'
+import { fetchFeed, createPost, updatePost, deletePost, setCheer, removeCheer } from '../lib/postsApi'
 import { getErrorMessage } from '../lib/friendsApi'
-import type { PostVisibility, PostWithDetail } from '../types/posts'
+import { applyCheer, clearCheer } from '../utils/postCheers'
+import type { CheerEmoji, PostVisibility, PostWithDetail } from '../types/posts'
 
 export interface UsePostsResult {
   loading: boolean
@@ -11,6 +12,8 @@ export interface UsePostsResult {
   post: (body: string, visibility: PostVisibility, commentsEnabled: boolean) => Promise<void>
   edit: (postId: string, fields: { body?: string; visibility?: PostVisibility; commentsEnabled?: boolean }) => Promise<void>
   remove: (postId: string) => Promise<void>
+  cheer: (postId: string, emoji: CheerEmoji) => Promise<void>
+  uncheer: (postId: string) => Promise<void>
   refresh: () => void
 }
 
@@ -66,5 +69,20 @@ export function usePosts(): UsePostsResult {
     refresh()
   }
 
-  return { loading, error, posts, post, edit, remove, refresh }
+  // Cheering is a high-frequency, low-stakes tap — update the one affected
+  // post locally instead of refetching the whole feed (unlike post/edit/
+  // remove above, which are rare enough that a full refresh is fine).
+  async function cheer(postId: string, emoji: CheerEmoji) {
+    if (!user) return
+    await setCheer(postId, user.id, emoji)
+    setPosts((prev) => prev.map((d) => (d.post.id === postId ? applyCheer(d, user.id, emoji) : d)))
+  }
+
+  async function uncheer(postId: string) {
+    if (!user) return
+    await removeCheer(postId, user.id)
+    setPosts((prev) => prev.map((d) => (d.post.id === postId ? clearCheer(d, user.id) : d)))
+  }
+
+  return { loading, error, posts, post, edit, remove, cheer, uncheer, refresh }
 }

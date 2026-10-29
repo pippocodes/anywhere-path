@@ -4,7 +4,7 @@ import PostCard from './PostCard'
 
 /** The community feed: compose a post, see everyone's (visible to you) newest first. */
 function Feed() {
-  const { loading, error, posts, post } = usePosts()
+  const { loading, error, posts, post, cheer, uncheer } = usePosts()
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
@@ -23,7 +23,14 @@ function Feed() {
           </p>
         </div>
       ) : (
-        posts.map((detail) => <PostCard key={detail.post.id} detail={detail} />)
+        posts.map((detail) => (
+          <PostCard
+            key={detail.post.id}
+            detail={detail}
+            onCheer={(emoji) => cheer(detail.post.id, emoji)}
+            onUncheer={() => uncheer(detail.post.id)}
+          />
+        ))
       )}
     </div>
   )
