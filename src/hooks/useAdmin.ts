@@ -76,8 +76,18 @@ export function useAdmin(): UseAdminResult {
   }, [user, nonce])
 
   async function removeReportedPost(reportId: string, postId: string, reason: string) {
+    // Removing the post is the primary, important action; marking the
+    // report "actioned" is just bookkeeping on top of it. If the post
+    // removal succeeds but this follow-up call fails (a transient blip),
+    // the admin shouldn't see a false "failed" error for an action that
+    // actually worked — the report is left open (Dismiss still covers it)
+    // rather than the whole thing looking like nothing happened.
     await removePost(postId, reason.trim() || null)
-    await resolveReport(reportId, 'actioned')
+    try {
+      await resolveReport(reportId, 'actioned')
+    } catch {
+      // ignore — the post is already removed, which is what matters
+    }
     refresh()
   }
 
