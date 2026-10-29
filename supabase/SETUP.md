@@ -20,7 +20,7 @@ fine without this configured — the auth pages just show a setup notice instead
    re-run the whole file again — every statement is idempotent (`create table if not exists`,
    `drop policy if exists` before `create policy`, etc.), so running it again only adds what's
    missing.
-3. This creates 9 tables: `courses`, `roadmap_plans`, `roadmap_docs`, `habit_categories`, and
+3. This creates 15 tables: `courses`, `roadmap_plans`, `roadmap_docs`, `habit_categories`, and
    `habits` each have Row Level Security with a policy that only ever lets a signed-in user see
    or change rows where `user_id` matches their own `auth.uid()` — enforced by Postgres itself,
    not by the app. `ai_generate_log` and `ai_habit_insights_log` have RLS on with *no* policies
@@ -31,9 +31,27 @@ fine without this configured — the auth pages just show a setup notice instead
    rows are created automatically by a trigger on signup (never inserted by the app directly),
    and two small SQL functions (`username_available`, `email_for_username`) back the live
    "is this username taken?" check and "log in with username" — see **How the app uses this**
-   below for exactly what each returns.
-4. Check **Table Editor** in the sidebar — you should see all 9 tables, each with a
+   below for exactly what each returns. `friendships`, `shared_items`, `shared_item_members`, and
+   `shared_item_logs` back the Friends/shared-tracker feature (see the schema file's own comments
+   for their relationship-scoped RLS). The newest six — `admin_users`, `blocks`, `posts`,
+   `cheers`, `reports`, `announcements` — back the community posts feature (Phase 3): see
+   **Granting admin access** below for `admin_users`, which is the one table here with no RLS
+   policies at all (service-role-only, same shape as `ai_generate_log`).
+4. Check **Table Editor** in the sidebar — you should see all 15 tables, each with a
    padlock icon (RLS enabled).
+
+### Granting admin access
+
+`admin_users` has Row Level Security on with **zero policies** — not even an admin can read or
+write it through the app, by design (see the comments above that table in `schema.sql`). To make
+an account an admin (for the moderation/announcements page), run this once per account directly
+in the SQL Editor, after finding their `auth.users` id in **Authentication** → **Users**:
+
+```sql
+insert into public.admin_users (user_id) values ('<their auth.users id>');
+```
+
+To revoke it: `delete from public.admin_users where user_id = '<their auth.users id>';`
 
 ## 3. Get your API keys
 
