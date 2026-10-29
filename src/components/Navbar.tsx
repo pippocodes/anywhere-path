@@ -6,6 +6,7 @@ import Button from './ui/Button'
 import NotificationBell from './friends/NotificationBell'
 import PhoneTopBar from './nav/PhoneTopBar'
 import BottomTabBar from './nav/BottomTabBar'
+import { isForcedActive } from './nav/navActive'
 
 const NAV_ITEMS = [
   { to: '/', label: 'Home', end: true },
@@ -86,7 +87,7 @@ function Navbar() {
 
         <div className="navbar-links" style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
           {NAV_ITEMS.map((item) => {
-            const forcedActive = !!item.extraActiveOn && location.pathname.startsWith(item.extraActiveOn)
+            const forcedActive = isForcedActive(location.pathname, item.extraActiveOn)
             return (
             <NavLink
               key={item.to}

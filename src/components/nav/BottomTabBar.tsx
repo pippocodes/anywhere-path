@@ -1,6 +1,7 @@
 import { NavLink, useLocation } from 'react-router-dom'
 import { motion, useReducedMotion } from 'framer-motion'
 import { HomeIcon, CoursesIcon, HabitsIcon, FriendsIcon } from './tabIcons'
+import { isForcedActive } from './navActive'
 import { useAuth } from '../../context/AuthContext'
 
 const TABS = [
@@ -44,7 +45,7 @@ function BottomTabBar() {
       }}
     >
       {TABS.map((tab) => {
-        const forcedActive = !!tab.extraActiveOn && location.pathname.startsWith(tab.extraActiveOn)
+        const forcedActive = isForcedActive(location.pathname, tab.extraActiveOn)
         return (
         <NavLink
           key={tab.to}
