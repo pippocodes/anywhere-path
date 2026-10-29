@@ -25,7 +25,12 @@ function Feed() {
   }
 
   function handleReport(postId: string, reason: ReportReason, details: string) {
-    report(postId, reason, details).catch((err) => showToast(getErrorMessage(err, 'Could not send report — try again.'), 'error'))
+    // Re-throws after toasting: PostCard awaits this and only shows its
+    // own "thanks, received" confirmation on real success.
+    return report(postId, reason, details).catch((err) => {
+      showToast(getErrorMessage(err, 'Could not send report — try again.'), 'error')
+      throw err
+    })
   }
 
   function handleBlock(authorUserId: string) {

@@ -24,7 +24,7 @@ interface Props {
   onCheer?: (emoji: CheerEmoji) => void
   onUncheer?: () => void
   onDelete?: (postId: string) => void
-  onReport?: (postId: string, reason: ReportReason, details: string) => void
+  onReport?: (postId: string, reason: ReportReason, details: string) => Promise<void>
   onBlock?: (authorUserId: string) => void
 }
 
@@ -40,6 +40,7 @@ function PostCard({ detail, onCheer, onUncheer, onDelete, onReport, onBlock }: P
   const [reportReason, setReportReason] = useState<ReportReason>('spam')
   const [reportDetails, setReportDetails] = useState('')
   const [reportSent, setReportSent] = useState(false)
+  const [reportSubmitting, setReportSubmitting] = useState(false)
 
   const countByEmoji = new Map<CheerEmoji, number>()
   for (const c of cheers) countByEmoji.set(c.emoji, (countByEmoji.get(c.emoji) ?? 0) + 1)
@@ -50,9 +51,18 @@ function PostCard({ detail, onCheer, onUncheer, onDelete, onReport, onBlock }: P
     else onCheer!(emoji)
   }
 
-  function submitReport() {
-    onReport?.(post.id, reportReason, reportDetails)
-    setReportSent(true)
+  async function submitReport() {
+    if (!onReport || reportSubmitting) return
+    setReportSubmitting(true)
+    try {
+      await onReport(post.id, reportReason, reportDetails)
+      setReportSent(true)
+    } catch {
+      // Feed.tsx already surfaced a toast for this — leave the form open
+      // (not the "thanks, received" screen) so the user can try again.
+    } finally {
+      setReportSubmitting(false)
+    }
   }
 
   function closeReport() {
@@ -217,8 +227,8 @@ function PostCard({ detail, onCheer, onUncheer, onDelete, onReport, onBlock }: P
               <button type="button" className="btn-outline" onClick={closeReport}>
                 Cancel
               </button>
-              <button type="button" className="btn" onClick={submitReport}>
-                Submit report
+              <button type="button" className="btn" disabled={reportSubmitting} onClick={submitReport}>
+                {reportSubmitting ? 'Sending…' : 'Submit report'}
               </button>
             </div>
           </>
