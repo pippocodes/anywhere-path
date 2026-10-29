@@ -1,19 +1,35 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { useAuth } from '../context/AuthContext'
-import { fetchFeed, createPost, updatePost, deletePost, setCheer, removeCheer } from '../lib/postsApi'
+import {
+  fetchFeed,
+  createPost,
+  updatePost,
+  deletePost,
+  setCheer,
+  removeCheer,
+  reportPost,
+  blockUser,
+  unblockUser,
+  fetchBlockedUsers,
+  type BlockedUser,
+} from '../lib/postsApi'
 import { getErrorMessage } from '../lib/friendsApi'
 import { applyCheer, clearCheer } from '../utils/postCheers'
-import type { CheerEmoji, PostVisibility, PostWithDetail } from '../types/posts'
+import type { CheerEmoji, PostVisibility, PostWithDetail, ReportReason } from '../types/posts'
 
 export interface UsePostsResult {
   loading: boolean
   error: string | null
   posts: PostWithDetail[]
+  blockedUsers: BlockedUser[]
   post: (body: string, visibility: PostVisibility, commentsEnabled: boolean) => Promise<void>
   edit: (postId: string, fields: { body?: string; visibility?: PostVisibility; commentsEnabled?: boolean }) => Promise<void>
   remove: (postId: string) => Promise<void>
   cheer: (postId: string, emoji: CheerEmoji) => Promise<void>
   uncheer: (postId: string) => Promise<void>
+  report: (postId: string, reason: ReportReason, details: string) => Promise<void>
+  block: (blockedUserId: string) => Promise<void>
+  unblock: (blockedUserId: string) => Promise<void>
   refresh: () => void
 }
 
@@ -21,6 +37,7 @@ export interface UsePostsResult {
 export function usePosts(): UsePostsResult {
   const { user } = useAuth()
   const [posts, setPosts] = useState<PostWithDetail[]>([])
+  const [blockedUsers, setBlockedUsers] = useState<BlockedUser[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [nonce, setNonce] = useState(0)
@@ -47,6 +64,26 @@ export function usePosts(): UsePostsResult {
       })
       .finally(() => {
         if (!cancelled) setLoading(false)
+      })
+    return () => {
+      cancelled = true
+    }
+  }, [user, nonce])
+
+  // Same nonce as the feed above — blocking/unblocking refreshes both in
+  // one go (a block also re-filters the feed, via RLS, on refetch).
+  useEffect(() => {
+    if (!user) {
+      setBlockedUsers([])
+      return
+    }
+    let cancelled = false
+    fetchBlockedUsers(user.id)
+      .then((data) => {
+        if (!cancelled) setBlockedUsers(data)
+      })
+      .catch(() => {
+        // Non-critical for the feed itself — just leave the blocked list empty.
       })
     return () => {
       cancelled = true
@@ -98,5 +135,22 @@ export function usePosts(): UsePostsResult {
     setPosts((prev) => prev.map((d) => (d.post.id === postId ? clearCheer(d, user.id) : d)))
   }
 
-  return { loading, error, posts, post, edit, remove, cheer, uncheer, refresh }
+  async function report(postId: string, reason: ReportReason, details: string) {
+    if (!user) return
+    await reportPost(postId, user.id, reason, details)
+  }
+
+  async function block(blockedUserId: string) {
+    if (!user) return
+    await blockUser(user.id, blockedUserId)
+    refresh()
+  }
+
+  async function unblock(blockedUserId: string) {
+    if (!user) return
+    await unblockUser(user.id, blockedUserId)
+    refresh()
+  }
+
+  return { loading, error, posts, blockedUsers, post, edit, remove, cheer, uncheer, report, block, unblock, refresh }
 }

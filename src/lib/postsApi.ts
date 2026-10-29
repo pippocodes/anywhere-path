@@ -1,6 +1,6 @@
 import { supabase } from './supabaseClient'
 import { usernamesFor } from './friendsApi'
-import type { Cheer, CheerEmoji, Post, PostVisibility, PostWithDetail } from '../types/posts'
+import type { Cheer, CheerEmoji, Post, PostVisibility, PostWithDetail, ReportReason } from '../types/posts'
 
 function requireClient() {
   if (!supabase) throw new Error('Supabase is not configured.')
@@ -128,4 +128,41 @@ export async function removeCheer(postId: string, userId: string): Promise<void>
   const client = requireClient()
   const { error } = await client.from('cheers').delete().eq('post_id', postId).eq('user_id', userId)
   if (error) throw error
+}
+
+/** Files a report — confidential: only the reporter and admins can ever see it (see reports_select in schema.sql), never the post's author. One per person per post; a second tap is a silent no-op (reports has a unique(reporter_id, post_id) constraint), not an error the user needs to see. */
+export async function reportPost(postId: string, reporterId: string, reason: ReportReason, details: string): Promise<void> {
+  const client = requireClient()
+  const { error } = await client
+    .from('reports')
+    .insert({ post_id: postId, reporter_id: reporterId, reason, details: details.trim() || null })
+  if (error && error.code !== '23505') throw error // 23505 = unique_violation (already reported)
+}
+
+export async function blockUser(blockerId: string, blockedId: string): Promise<void> {
+  const client = requireClient()
+  const { error } = await client.from('blocks').insert({ blocker_id: blockerId, blocked_id: blockedId })
+  if (error) throw error
+}
+
+export async function unblockUser(blockerId: string, blockedId: string): Promise<void> {
+  const client = requireClient()
+  const { error } = await client.from('blocks').delete().eq('blocker_id', blockerId).eq('blocked_id', blockedId)
+  if (error) throw error
+}
+
+export interface BlockedUser {
+  userId: string
+  username: string
+}
+
+/** Everyone `userId` has blocked (blocks_select_own only ever returns rows where YOU are the blocker — never who blocked you, never someone else's list). */
+export async function fetchBlockedUsers(userId: string): Promise<BlockedUser[]> {
+  const client = requireClient()
+  const { data, error } = await client.from('blocks').select('blocked_id').eq('blocker_id', userId)
+  if (error) throw error
+  const ids = ((data ?? []) as { blocked_id: string }[]).map((r) => r.blocked_id)
+  if (ids.length === 0) return []
+  const usernames = await usernamesFor(ids)
+  return ids.map((id) => ({ userId: id, username: usernames.get(id) ?? '(unknown)' }))
 }
