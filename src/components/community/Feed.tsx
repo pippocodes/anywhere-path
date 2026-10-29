@@ -3,6 +3,7 @@ import { useToast } from '../ui/Toast'
 import { getErrorMessage } from '../../lib/friendsApi'
 import PostComposer from './PostComposer'
 import PostCard from './PostCard'
+import AnnouncementBanner from './AnnouncementBanner'
 import type { CheerEmoji, ReportReason } from '../../types/posts'
 
 /** The community feed: compose a post, see everyone's (visible to you) newest first. */
@@ -45,6 +46,7 @@ function Feed() {
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+      <AnnouncementBanner />
       <PostComposer onPost={post} />
 
       {loading ? (

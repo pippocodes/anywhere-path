@@ -7,7 +7,9 @@ function requireClient() {
   return supabase
 }
 
-type PostRow = {
+// Exported for adminApi.ts, which also reads raw `posts` rows (for
+// reported-post review) and shouldn't have to redefine this mapping.
+export type PostRow = {
   id: string
   user_id: string
   body: string
@@ -19,7 +21,7 @@ type PostRow = {
   updated_at: string
 }
 
-function mapPost(r: PostRow): Post {
+export function mapPost(r: PostRow): Post {
   return {
     id: r.id,
     userId: r.user_id,

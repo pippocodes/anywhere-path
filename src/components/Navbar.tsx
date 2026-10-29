@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { NavLink, useNavigate } from 'react-router-dom'
 import { AnimatePresence, motion } from 'framer-motion'
 import { useAuth } from '../context/AuthContext'
+import { useIsAdmin } from '../hooks/useIsAdmin'
 import Button from './ui/Button'
 import NotificationBell from './friends/NotificationBell'
 import PhoneTopBar from './nav/PhoneTopBar'
@@ -19,6 +20,7 @@ const NAV_ITEMS = [
 
 function Navbar() {
   const { user, username, signOut } = useAuth()
+  const isAdmin = useIsAdmin()
   const navigate = useNavigate()
   const [scrolled, setScrolled] = useState(false)
   const [menuOpen, setMenuOpen] = useState(false)
@@ -204,6 +206,11 @@ function Navbar() {
                     <DropdownLink to="/settings" onClick={() => setMenuOpen(false)}>
                       Settings
                     </DropdownLink>
+                    {isAdmin && (
+                      <DropdownLink to="/admin" onClick={() => setMenuOpen(false)}>
+                        Admin
+                      </DropdownLink>
+                    )}
                     <button
                       role="menuitem"
                       onClick={handleSignOut}
