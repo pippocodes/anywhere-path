@@ -63,7 +63,8 @@ function mapFriendship(r: FriendshipRow): Friendship {
   }
 }
 
-async function usernamesFor(ids: string[]): Promise<Map<string, string>> {
+/** Looks up usernames for a batch of user ids in one query — shared by every feature that needs to label rows with "who" (friends, shared items, posts). */
+export async function usernamesFor(ids: string[]): Promise<Map<string, string>> {
   const map = new Map<string, string>()
   const unique = [...new Set(ids)]
   if (unique.length === 0) return map
