@@ -8,7 +8,7 @@ import Pills from '../ui/Pills'
 import CategorySelect from '../categories/CategorySelect'
 import CategoryChip from '../categories/CategoryChip'
 import RealityCheckCard from './RealityCheckCard'
-import { courseToSteps } from '../../utils/courseToSteps'
+import { courseToSteps, groupStepsByModule, type PlanStepGroup } from '../../utils/courseToSteps'
 import { parseCourseOutline, courseOutlineNodeToCourse } from '../../utils/courseOutlineParser'
 import { computeRealityCheck } from '../../utils/realityCheck'
 import { schedulePlanSteps, parseDateStr, addCalendarDays } from '../../utils/planScheduler'
@@ -91,7 +91,19 @@ function PlanBuilder({ editingPlan, onDoneEditing }: Props) {
   const newStepTitleRef = useRef<HTMLInputElement>(null)
 
   const [scheduleCollapsed, setScheduleCollapsed] = useState(true)
+  const [openStepGroups, setOpenStepGroups] = useState<Set<string>>(new Set())
   const stepsRef = useRef<HTMLDivElement>(null)
+
+  const stepGroups = useMemo(() => groupStepsByModule(steps), [steps])
+
+  function toggleStepGroupOpen(key: string) {
+    setOpenStepGroups((prev) => {
+      const next = new Set(prev)
+      if (next.has(key)) next.delete(key)
+      else next.add(key)
+      return next
+    })
+  }
 
   function categoryUsageCount(id: string) {
     return data.courses.filter((c) => c.categoryId === id).length + data.plans.filter((p) => p.categoryId === id).length
@@ -429,17 +441,33 @@ function PlanBuilder({ editingPlan, onDoneEditing }: Props) {
           <p style={{ fontSize: 13, color: 'var(--mute)' }}>Pick a source above to fill this in, or add steps manually below.</p>
         ) : (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 6, marginBottom: 10 }}>
-            {steps.map((step) => (
-              <StepRow
-                key={step.id}
-                step={step}
-                included={!excludedIds.has(step.id)}
-                onToggleIncluded={() => toggleStepIncluded(step.id)}
-                onTitleChange={(v) => updateStepTitle(step.id, v)}
-                onDurationChange={(seconds) => updateStepDuration(step.id, seconds)}
-                onRemove={() => removeStep(step.id)}
-              />
-            ))}
+            {stepGroups.map((group) =>
+              group.moduleTitle === null ? (
+                group.steps.map((step) => (
+                  <StepRow
+                    key={step.id}
+                    step={step}
+                    included={!excludedIds.has(step.id)}
+                    onToggleIncluded={() => toggleStepIncluded(step.id)}
+                    onTitleChange={(v) => updateStepTitle(step.id, v)}
+                    onDurationChange={(seconds) => updateStepDuration(step.id, seconds)}
+                    onRemove={() => removeStep(step.id)}
+                  />
+                ))
+              ) : (
+                <ModuleStepGroup
+                  key={group.key}
+                  group={group}
+                  open={openStepGroups.has(group.key)}
+                  onToggleOpen={() => toggleStepGroupOpen(group.key)}
+                  excludedIds={excludedIds}
+                  onToggleIncluded={toggleStepIncluded}
+                  onTitleChange={updateStepTitle}
+                  onDurationChange={updateStepDuration}
+                  onRemove={removeStep}
+                />
+              )
+            )}
           </div>
         )}
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
@@ -661,6 +689,93 @@ function StepRow({
       <button type="button" className="btn-outline" style={{ fontSize: 11, padding: '4px 8px' }} onClick={onRemove} aria-label={`Remove "${step.title}"`}>
         ✕
       </button>
+    </div>
+  )
+}
+
+function ModuleStepGroup({
+  group,
+  open,
+  onToggleOpen,
+  excludedIds,
+  onToggleIncluded,
+  onTitleChange,
+  onDurationChange,
+  onRemove,
+}: {
+  group: PlanStepGroup
+  open: boolean
+  onToggleOpen: () => void
+  excludedIds: Set<string>
+  onToggleIncluded: (id: string) => void
+  onTitleChange: (id: string, value: string) => void
+  onDurationChange: (id: string, seconds: number) => void
+  onRemove: (id: string) => void
+}) {
+  const totalSeconds = group.steps.reduce((sum, s) => sum + s.estimatedSeconds, 0)
+  const includedCount = group.steps.filter((s) => !excludedIds.has(s.id)).length
+
+  return (
+    <div className="card" style={{ padding: '4px 8px' }}>
+      <button
+        type="button"
+        onClick={onToggleOpen}
+        aria-expanded={open}
+        style={{
+          width: '100%',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          gap: 10,
+          padding: '8px 4px',
+          background: 'none',
+          border: 'none',
+          cursor: 'pointer',
+          textAlign: 'left',
+        }}
+      >
+        <span style={{ display: 'flex', alignItems: 'center', gap: 8, minWidth: 0 }}>
+          <motion.span
+            animate={{ rotate: open ? 90 : 0 }}
+            transition={{ duration: 0.2 }}
+            style={{ display: 'inline-block', color: 'var(--mute)', fontSize: 13, flexShrink: 0 }}
+          >
+            ›
+          </motion.span>
+          <span style={{ fontSize: 13.5, fontWeight: 600, color: 'var(--cream)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+            {group.moduleTitle}
+          </span>
+        </span>
+        <span className="outline-badge" style={{ flexShrink: 0, fontSize: 11, fontVariantNumeric: 'tabular-nums' }}>
+          {includedCount}/{group.steps.length} · {formatDuration(totalSeconds)}
+        </span>
+      </button>
+
+      <AnimatePresence initial={false}>
+        {open && (
+          <motion.div
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: 'auto' }}
+            exit={{ opacity: 0, height: 0 }}
+            transition={{ duration: 0.22, ease: [0.2, 0.8, 0.2, 1] }}
+            style={{ overflow: 'hidden' }}
+          >
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 6, paddingBottom: 4 }}>
+              {group.steps.map((step) => (
+                <StepRow
+                  key={step.id}
+                  step={step}
+                  included={!excludedIds.has(step.id)}
+                  onToggleIncluded={() => onToggleIncluded(step.id)}
+                  onTitleChange={(v) => onTitleChange(step.id, v)}
+                  onDurationChange={(seconds) => onDurationChange(step.id, seconds)}
+                  onRemove={() => onRemove(step.id)}
+                />
+              ))}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   )
 }

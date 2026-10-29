@@ -105,6 +105,10 @@ export interface PlanStep {
   title: string
   estimatedSeconds: number
   done: boolean
+  // The owning leaf module's ancestor path (e.g. "Muscular System / Upper
+  // Body"), set only for course/AI-sourced steps — lets the builder group
+  // and collapse steps by module instead of rendering every one at once.
+  moduleTitle?: string
 }
 
 /**
