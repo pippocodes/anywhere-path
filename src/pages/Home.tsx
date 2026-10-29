@@ -1,5 +1,7 @@
 import { Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
+import { useAuth } from '../context/AuthContext'
+import TodayHome from '../components/home/TodayHome'
 import CourseTrackerPreview from '../components/home/CourseTrackerPreview'
 import RoadmapBuilderPreview from '../components/home/RoadmapBuilderPreview'
 import HabitTrackerPreview from '../components/home/HabitTrackerPreview'
@@ -47,6 +49,11 @@ const STEPS = [
 ]
 
 function Home() {
+  const { user } = useAuth()
+  return user ? <TodayHome /> : <MarketingHome />
+}
+
+function MarketingHome() {
   return (
     <div>
       <div

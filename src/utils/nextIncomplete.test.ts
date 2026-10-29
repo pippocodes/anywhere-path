@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { findNextIncompleteTopic, findNextIncompletePlanStep } from './nextIncomplete'
+import { findNextIncompleteTopic, findNextIncompletePlanStep, findModuleIdForTopic } from './nextIncomplete'
 import type { Course, Plan } from '../types'
 
 describe('findNextIncompleteTopic', () => {
@@ -30,6 +30,39 @@ describe('findNextIncompleteTopic', () => {
       modules: [{ id: 'sub1', name: 'A', topics: [{ id: 't1', name: 'X', hours: 0, done: true }] }],
     }
     expect(findNextIncompleteTopic(course)).toBeNull()
+  })
+})
+
+describe('findModuleIdForTopic', () => {
+  const course: Pick<Course, 'modules'> = {
+    modules: [
+      {
+        id: 'sub1',
+        name: 'Skeletal System',
+        topics: [
+          { id: 't1', name: 'Bones of the arm', hours: 0, done: true },
+          { id: 't2', name: 'Bones of the leg', hours: 0, done: false },
+        ],
+      },
+      {
+        id: 'sub2',
+        name: 'Muscular System',
+        topics: [],
+        modules: [{ id: 'mod1', name: 'Upper Body', topics: [{ id: 't3', name: 'Biceps', hours: 0, done: false }] }],
+      },
+    ],
+  }
+
+  it('finds the module that directly holds a top-level topic', () => {
+    expect(findModuleIdForTopic(course, 't2')).toBe('sub1')
+  })
+
+  it('finds the module that holds a topic nested inside a sub-module', () => {
+    expect(findModuleIdForTopic(course, 't3')).toBe('mod1')
+  })
+
+  it('returns null for a topic id that does not exist anywhere', () => {
+    expect(findModuleIdForTopic(course, 'nope')).toBeNull()
   })
 })
 

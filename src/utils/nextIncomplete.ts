@@ -21,6 +21,20 @@ export function findNextIncompleteTopic(course: Pick<Course, 'modules'>): NextTo
   return searchModules(course.modules)
 }
 
+function searchForTopicModule(modules: CourseModule[], topicId: string): string | null {
+  for (const m of modules) {
+    if (m.topics.some((t) => t.id === topicId)) return m.id
+    const nested = searchForTopicModule(m.modules ?? [], topicId)
+    if (nested) return nested
+  }
+  return null
+}
+
+/** The id of the module that directly contains a given topic — needed to call toggleTopic(courseId, moduleId, topicId) when only the topicId is known (e.g. from useTodayItems). */
+export function findModuleIdForTopic(course: Pick<Course, 'modules'>, topicId: string): string | null {
+  return searchForTopicModule(course.modules, topicId)
+}
+
 export interface NextPlanStep {
   stepId: string
   title: string
