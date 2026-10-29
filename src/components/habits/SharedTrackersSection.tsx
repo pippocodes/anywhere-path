@@ -30,7 +30,7 @@ function SharedTrackersSection({ currentUserId, hasFriends, sharedState, onOpenS
           title="Nothing shared yet"
           description="Share a habit with a friend to track it together."
           actionLabel={hasFriends ? 'Share a habit' : 'Add a friend first'}
-          onAction={() => (hasFriends ? onOpenShare(null) : navigate('/friends'))}
+          onAction={() => (hasFriends ? onOpenShare(null) : navigate('/community'))}
         />
       ) : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>

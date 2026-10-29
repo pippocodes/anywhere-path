@@ -106,8 +106,8 @@ function FriendProfile() {
           type="button"
           className="btn-outline"
           style={{ marginBottom: 16 }}
-          onClick={() => navigate('/friends')}
-          aria-label="Back to Friends"
+          onClick={() => navigate('/community')}
+          aria-label="Back to Community"
         >
           ← Back
         </button>
@@ -191,7 +191,7 @@ function FriendProfile() {
                   if (confirming === 'remove') friendsState.remove(friendEntry.friendship.id)
                   else friendsState.block(friendEntry.friendship.id)
                   setConfirming(null)
-                  navigate('/friends')
+                  navigate('/community')
                 }}
               >
                 {confirming === 'remove' ? 'Yes, remove' : 'Yes, block'}

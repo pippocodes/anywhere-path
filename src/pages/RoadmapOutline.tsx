@@ -27,6 +27,7 @@ import Button from '../components/ui/Button'
 import RevealHeading from '../components/ui/RevealHeading'
 import PlanBuilder from '../components/roadmapPlanner/PlanBuilder'
 import SavedPlansList from '../components/roadmapPlanner/SavedPlansList'
+import LearningTabs from '../components/learning/LearningTabs'
 
 const DEFAULT_WEEKDAYS = [0, 1, 2, 3, 4, 5, 6]
 const WEEKDAY_LABELS = ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa']
@@ -299,6 +300,7 @@ function RoadmapOutline() {
 
   return (
     <div className="page" style={{ maxWidth: 1100 }}>
+      <LearningTabs />
       <RevealHeading as="h1" className="page-title">
         Roadmap Builder
       </RevealHeading>

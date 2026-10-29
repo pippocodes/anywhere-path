@@ -32,16 +32,6 @@ export function CoursesIcon() {
   )
 }
 
-export function RoadmapIcon() {
-  return (
-    <svg {...iconProps()}>
-      <circle cx="6" cy="18" r="2" />
-      <circle cx="18" cy="6" r="2" />
-      <path d="M7.7 16.5c3-1 4.3-3 4.3-5s1.8-4.3 4.8-5.2" strokeDasharray="2.6 2.6" />
-    </svg>
-  )
-}
-
 export function HabitsIcon() {
   return (
     <svg {...iconProps()}>

@@ -1,5 +1,5 @@
 import { lazy, Suspense } from 'react'
-import { Routes, Route, useLocation } from 'react-router-dom'
+import { Routes, Route, Navigate, useLocation, useParams } from 'react-router-dom'
 import { AnimatePresence, motion, useReducedMotion } from 'framer-motion'
 import Navbar from './components/Navbar'
 import PageLoading from './components/PageLoading'
@@ -41,6 +41,12 @@ const ForgotPassword = lazy(() => import('./pages/auth/ForgotPassword'))
 const ResetPassword = lazy(() => import('./pages/auth/ResetPassword'))
 const AuthCallback = lazy(() => import('./pages/auth/AuthCallback'))
 
+/** Old /friends/:username deep links -> the new /community/:username path, param preserved. */
+function RedirectToCommunityProfile() {
+  const { username } = useParams()
+  return <Navigate to={`/community/${username}`} replace />
+}
+
 const PAGE_VARIANTS = {
   initial: { opacity: 0, y: 10 },
   animate: { opacity: 1, y: 0 },
@@ -71,7 +77,7 @@ function AnimatedRoutes() {
             <Route path="/reset-password" element={<ResetPassword />} />
             <Route path="/auth/callback" element={<AuthCallback />} />
             <Route
-              path="/courses"
+              path="/learning"
               element={
                 <ProtectedRoute
                   demo={<CoursesDemo />}
@@ -81,6 +87,7 @@ function AnimatedRoutes() {
                 </ProtectedRoute>
               }
             />
+            <Route path="/courses" element={<Navigate to="/learning" replace />} />
             <Route
               path="/courses/:courseId"
               element={
@@ -126,15 +133,17 @@ function AnimatedRoutes() {
               }
             />
             <Route
-              path="/friends"
+              path="/community"
               element={
                 <ProtectedRoute demoHeading="Create a free account to add friends and share tracking">
                   <Friends />
                 </ProtectedRoute>
               }
             />
+            <Route path="/friends" element={<Navigate to="/community" replace />} />
+            <Route path="/friends/:username" element={<RedirectToCommunityProfile />} />
             <Route
-              path="/friends/:username"
+              path="/community/:username"
               element={
                 <ProtectedRoute demoHeading="Create a free account to add friends and share tracking">
                   <FriendProfile />
