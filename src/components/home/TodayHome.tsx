@@ -1,9 +1,10 @@
+import { useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { AnimatePresence, motion } from 'framer-motion'
 import { useApp } from '../../hooks/useApp'
 import { useAuth } from '../../context/AuthContext'
 import { useTodayItems, type TodayItem } from '../../hooks/useTodayItems'
-import { computeCurrentStreak, toDateStr } from '../../utils/habits'
+import { bestCurrentStreak, toDateStr } from '../../utils/habits'
 import { findModuleIdForTopic } from '../../utils/nextIncomplete'
 import TriStateRing from '../friends/TriStateRing'
 import AnimatedCheckbox from '../motion/AnimatedCheckbox'
@@ -25,10 +26,11 @@ function TodayHome() {
   const navigate = useNavigate()
   const today = toDateStr(new Date())
 
-  const streak = data.habits.filter((h) => !h.archived).reduce((max, h) => Math.max(max, computeCurrentStreak(h)), 0)
+  const habitsById = useMemo(() => new Map(data.habits.map((h) => [h.id, h])), [data.habits])
+  const streak = useMemo(() => bestCurrentStreak(data.habits.filter((h) => !h.archived)), [data.habits])
 
   function habitMark(habitId: string) {
-    return data.habits.find((h) => h.id === habitId)?.marks[today] ?? 0
+    return habitsById.get(habitId)?.marks[today] ?? 0
   }
 
   function complete(item: TodayItem) {

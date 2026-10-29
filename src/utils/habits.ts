@@ -74,6 +74,11 @@ export function computeCurrentStreak(habit: Habit, today: Date = new Date()): nu
   return streak
 }
 
+/** The longest current streak across a set of habits (e.g. all active ones) — the single "your streak" number shown on Home and Habits. */
+export function bestCurrentStreak(habits: Habit[], today: Date = new Date()): number {
+  return habits.reduce((max, h) => Math.max(max, computeCurrentStreak(h, today)), 0)
+}
+
 /** True when every day strictly between `from` and `from + diffDays` is partial (mark 1). */
 function isGapAllPartial(habit: Habit, from: Date, diffDays: number): boolean {
   for (let offset = 1; offset < diffDays; offset++) {

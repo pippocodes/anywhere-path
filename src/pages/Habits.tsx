@@ -23,7 +23,7 @@ import {
   monthCompletionPercent,
   yearlyCompletion,
   computeBestStreak,
-  computeCurrentStreak,
+  bestCurrentStreak,
   compareToLastMonth,
   toDateStr,
 } from '../utils/habits'
@@ -194,7 +194,7 @@ function Habits() {
 
   const overallPercent = monthCompletionPercent(activeHabits, month, year)
   const bestStreakEver = activeHabits.reduce((max, h) => Math.max(max, computeBestStreak(h)), 0)
-  const bestCurrentStreak = activeHabits.reduce((max, h) => Math.max(max, computeCurrentStreak(h, referenceDate)), 0)
+  const currentStreakOverall = bestCurrentStreak(activeHabits, referenceDate)
   const perfectDays = countPerfectDays(activeHabits, month, year)
   const checkInsThisMonth = totalTicksInMonth(activeHabits, month, year)
   const doneToday = activeHabits.filter((h) => h.marks[todayStr] === 2).length
@@ -355,7 +355,7 @@ function Habits() {
       <AnimatePresence mode="wait" initial={false}>
         {view === 'tracker' && (
           <motion.div key="tracker" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} transition={{ duration: 0.25 }}>
-            <TodayStrip doneToday={doneToday} totalHabits={activeHabits.length} currentStreak={bestCurrentStreak} />
+            <TodayStrip doneToday={doneToday} totalHabits={activeHabits.length} currentStreak={currentStreakOverall} />
 
             {hasAnyHabits && <SuggestionsPanel suggestions={suggestions} />}
 
@@ -465,7 +465,7 @@ function Habits() {
                       <div style={{ flex: 1, minWidth: 0 }}>
                         <MonthStats
                           completionPercent={overallPercent}
-                          currentStreak={bestCurrentStreak}
+                          currentStreak={currentStreakOverall}
                           bestStreak={bestStreakEver}
                           perfectDays={perfectDays}
                           checkIns={checkInsThisMonth}
@@ -483,7 +483,7 @@ function Habits() {
                   <>
                     <MonthStats
                       completionPercent={overallPercent}
-                      currentStreak={bestCurrentStreak}
+                      currentStreak={currentStreakOverall}
                       bestStreak={bestStreakEver}
                       perfectDays={perfectDays}
                       checkIns={checkInsThisMonth}
