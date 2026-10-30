@@ -22,7 +22,7 @@ function Friends() {
   return (
     <div className="page" style={{ maxWidth: 760 }}>
       <RevealHeading as="h1" className="page-title">
-        Friends
+        Community
       </RevealHeading>
       <p className="page-subtitle" style={{ marginBottom: 28 }}>
         Add friends by username — share a habit together from the Habit Tracker once you're connected.

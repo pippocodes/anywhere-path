@@ -1,18 +1,18 @@
 import { useEffect, useRef, useState } from 'react'
-import { NavLink, useNavigate } from 'react-router-dom'
+import { NavLink, useLocation, useNavigate } from 'react-router-dom'
 import { AnimatePresence, motion } from 'framer-motion'
 import { useAuth } from '../context/AuthContext'
 import Button from './ui/Button'
 import NotificationBell from './friends/NotificationBell'
 import PhoneTopBar from './nav/PhoneTopBar'
 import BottomTabBar from './nav/BottomTabBar'
+import { isForcedActive } from './nav/navActive'
 
 const NAV_ITEMS = [
   { to: '/', label: 'Home', end: true },
-  { to: '/courses', label: 'Course Tracker' },
-  { to: '/roadmap', label: 'Roadmap Builder' },
-  { to: '/habits', label: 'Habit Tracker' },
-  { to: '/friends', label: 'Friends' },
+  { to: '/learning', label: 'My Learning', extraActiveOn: '/roadmap' },
+  { to: '/habits', label: 'Habits' },
+  { to: '/community', label: 'Community' },
   { to: '/about', label: 'About Us' },
   { to: '/help', label: 'Help' },
 ]
@@ -20,6 +20,7 @@ const NAV_ITEMS = [
 function Navbar() {
   const { user, username, signOut } = useAuth()
   const navigate = useNavigate()
+  const location = useLocation()
   const [scrolled, setScrolled] = useState(false)
   const [menuOpen, setMenuOpen] = useState(false)
   const [mobileOpen, setMobileOpen] = useState(false)
@@ -85,7 +86,9 @@ function Navbar() {
         </NavLink>
 
         <div className="navbar-links" style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-          {NAV_ITEMS.map((item) => (
+          {NAV_ITEMS.map((item) => {
+            const forcedActive = isForcedActive(location.pathname, item.extraActiveOn)
+            return (
             <NavLink
               key={item.to}
               to={item.to}
@@ -95,13 +98,13 @@ function Navbar() {
                 padding: '8px 14px',
                 fontSize: 14,
                 fontWeight: 500,
-                color: isActive ? 'var(--cream)' : 'var(--mute)',
+                color: isActive || forcedActive ? 'var(--cream)' : 'var(--mute)',
               })}
             >
               {({ isActive }) => (
                 <>
                   {item.label}
-                  {isActive && (
+                  {(isActive || forcedActive) && (
                     <motion.span
                       layoutId="navbar-active-pill"
                       transition={{ type: 'spring', stiffness: 380, damping: 32 }}
@@ -119,7 +122,8 @@ function Navbar() {
                 </>
               )}
             </NavLink>
-          ))}
+            )
+          })}
         </div>
 
         <div className="navbar-actions" style={{ display: 'flex', alignItems: 'center', gap: 14, flexShrink: 0 }}>

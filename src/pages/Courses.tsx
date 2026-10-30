@@ -14,6 +14,7 @@ import CourseOutlineEditor from '../components/roadmapBuilder/CourseOutlineEdito
 import Button from '../components/ui/Button'
 import Pills from '../components/ui/Pills'
 import RevealHeading from '../components/ui/RevealHeading'
+import LearningTabs from '../components/learning/LearningTabs'
 import EmptyState from '../components/ui/EmptyState'
 import { useToast } from '../components/ui/Toast'
 
@@ -198,10 +199,11 @@ function Courses() {
 
   return (
     <div className="page" style={{ maxWidth: 900 }}>
+      <LearningTabs />
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: 16, marginBottom: 20 }}>
         <div>
           <RevealHeading as="h1" className="page-title" style={{ marginBottom: 6 }}>
-            Course Tracker
+            My Learning
           </RevealHeading>
           <p className="page-subtitle" style={{ marginBottom: 0 }}>
             Track subtopics, modules and progress for courses you're taking elsewhere.

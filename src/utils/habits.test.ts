@@ -9,6 +9,7 @@ import {
   monthCompletionPercent,
   computeCurrentStreak,
   computeBestStreak,
+  bestCurrentStreak,
   yearlyCompletion,
   compareToLastMonth,
   isPerfectDay,
@@ -107,6 +108,19 @@ describe('computeCurrentStreak', () => {
     const today = new Date(2024, 0, 10)
     const h = habit({ '2024-01-10': 2, '2024-01-09': 0, '2024-01-08': 2 })
     expect(computeCurrentStreak(h, today)).toBe(1)
+  })
+})
+
+describe('bestCurrentStreak', () => {
+  it('returns the longest current streak across all given habits', () => {
+    const today = new Date(2024, 0, 10)
+    const short = habit({ '2024-01-10': 2 })
+    const long = habit({ '2024-01-10': 2, '2024-01-09': 2, '2024-01-08': 2 })
+    expect(bestCurrentStreak([short, long], today)).toBe(3)
+  })
+
+  it('is 0 for an empty habit list', () => {
+    expect(bestCurrentStreak([], new Date(2024, 0, 10))).toBe(0)
   })
 })
 

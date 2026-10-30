@@ -184,7 +184,7 @@ function NotificationBell() {
               style={{ width: '100%', marginTop: 10, fontSize: 12 }}
               onClick={() => {
                 setOpen(false)
-                navigate('/friends')
+                navigate('/community')
               }}
             >
               View Friends

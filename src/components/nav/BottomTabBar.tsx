@@ -1,14 +1,14 @@
-import { NavLink } from 'react-router-dom'
+import { NavLink, useLocation } from 'react-router-dom'
 import { motion, useReducedMotion } from 'framer-motion'
-import { HomeIcon, CoursesIcon, RoadmapIcon, HabitsIcon, FriendsIcon } from './tabIcons'
+import { HomeIcon, CoursesIcon, HabitsIcon, FriendsIcon } from './tabIcons'
+import { isForcedActive } from './navActive'
 import { useAuth } from '../../context/AuthContext'
 
 const TABS = [
-  { to: '/', label: 'Home', end: true, Icon: HomeIcon },
-  { to: '/courses', label: 'Courses', end: false, Icon: CoursesIcon },
-  { to: '/roadmap', label: 'Roadmap', end: false, Icon: RoadmapIcon },
-  { to: '/habits', label: 'Habits', end: false, Icon: HabitsIcon },
-  { to: '/friends', label: 'Friends', end: false, Icon: FriendsIcon },
+  { to: '/', label: 'Home', end: true, Icon: HomeIcon, extraActiveOn: undefined as string | undefined },
+  { to: '/learning', label: 'My Learning', end: false, Icon: CoursesIcon, extraActiveOn: '/roadmap' },
+  { to: '/habits', label: 'Habits', end: false, Icon: HabitsIcon, extraActiveOn: undefined as string | undefined },
+  { to: '/community', label: 'Community', end: false, Icon: FriendsIcon, extraActiveOn: undefined as string | undefined },
 ]
 
 /**
@@ -21,6 +21,7 @@ const TABS = [
 function BottomTabBar() {
   const { user } = useAuth()
   const reduceMotion = useReducedMotion()
+  const location = useLocation()
 
   if (!user) return null
 
@@ -43,7 +44,9 @@ function BottomTabBar() {
         paddingBottom: 'env(safe-area-inset-bottom, 0px)',
       }}
     >
-      {TABS.map((tab) => (
+      {TABS.map((tab) => {
+        const forcedActive = isForcedActive(location.pathname, tab.extraActiveOn)
+        return (
         <NavLink
           key={tab.to}
           to={tab.to}
@@ -59,7 +62,9 @@ function BottomTabBar() {
             minHeight: 60,
           }}
         >
-          {({ isActive }) => (
+          {({ isActive: linkActive }) => {
+            const isActive = linkActive || forcedActive
+            return (
             <>
               <span
                 style={{
@@ -97,9 +102,11 @@ function BottomTabBar() {
                 {tab.label}
               </span>
             </>
-          )}
+            )
+          }}
         </NavLink>
-      ))}
+        )
+      })}
     </nav>
   )
 }

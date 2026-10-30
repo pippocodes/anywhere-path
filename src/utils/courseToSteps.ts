@@ -9,6 +9,7 @@ function flattenModule(module: CourseModule, path: string[]): PlanStep[] {
     title: [...nextPath, t.name].join(' / '),
     estimatedSeconds: getTopicSeconds(t),
     done: false,
+    moduleTitle: nextPath.join(' / '),
   }))
   const childSteps = (module.modules ?? []).flatMap((m) => flattenModule(m, nextPath))
   return [...ownSteps, ...childSteps]
@@ -17,4 +18,36 @@ function flattenModule(module: CourseModule, path: string[]): PlanStep[] {
 /** Flattens a course's subtopic/module tree into a plan's flat, schedulable step list — each step's title is its ancestor path joined, e.g. "Skeletal System / Bones of the arm". */
 export function courseToSteps(course: Pick<Course, 'modules'>): PlanStep[] {
   return course.modules.flatMap((m) => flattenModule(m, []))
+}
+
+export interface PlanStepGroup {
+  key: string
+  moduleTitle: string | null
+  steps: PlanStep[]
+}
+
+/**
+ * Buckets consecutive steps sharing the same `moduleTitle` into one group —
+ * used to render a plan's steps module-by-module instead of all at once, so
+ * a long course (hundreds of steps) only mounts the handful in an opened
+ * module. Steps without a `moduleTitle` (hand-added/legacy) each get their
+ * own ungrouped bucket, rendered flat like today.
+ */
+export function groupStepsByModule(steps: PlanStep[]): PlanStepGroup[] {
+  const groups: PlanStepGroup[] = []
+  for (const step of steps) {
+    const moduleTitle = step.moduleTitle ?? null
+    const last = groups[groups.length - 1]
+    if (moduleTitle !== null && last?.moduleTitle === moduleTitle) {
+      last.steps.push(step)
+    } else {
+      // moduleTitle itself (stable — only a step's own `title` is editable,
+      // never its moduleTitle) rather than the first step's id, so an open
+      // group doesn't collapse on its own just because its first step was
+      // removed. Ungrouped steps (moduleTitle === null) use their own id,
+      // since each is already its own single-item bucket.
+      groups.push({ key: moduleTitle ?? step.id, moduleTitle, steps: [step] })
+    }
+  }
+  return groups
 }

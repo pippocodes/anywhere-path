@@ -79,7 +79,7 @@ function CourseDetail() {
 
   function handleDeleteCourse() {
     deleteCourse(course!.id)
-    navigate('/courses', { replace: true })
+    navigate('/learning', { replace: true })
   }
 
   const meta = [course.platform, course.instructor].filter(Boolean).join(' · ')
