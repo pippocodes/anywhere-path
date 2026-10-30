@@ -42,6 +42,10 @@ export default defineConfig({
         // rather than waiting for every open tab to close first.
         clientsClaim: true,
         skipWaiting: true,
+        // Adds push/notificationclick handling to the generated sw.js
+        // without hand-writing (and so losing) Workbox's own precaching —
+        // see public/push-sw.js.
+        importScripts: ['push-sw.js'],
       },
       devOptions: {
         enabled: false,

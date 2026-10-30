@@ -1502,6 +1502,116 @@ do $$ begin
   alter publication supabase_realtime add table public.announcements;
 exception when duplicate_object then null; end $$;
 
+-- =========================================================================
+-- Push notifications (habit reminders). Applied from the design reviewed
+-- in docs/drafts/notifications-schema.sql — see that file's comments for
+-- the full reasoning; kept here verbatim as the durable schema record.
+-- =========================================================================
+
+-- ---------------------------------------------------------------------
+-- push_subscriptions — one row per browser/device a user has granted
+-- push permission on. `endpoint` is the push service URL the browser
+-- handed back from PushManager.subscribe(), unique per device per
+-- browser. p256dh/auth are the encryption keys the sender needs (RFC
+-- 8291) — the `web-push` npm library consumes these three fields as-is.
+-- ---------------------------------------------------------------------
+create table if not exists public.push_subscriptions (
+  id bigserial primary key,
+  user_id uuid not null references auth.users (id) on delete cascade,
+  endpoint text not null unique,
+  p256dh text not null,
+  auth text not null,
+  created_at timestamptz not null default now()
+);
+
+create index if not exists push_subscriptions_user_id_idx on public.push_subscriptions (user_id);
+
+alter table public.push_subscriptions enable row level security;
+
+drop policy if exists "push_subscriptions_select_own" on public.push_subscriptions;
+drop policy if exists "push_subscriptions_insert_own" on public.push_subscriptions;
+drop policy if exists "push_subscriptions_delete_own" on public.push_subscriptions;
+
+create policy "push_subscriptions_select_own" on public.push_subscriptions
+  for select using (auth.uid() = user_id);
+create policy "push_subscriptions_insert_own" on public.push_subscriptions
+  for insert with check (auth.uid() = user_id);
+create policy "push_subscriptions_delete_own" on public.push_subscriptions
+  for delete using (auth.uid() = user_id);
+-- No update policy: a changed subscription is a new endpoint, so the
+-- client deletes the stale row and inserts the new one rather than
+-- editing in place. The scheduled sender (api/send-reminders.ts) reads
+-- across every user's rows with the service-role key, which bypasses
+-- RLS entirely — these policies only govern the browser's own access.
+
+-- ---------------------------------------------------------------------
+-- notification_settings — one row per user: the single off switch, the
+-- timezone reminder times are interpreted in (captured once on the
+-- client, not re-asked per habit), and an optional quiet-hours window
+-- that suppresses sends regardless of a habit's own reminder time — a
+-- safety clamp, not the primary scheduling mechanism.
+-- ---------------------------------------------------------------------
+create table if not exists public.notification_settings (
+  user_id uuid primary key references auth.users (id) on delete cascade,
+  enabled boolean not null default true,
+  timezone text not null default 'UTC', -- IANA name, e.g. "Europe/Berlin"
+  quiet_hours_start time, -- null = no quiet hours set
+  quiet_hours_end time,
+  updated_at timestamptz not null default now()
+);
+
+alter table public.notification_settings enable row level security;
+
+drop policy if exists "notification_settings_select_own" on public.notification_settings;
+drop policy if exists "notification_settings_insert_own" on public.notification_settings;
+drop policy if exists "notification_settings_update_own" on public.notification_settings;
+
+create policy "notification_settings_select_own" on public.notification_settings
+  for select using (auth.uid() = user_id);
+create policy "notification_settings_insert_own" on public.notification_settings
+  for insert with check (auth.uid() = user_id);
+create policy "notification_settings_update_own" on public.notification_settings
+  for update using (auth.uid() = user_id) with check (auth.uid() = user_id);
+
+-- ---------------------------------------------------------------------
+-- habit_reminders — one row per habit the user has turned a reminder ON
+-- for (opt-in per habit — a freshly created habit stays quiet until a
+-- time is set for it). remind_at is a plain HH:MM read against
+-- notification_settings.timezone for that same user. last_sent_date is
+-- the idempotency guard behind "at most one reminder per habit per
+-- day": checked and set in the same request as sending, so an
+-- overlapping or retried sweep can never double-send for the same
+-- habit on the same calendar day.
+-- ---------------------------------------------------------------------
+create table if not exists public.habit_reminders (
+  habit_id text primary key references public.habits (id) on delete cascade,
+  user_id uuid not null references auth.users (id) on delete cascade,
+  remind_at time not null,
+  enabled boolean not null default true,
+  last_sent_date date,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+
+create index if not exists habit_reminders_user_id_idx on public.habit_reminders (user_id);
+create index if not exists habit_reminders_remind_at_idx on public.habit_reminders (remind_at) where enabled;
+
+alter table public.habit_reminders enable row level security;
+
+drop policy if exists "habit_reminders_select_own" on public.habit_reminders;
+drop policy if exists "habit_reminders_insert_own" on public.habit_reminders;
+drop policy if exists "habit_reminders_update_own" on public.habit_reminders;
+drop policy if exists "habit_reminders_delete_own" on public.habit_reminders;
+
+create policy "habit_reminders_select_own" on public.habit_reminders
+  for select using (auth.uid() = user_id);
+create policy "habit_reminders_insert_own" on public.habit_reminders
+  for insert with check (auth.uid() = user_id);
+create policy "habit_reminders_update_own" on public.habit_reminders
+  for update using (auth.uid() = user_id) with check (auth.uid() = user_id);
+create policy "habit_reminders_delete_own" on public.habit_reminders
+  for delete using (auth.uid() = user_id);
+
 -- ---------------------------------------------------------------------
 -- Done. Every table above has RLS enabled with policies that scope
 -- every select/insert/update/delete to `auth.uid() = user_id` (or, for

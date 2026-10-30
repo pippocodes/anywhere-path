@@ -1,5 +1,5 @@
-import type { Habit, Course, Plan } from '../types'
-import { parseDateStr } from './habits'
+import type { Habit, Course, Plan } from '../types.js'
+import { parseDateStr } from './habits.js'
 
 /**
  * Whether a habit's linked course or plan (if any) has actually reached its

@@ -1,7 +1,8 @@
 {
   "rewrites": [{ "source": "/((?!api/).*)", "destination": "/index.html" }],
   "functions": {
-    "api/generate.ts": { "maxDuration": 60 }
+    "api/generate.ts": { "maxDuration": 60 },
+    "api/send-reminders.ts": { "maxDuration": 60 }
   },
   "headers": [
     {

@@ -172,6 +172,85 @@ is never exposed to visitors. It needs four environment variables, none of them 
    `api/_lib/outlineGeneration.ts` if you want to change that), logged in the `ai_generate_log`
    table from step 2.
 
+## 8. Set up push reminders (optional)
+
+Lets a signed-in user turn on push notifications and get a reminder at a time they pick for each
+habit — see Settings → Notifications → "Push reminders" in the app. Entirely optional: without
+it, that section just shows "Push notifications aren't available" / the subscribe button quietly
+fails with a clear error, and everything else works exactly the same.
+
+Three pieces, all in Vercel/Supabase — nothing to change in this repo:
+
+### 8a. Generate a VAPID key pair
+
+VAPID keys are how the app proves to the push service (Chrome's, Apple's, etc.) that it's allowed
+to send to a given subscription — a public/private key pair, generated once, never rotated unless
+compromised. Run this locally (needs the `web-push` package this repo already depends on):
+
+```bash
+npx web-push generate-vapid-keys
+```
+
+It prints a **Public Key** and a **Private Key**. Copy both straight into the Vercel env vars
+below — don't paste them anywhere else, don't commit them, and don't paste the private key into
+this chat or any other AI tool.
+
+### 8b. Set the environment variables
+
+Same two places as step 7 above (local `.env`/`.env.local`, and Vercel → Project → **Settings** →
+**Environment Variables**, redeploy after adding):
+
+```
+VITE_VAPID_PUBLIC_KEY=<the Public Key from 8a>     # ships to the browser — this half is meant to be public
+VAPID_PUBLIC_KEY=<the same Public Key>              # read server-side by api/send-reminders.ts and api/send-test-notification.ts
+VAPID_PRIVATE_KEY=<the Private Key from 8a>         # secret — never VITE_-prefixed, never reaches the browser
+VAPID_SUBJECT=mailto:you@example.com                # a contact URL/email the push services may use to reach you about abuse
+CRON_SECRET=<a random string you generate yourself> # e.g. `openssl rand -hex 32` — shared with the pg_cron job in 8c, nothing else
+```
+
+`SUPABASE_URL`, `SUPABASE_ANON_KEY`, and `SUPABASE_SERVICE_ROLE_KEY` are the same three from step 7
+— the reminder endpoints reuse them, no new Supabase keys needed.
+
+### 8c. Schedule the sender in Supabase
+
+The actual sending runs as a Vercel function (`api/send-reminders.ts`), checked every minute by a
+`pg_cron` job inside Supabase's own Postgres — not Vercel Cron (the free Hobby plan only allows
+cron jobs to run once a day, nowhere near enough for per-user reminder times) and not a GitHub
+Actions schedule (minute-precision isn't reliable, and it disables itself after 60 days with no
+other repo activity). Supabase's `pg_cron` ticks reliably every minute on the free tier and costs
+nothing extra.
+
+1. **Database** → **Extensions** in the dashboard → enable **pg_cron** and **pg_net** (search the
+   list, toggle each on). These let Postgres schedule a job and make an HTTP call from inside SQL.
+2. **SQL Editor** → **New query** → paste the following, filling in your own deployed URL and the
+   exact `CRON_SECRET` value you set in 8b, then **Run** (once — this registers a standing job,
+   it doesn't need to be re-run on every deploy):
+   ```sql
+   select cron.schedule(
+     'send-reminders-every-minute',
+     '* * * * *',
+     $$
+     select net.http_post(
+       url := 'https://<your-deployed-domain>/api/send-reminders',
+       headers := jsonb_build_object(
+         'Authorization', 'Bearer <your CRON_SECRET value>',
+         'Content-Type', 'application/json'
+       ),
+       body := '{}'::jsonb
+     );
+     $$
+   );
+   ```
+3. Check it's running: **Database** → **Cron** in the dashboard should list `send-reminders-every-minute`
+   with recent successful runs. To stop it later: `select cron.unschedule('send-reminders-every-minute');`.
+
+### What to expect on iPhone
+
+Push only works once Anywhere Path has been added to the Home Screen (Share → Add to Home Screen,
+or the in-app "Install app" button on supported browsers) — Safari does not deliver push to a
+regular browser tab at all. The in-app Notifications settings page already explains this; nothing
+extra to configure here.
+
 ## How the app uses this
 
 - `src/lib/supabaseClient.ts` creates the client from the two `VITE_` env vars;
@@ -203,3 +282,10 @@ is never exposed to visitors. It needs four environment variables, none of them 
 - `api/generate.ts` verifies the caller's Supabase session token, checks `ai_generate_log` for
   the rate limit, calls Claude, and returns the generated outline text — returning a clear 503
   instead of calling Claude at all if any of the four AI-related env vars above are missing.
+- Push reminders: the browser's subscription is saved via `api/save-push-subscription.ts` /
+  `api/delete-push-subscription.ts` into `push_subscriptions`; per-habit times and the global
+  on/off + quiet hours live in `habit_reminders` / `notification_settings`. Every minute,
+  Supabase's own `pg_cron` calls `api/send-reminders.ts` (shared-secret auth, not a user session),
+  which matches each user's due reminders (`api/_lib/reminderMatching.ts` — start-date gating,
+  one-per-habit-per-day, quiet hours, combining several into one push) and sends via `web-push`.
+  `api/send-test-notification.ts` backs the "send me a test notification" button.
