@@ -1,9 +1,9 @@
-/** The small sparkle glyph pulled out of the brand mark (logo/anywhere-path-mark-gold.svg) — kept at the logo's own fixed gold rather than the theme accent, since it's standing in for the literal mark, not a themed UI colour. */
-function LogoStarIcon({ size = 20 }: { size?: number }) {
+/** The small sparkle glyph pulled out of the brand mark (logo/anywhere-path-mark-gold.svg) — defaults to the logo's own fixed gold (the Home trail hero's "today" marker), but accepts "currentColor" for neutral, theme-adaptive use like a header logo mark. */
+function LogoStarIcon({ size = 20, color = '#F3BA62' }: { size?: number; color?: string }) {
   return (
     <svg width={size} height={size} viewBox="294 208 40 50" xmlns="http://www.w3.org/2000/svg">
       <path
-        fill="#F3BA62"
+        fill={color}
         d="M314.75 210.25C314.62 210.33 314.12 210.67 314.00 210.75C313.92 211.21 314.00 211.83 313.50 213.50C313.00 215.17 311.88 218.67 311.00 220.75C310.12 222.83 308.92 224.92 308.25 226.00C307.58 227.08 307.83 226.62 307.00 227.25C306.17 227.88 305.04 228.83 303.25 229.75C301.46 230.67 297.42 232.25 296.25 232.75C296.29 232.88 296.46 233.38 296.50 233.50C296.79 233.58 297.00 233.46 298.25 234.00C299.50 234.54 302.62 236.00 304.00 236.75C305.38 237.50 305.75 237.88 306.50 238.50C307.25 239.12 307.83 239.54 308.50 240.50C309.17 241.46 309.88 242.88 310.50 244.25C311.12 245.62 311.62 246.79 312.25 248.75C312.88 250.71 313.92 254.79 314.25 256.00C314.42 255.92 315.08 255.58 315.25 255.50C315.33 255.04 315.38 254.12 315.75 252.75C316.12 251.38 316.58 249.42 317.50 247.25C318.42 245.08 320.42 241.21 321.25 239.75C322.08 238.29 321.79 239.04 322.50 238.50C323.21 237.96 324.33 237.17 325.50 236.50C326.67 235.83 328.42 234.96 329.50 234.50C330.58 234.04 331.50 233.96 332.00 233.75C332.50 233.54 332.42 233.33 332.50 233.25C332.46 233.12 332.29 232.62 332.25 232.50C331.92 232.42 331.62 232.62 330.25 232.00C328.88 231.38 325.58 229.79 324.00 228.75C322.42 227.71 321.83 227.33 320.75 225.75C319.67 224.17 318.33 221.25 317.50 219.25C316.67 217.25 316.08 215.00 315.75 213.75C315.42 212.50 315.67 212.33 315.50 211.75C315.33 211.17 314.88 210.50 314.75 210.25Z"
       />
     </svg>

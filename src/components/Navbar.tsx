@@ -3,11 +3,11 @@ import { NavLink, useLocation, useNavigate } from 'react-router-dom'
 import { AnimatePresence, motion } from 'framer-motion'
 import { useAuth } from '../context/AuthContext'
 import { useIsAdmin } from '../hooks/useIsAdmin'
-import Button from './ui/Button'
 import NotificationBell from './friends/NotificationBell'
 import PhoneTopBar from './nav/PhoneTopBar'
 import BottomTabBar from './nav/BottomTabBar'
 import { isForcedActive } from './nav/navActive'
+import LogoStarIcon from './ui/LogoStarIcon'
 
 const NAV_ITEMS = [
   { to: '/', label: 'Home', end: true },
@@ -54,36 +54,51 @@ function Navbar() {
 
   const initial = (username ?? user?.email ?? '?').charAt(0).toUpperCase()
 
+  const navStyle = {
+    position: 'sticky' as const,
+    top: 0,
+    zIndex: 50,
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: 24,
+    padding: '14px 48px',
+    background: scrolled ? 'color-mix(in srgb, var(--bg) 72%, transparent)' : 'transparent',
+    backdropFilter: scrolled ? 'blur(14px)' : 'none',
+    borderBottom: `1px solid ${scrolled ? 'var(--line)' : 'transparent'}`,
+    transition: 'background 0.3s var(--ease), border-color 0.3s var(--ease)',
+  }
+
+  const wordmarkStyle = {
+    display: 'flex',
+    alignItems: 'center',
+    gap: 8,
+    fontFamily: 'var(--font-display)',
+    fontStyle: 'italic' as const,
+    fontWeight: 600,
+    fontSize: 22,
+    color: 'var(--cream)',
+    flexShrink: 0,
+  }
+
+  if (!user) {
+    return (
+      <nav className="navbar-root" style={navStyle}>
+        <NavLink to="/" style={wordmarkStyle}>
+          <LogoStarIcon size={22} color="currentColor" />
+          Anywhere Path
+        </NavLink>
+        <NavLink to="/login" className="btn-outline" style={{ fontSize: 13.5, height: 40, display: 'inline-flex', alignItems: 'center' }}>
+          Log in
+        </NavLink>
+      </nav>
+    )
+  }
+
   return (
     <>
-      <nav
-        className={user ? 'navbar-root navbar-root-phone-app' : 'navbar-root'}
-        style={{
-          position: 'sticky',
-          top: 0,
-          zIndex: 50,
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          gap: 24,
-          padding: '14px 48px',
-          background: scrolled ? 'color-mix(in srgb, var(--bg) 72%, transparent)' : 'transparent',
-          backdropFilter: scrolled ? 'blur(14px)' : 'none',
-          borderBottom: `1px solid ${scrolled ? 'var(--line)' : 'transparent'}`,
-          transition: 'background 0.3s var(--ease), border-color 0.3s var(--ease)',
-        }}
-      >
-        <NavLink
-          to="/"
-          style={{
-            fontFamily: 'var(--font-display)',
-            fontStyle: 'italic',
-            fontWeight: 600,
-            fontSize: 22,
-            color: 'var(--cream)',
-            flexShrink: 0,
-          }}
-        >
+      <nav className="navbar-root navbar-root-phone-app" style={navStyle}>
+        <NavLink to="/" style={wordmarkStyle}>
           Anywhere Path
         </NavLink>
 
@@ -129,11 +144,8 @@ function Navbar() {
         </div>
 
         <div className="navbar-actions" style={{ display: 'flex', alignItems: 'center', gap: 14, flexShrink: 0 }}>
-          {user ? (
-            <NotificationBell />
-          ) : null}
-          {user ? (
-            <div ref={menuRef} style={{ position: 'relative' }} className="navbar-account">
+          <NotificationBell />
+          <div ref={menuRef} style={{ position: 'relative' }} className="navbar-account">
               <button
                 onClick={() => setMenuOpen((v) => !v)}
                 aria-haspopup="menu"
@@ -237,20 +249,6 @@ function Navbar() {
                 )}
               </AnimatePresence>
             </div>
-          ) : (
-            <div className="navbar-auth-buttons" style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-              <NavLink
-                to="/login"
-                className="btn-outline"
-                style={{ fontSize: 13.5, height: 40, display: 'inline-flex', alignItems: 'center' }}
-              >
-                Log in
-              </NavLink>
-              <Button size="sm" style={{ height: 40 }} onClick={() => navigate('/signup')}>
-                Get started
-              </Button>
-            </div>
-          )}
 
           <button
             className="navbar-hamburger"
@@ -280,7 +278,6 @@ function Navbar() {
       <MobileSheet
         open={mobileOpen}
         onClose={() => setMobileOpen(false)}
-        hasUser={!!user}
         username={username}
         userEmail={user?.email ?? null}
         isAdmin={isAdmin}
@@ -313,14 +310,13 @@ function DropdownLink({ to, onClick, children }: { to: string; onClick: () => vo
 interface MobileSheetProps {
   open: boolean
   onClose: () => void
-  hasUser: boolean
   username: string | null
   userEmail: string | null
   isAdmin: boolean
   onSignOut: () => void
 }
 
-function MobileSheet({ open, onClose, hasUser, username, userEmail, isAdmin, onSignOut }: MobileSheetProps) {
+function MobileSheet({ open, onClose, username, userEmail, isAdmin, onSignOut }: MobileSheetProps) {
   return (
     <AnimatePresence>
       {open && (
@@ -401,33 +397,22 @@ function MobileSheet({ open, onClose, hasUser, username, userEmail, isAdmin, onS
           </div>
 
           <div style={{ marginTop: 'auto', paddingTop: 28 }}>
-            {hasUser ? (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-                <div style={{ fontSize: 14, color: 'var(--mute)' }}>
-                  Signed in as <strong style={{ color: 'var(--cream)' }}>{username ?? userEmail}</strong>
-                </div>
-                <NavLink to="/profile" onClick={onClose} className="btn btn-secondary" style={{ textAlign: 'center', minHeight: 48 }}>
-                  Profile
-                </NavLink>
-                {isAdmin && (
-                  <NavLink to="/admin" onClick={onClose} className="btn btn-secondary" style={{ textAlign: 'center', minHeight: 48 }}>
-                    Admin
-                  </NavLink>
-                )}
-                <button onClick={onSignOut} className="btn-danger" style={{ padding: '14px 22px', borderRadius: 10, minHeight: 48 }}>
-                  Log out
-                </button>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+              <div style={{ fontSize: 14, color: 'var(--mute)' }}>
+                Signed in as <strong style={{ color: 'var(--cream)' }}>{username ?? userEmail}</strong>
               </div>
-            ) : (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-                <NavLink to="/signup" onClick={onClose} className="btn" style={{ textAlign: 'center', minHeight: 48 }}>
-                  Get started
+              <NavLink to="/profile" onClick={onClose} className="btn btn-secondary" style={{ textAlign: 'center', minHeight: 48 }}>
+                Profile
+              </NavLink>
+              {isAdmin && (
+                <NavLink to="/admin" onClick={onClose} className="btn btn-secondary" style={{ textAlign: 'center', minHeight: 48 }}>
+                  Admin
                 </NavLink>
-                <NavLink to="/login" onClick={onClose} className="btn btn-secondary" style={{ textAlign: 'center', minHeight: 48 }}>
-                  Log in
-                </NavLink>
-              </div>
-            )}
+              )}
+              <button onClick={onSignOut} className="btn-danger" style={{ padding: '14px 22px', borderRadius: 10, minHeight: 48 }}>
+                Log out
+              </button>
+            </div>
           </div>
         </motion.div>
       )}

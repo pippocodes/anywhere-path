@@ -1,5 +1,5 @@
 import { lazy, Suspense } from 'react'
-import { Routes, Route, Navigate, useLocation, useParams } from 'react-router-dom'
+import { Routes, Route, Navigate, useLocation, useParams, NavLink } from 'react-router-dom'
 import { AnimatePresence, motion, useReducedMotion } from 'framer-motion'
 import Navbar from './components/Navbar'
 import PageLoading from './components/PageLoading'
@@ -8,6 +8,7 @@ import AmbientBackground from './components/ui/AmbientBackground'
 import Spotlight from './components/ui/Spotlight'
 import ScrollProgress from './components/ui/ScrollProgress'
 import { ToastProvider } from './components/ui/Toast'
+import { useAuth } from './context/AuthContext'
 import RoadmapDemo from './components/demo/RoadmapDemo'
 import HabitsDemo from './components/demo/HabitsDemo'
 import CoursesDemo from './components/demo/CoursesDemo'
@@ -249,6 +250,44 @@ function AnimatedRoutes() {
   )
 }
 
+const FOOTER_LINKS = [
+  { to: '/', label: 'Home' },
+  { to: '/learning', label: 'My Learning' },
+  { to: '/habits', label: 'Habits' },
+  { to: '/community', label: 'Community' },
+  { to: '/about', label: 'About Us' },
+  { to: '/help', label: 'Help' },
+]
+
+/** Moved out of the landing header's old menu — only shown signed out, since signed-in users already have the full nav and bottom tab bar. */
+function Footer() {
+  const { user } = useAuth()
+  return (
+    <footer
+      style={{
+        position: 'relative',
+        zIndex: 1,
+        padding: '24px 48px',
+        textAlign: 'center',
+        fontSize: 12.5,
+        color: 'var(--mute)',
+        borderTop: '1px solid var(--line)',
+      }}
+    >
+      {!user && (
+        <nav style={{ display: 'flex', justifyContent: 'center', flexWrap: 'wrap', gap: 24, marginBottom: 16 }}>
+          {FOOTER_LINKS.map((item) => (
+            <NavLink key={item.to} to={item.to} end={item.to === '/'} style={{ color: 'var(--mute)', fontSize: 13 }}>
+              {item.label}
+            </NavLink>
+          ))}
+        </nav>
+      )}
+      © {new Date().getFullYear()} {import.meta.env.VITE_APP_NAME ?? 'Anywhere Path'}. All rights reserved.
+    </footer>
+  )
+}
+
 function App() {
   return (
     <ToastProvider>
@@ -259,19 +298,7 @@ function App() {
         <Navbar />
         <AnimatedRoutes />
         <CatchUpTrigger />
-        <footer
-          style={{
-            position: 'relative',
-            zIndex: 1,
-            padding: '24px 48px',
-            textAlign: 'center',
-            fontSize: 12.5,
-            color: 'var(--mute)',
-            borderTop: '1px solid var(--line)',
-          }}
-        >
-          © {new Date().getFullYear()} {import.meta.env.VITE_APP_NAME ?? 'Anywhere Path'}. All rights reserved.
-        </footer>
+        <Footer />
         <DebugOverlay />
       </div>
     </ToastProvider>

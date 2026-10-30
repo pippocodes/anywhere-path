@@ -5,6 +5,7 @@ import type { TodayItem } from '../../hooks/useTodayItems'
 interface Props {
   open: boolean
   items: TodayItem[]
+  welcomeBack?: boolean
   onClose: () => void
 }
 
@@ -17,7 +18,7 @@ const KIND_LABEL: Record<TodayItem['kind'], string> = {
 }
 
 /** Once-a-day "here's what's still pending today" nudge — a bottom sheet on phones (automatic via Modal's variant="sheet"), a centered-feeling side sheet on desktop. Purely in-app; no push, no service worker. */
-function CatchUpSheet({ open, items, onClose }: Props) {
+function CatchUpSheet({ open, items, welcomeBack, onClose }: Props) {
   const navigate = useNavigate()
 
   function goTo(href: string) {
@@ -25,8 +26,12 @@ function CatchUpSheet({ open, items, onClose }: Props) {
     navigate(href)
   }
 
+  const title = welcomeBack
+    ? 'Welcome back. Your bad days still count.'
+    : `You still have ${items.length} ${items.length === 1 ? 'thing' : 'things'} today`
+
   return (
-    <Modal open={open} onClose={onClose} variant="sheet" title={`You still have ${items.length} ${items.length === 1 ? 'thing' : 'things'} today`}>
+    <Modal open={open} onClose={onClose} variant="sheet" title={title}>
       <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginBottom: 20, maxHeight: '45vh', overflowY: 'auto' }}>
         {items.map((item) => (
           <button

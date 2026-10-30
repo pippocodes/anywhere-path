@@ -93,9 +93,25 @@ function PlanBuilder({ editingPlan, onDoneEditing }: Props) {
 
   const [scheduleCollapsed, setScheduleCollapsed] = useState(true)
   const [openStepGroups, setOpenStepGroups] = useState<Set<string>>(new Set())
-  const stepsRef = useRef<HTMLDivElement>(null)
+
+  const [customizingSteps, setCustomizingSteps] = useState(false)
+  const [stepFilter, setStepFilter] = useState('')
+  const [confirmReset, setConfirmReset] = useState(false)
 
   const stepGroups = useMemo(() => groupStepsByModule(steps), [steps])
+
+  const filteredStepGroups = useMemo(() => {
+    const query = stepFilter.trim().toLowerCase()
+    if (!query) return stepGroups
+    return stepGroups
+      .map((group) => ({
+        ...group,
+        steps: group.steps.filter(
+          (s) => s.title.toLowerCase().includes(query) || (group.moduleTitle ?? '').toLowerCase().includes(query)
+        ),
+      }))
+      .filter((group) => group.steps.length > 0)
+  }, [stepGroups, stepFilter])
 
   function toggleStepGroupOpen(key: string) {
     setOpenStepGroups((prev) => {
@@ -183,6 +199,8 @@ function PlanBuilder({ editingPlan, onDoneEditing }: Props) {
     setSourceCourseId(courseId)
     setSteps(courseToSteps(course))
     setExcludedIds(new Set())
+    setCustomizingSteps(false)
+    setStepFilter('')
     if (!title.trim()) setTitle(course.name)
     if (categoryId === null && course.categoryId) setCategoryId(course.categoryId)
   }
@@ -229,16 +247,25 @@ function PlanBuilder({ editingPlan, onDoneEditing }: Props) {
     }
   }
 
-  function handleFixIncreaseHours() {
-    if (realityResult.suggestedHoursPerDay !== null) setHoursPerDay(String(realityResult.suggestedHoursPerDay))
+  function handleApplyHoursPerDay(hours: number) {
+    setHoursPerDay(String(hours))
   }
 
-  function handleFixExtendDays() {
-    if (realityResult.suggestedDays !== null) setDays(String(realityResult.suggestedDays))
+  function handleApplyDays(newDays: number) {
+    setDays(String(newDays))
   }
 
-  function handleFixTrimScope() {
-    stepsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+  function handleApplyLater(laterIds: Set<string>) {
+    setSteps((prev) => [...prev.filter((s) => !laterIds.has(s.id)), ...prev.filter((s) => laterIds.has(s.id))])
+  }
+
+  function handleApplySpeedUp(multiplier: number) {
+    setSteps((prev) => prev.map((s) => ({ ...s, estimatedSeconds: Math.ceil(s.estimatedSeconds / multiplier) })))
+    showToast(`Step lengths adjusted for ${multiplier}x`)
+  }
+
+  function handleApplyStartDate(date: string) {
+    setStartDate(date)
   }
 
   function resetBuilder() {
@@ -258,6 +285,8 @@ function PlanBuilder({ editingPlan, onDoneEditing }: Props) {
     setAiError(null)
     setNewStepTitle('')
     setNewStepDuration('')
+    setCustomizingSteps(false)
+    setStepFilter('')
   }
 
   const canSave = includedSteps.length > 0 && Number(days) > 0 && Number(hoursPerDay) > 0 && weekdays.length > 0
@@ -434,73 +463,126 @@ function PlanBuilder({ editingPlan, onDoneEditing }: Props) {
         <input id="plan-title" value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Name this plan" />
       </div>
 
-      <div ref={stepsRef}>
+      <div>
         <div className="micro-label" style={{ marginBottom: 8 }}>
           Steps {steps.length > 0 && `(${includedSteps.length} of ${steps.length} included — ${formatDuration(requiredSeconds)} total)`}
         </div>
         {steps.length === 0 ? (
           <p style={{ fontSize: 13, color: 'var(--mute)' }}>Pick a source above to fill this in, or add steps manually below.</p>
+        ) : sourceType === 'course' && !customizingSteps ? (
+          <motion.div
+            key="summary"
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.2, ease: [0.2, 0.8, 0.2, 1] }}
+            className="card"
+            style={{ padding: '12px 16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12, flexWrap: 'wrap', marginBottom: 8 }}
+          >
+            <span style={{ fontSize: 13.5, color: 'var(--cream)' }}>
+              {steps.length} module{steps.length === 1 ? '' : 's'}, {formatDuration(requiredSeconds)},{' '}
+              {includedSteps.length === steps.length ? 'all included' : `${includedSteps.length} of ${steps.length} included`}
+            </span>
+            <button type="button" className="btn-outline" style={{ fontSize: 12.5, flexShrink: 0 }} onClick={() => setCustomizingSteps(true)}>
+              Customize
+            </button>
+          </motion.div>
         ) : (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 6, marginBottom: 10 }}>
-            {stepGroups.map((group) =>
-              group.moduleTitle === null ? (
-                group.steps.map((step) => (
-                  <StepRow
-                    key={step.id}
-                    step={step}
-                    included={!excludedIds.has(step.id)}
-                    onToggleIncluded={() => toggleStepIncluded(step.id)}
-                    onTitleChange={(v) => updateStepTitle(step.id, v)}
-                    onDurationChange={(seconds) => updateStepDuration(step.id, seconds)}
-                    onRemove={() => removeStep(step.id)}
-                  />
-                ))
+          <motion.div key="customize" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.2, ease: [0.2, 0.8, 0.2, 1] }}>
+            <div style={{ display: 'flex', gap: 8, marginBottom: 8, flexWrap: 'wrap' }}>
+              <input
+                value={stepFilter}
+                onChange={(e) => setStepFilter(e.target.value)}
+                placeholder="Filter steps…"
+                style={{ flex: '1 1 160px', minWidth: 0, padding: '8px 12px', borderRadius: 8, border: '1px solid var(--line)', fontSize: 12.5 }}
+              />
+              <button type="button" className="btn-outline" style={{ fontSize: 12 }} onClick={() => setExcludedIds(new Set())}>
+                Select all
+              </button>
+            </div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginBottom: 8 }}>
+              {filteredStepGroups.length === 0 ? (
+                <p style={{ fontSize: 12.5, color: 'var(--mute)' }}>No steps match "{stepFilter}".</p>
               ) : (
-                <ModuleStepGroup
-                  key={group.key}
-                  group={group}
-                  open={openStepGroups.has(group.key)}
-                  onToggleOpen={() => toggleStepGroupOpen(group.key)}
-                  excludedIds={excludedIds}
-                  onToggleIncluded={toggleStepIncluded}
-                  onTitleChange={updateStepTitle}
-                  onDurationChange={updateStepDuration}
-                  onRemove={removeStep}
-                />
-              )
+                filteredStepGroups.map((group) =>
+                  group.moduleTitle === null ? (
+                    group.steps.map((step) => (
+                      <StepRow
+                        key={step.id}
+                        step={step}
+                        included={!excludedIds.has(step.id)}
+                        onToggleIncluded={() => toggleStepIncluded(step.id)}
+                        onTitleChange={(v) => updateStepTitle(step.id, v)}
+                        onDurationChange={(seconds) => updateStepDuration(step.id, seconds)}
+                        onRemove={() => removeStep(step.id)}
+                      />
+                    ))
+                  ) : (
+                    <ModuleStepGroup
+                      key={group.key}
+                      group={group}
+                      open={openStepGroups.has(group.key)}
+                      onToggleOpen={() => toggleStepGroupOpen(group.key)}
+                      excludedIds={excludedIds}
+                      onToggleIncluded={toggleStepIncluded}
+                      onTitleChange={updateStepTitle}
+                      onDurationChange={updateStepDuration}
+                      onRemove={removeStep}
+                    />
+                  )
+                )
+              )}
+            </div>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+              <input
+                ref={newStepTitleRef}
+                value={newStepTitle}
+                onChange={(e) => setNewStepTitle(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    e.preventDefault()
+                    addCustomStep()
+                  }
+                }}
+                placeholder="Add a step…"
+                style={{ flex: '1 1 160px', minWidth: 0, padding: '8px 12px', borderRadius: 8, border: '1px solid var(--line)', fontSize: 13 }}
+              />
+              <input
+                value={newStepDuration}
+                onChange={(e) => setNewStepDuration(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    e.preventDefault()
+                    addCustomStep()
+                  }
+                }}
+                placeholder="e.g. 1h 30m"
+                style={{ flex: '0 1 120px', minWidth: 0, padding: '8px 12px', borderRadius: 8, border: '1px solid var(--line)', fontSize: 13 }}
+              />
+              <button type="button" className="btn-outline" onClick={addCustomStep} disabled={!newStepTitle.trim()}>
+                Add
+              </button>
+            </div>
+            {sourceType === 'course' && (
+              <div
+                style={{
+                  position: 'sticky',
+                  bottom: 0,
+                  marginTop: 16,
+                  marginLeft: -24,
+                  marginRight: -24,
+                  padding: '12px 24px',
+                  background: 'var(--ink-2)',
+                  borderTop: '1px solid var(--line)',
+                  zIndex: 40,
+                }}
+              >
+                <button type="button" className="btn" onClick={() => setCustomizingSteps(false)}>
+                  Build roadmap
+                </button>
+              </div>
             )}
-          </div>
+          </motion.div>
         )}
-        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
-          <input
-            ref={newStepTitleRef}
-            value={newStepTitle}
-            onChange={(e) => setNewStepTitle(e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key === 'Enter') {
-                e.preventDefault()
-                addCustomStep()
-              }
-            }}
-            placeholder="Add a step…"
-            style={{ flex: '1 1 160px', minWidth: 0, padding: '8px 12px', borderRadius: 8, border: '1px solid var(--line)', fontSize: 13 }}
-          />
-          <input
-            value={newStepDuration}
-            onChange={(e) => setNewStepDuration(e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key === 'Enter') {
-                e.preventDefault()
-                addCustomStep()
-              }
-            }}
-            placeholder="e.g. 1h 30m"
-            style={{ flex: '0 1 120px', minWidth: 0, padding: '8px 12px', borderRadius: 8, border: '1px solid var(--line)', fontSize: 13 }}
-          />
-          <button type="button" className="btn-outline" onClick={addCustomStep} disabled={!newStepTitle.trim()}>
-            Add
-          </button>
-        </div>
       </div>
 
       <div className="card" style={{ padding: '16px 18px' }}>
@@ -550,6 +632,7 @@ function PlanBuilder({ editingPlan, onDoneEditing }: Props) {
                         <button
                           key={day}
                           type="button"
+                          className="pill-toggle"
                           aria-pressed={active}
                           onClick={() => toggleWeekday(day)}
                           style={{
@@ -584,9 +667,16 @@ function PlanBuilder({ editingPlan, onDoneEditing }: Props) {
         ) : (
           <RealityCheckCard
             result={realityResult}
-            onIncreaseHours={handleFixIncreaseHours}
-            onExtendDays={handleFixExtendDays}
-            onTrimScope={handleFixTrimScope}
+            includedSteps={includedSteps}
+            startDate={startDate}
+            days={Number(days) || 0}
+            hoursPerDay={Number(hoursPerDay) || 0}
+            weekdays={weekdays}
+            onApplyHoursPerDay={handleApplyHoursPerDay}
+            onApplyDays={handleApplyDays}
+            onApplyLater={handleApplyLater}
+            onApplySpeedUp={handleApplySpeedUp}
+            onApplyStartDate={handleApplyStartDate}
           />
         )}
       </div>
@@ -627,14 +717,39 @@ function PlanBuilder({ editingPlan, onDoneEditing }: Props) {
         </div>
       )}
 
-      <div style={{ display: 'flex', gap: 10 }}>
+      <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
         <button type="button" className="btn" disabled={!canSave} onClick={handleSave}>
           {editingPlan ? 'Update plan' : 'Save plan'}
         </button>
         {!editingPlan && (steps.length > 0 || title.trim()) && (
-          <button type="button" className="btn-outline" style={{ color: 'var(--mute)' }} onClick={resetBuilder}>
-            Start over
-          </button>
+          confirmReset ? (
+            <motion.div
+              initial={{ opacity: 0, y: 4 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.15, ease: [0.2, 0.8, 0.2, 1] }}
+              style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}
+            >
+              <span style={{ fontSize: 12.5, color: 'var(--mute)' }}>Discard everything and start over?</span>
+              <button
+                type="button"
+                className="btn-outline"
+                style={{ color: 'var(--rose)' }}
+                onClick={() => {
+                  resetBuilder()
+                  setConfirmReset(false)
+                }}
+              >
+                Yes, start over
+              </button>
+              <button type="button" className="btn-outline" style={{ color: 'var(--mute)' }} onClick={() => setConfirmReset(false)}>
+                Cancel
+              </button>
+            </motion.div>
+          ) : (
+            <button type="button" className="btn-outline" style={{ color: 'var(--mute)' }} onClick={() => setConfirmReset(true)}>
+              Start over
+            </button>
+          )
         )}
       </div>
     </div>

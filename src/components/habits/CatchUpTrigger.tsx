@@ -3,6 +3,7 @@ import { useAuth } from '../../context/AuthContext'
 import { supabase } from '../../lib/supabaseClient'
 import { useTodayItems } from '../../hooks/useTodayItems'
 import { toDateStr } from '../../utils/habits'
+import { isReturningAfterGap } from '../../utils/reminders'
 import CatchUpSheet from './CatchUpSheet'
 
 const LAST_SHOWN_KEY = 'anywherePathCatchUpLastShown'
@@ -19,6 +20,7 @@ function CatchUpTrigger() {
   const { user, loading: authLoading } = useAuth()
   const items = useTodayItems()
   const [open, setOpen] = useState(false)
+  const [welcomeBack, setWelcomeBack] = useState(false)
   // AppData hydrates asynchronously after login, so `items` starts empty on
   // the first render(s) — this tracks whether we've actually reached a real
   // decision (shown, or genuinely nothing pending) vs. just not-loaded-yet,
@@ -42,6 +44,7 @@ function CatchUpTrigger() {
       decidedRef.current = true
       return
     }
+    const returningAfterGap = isReturningAfterGap(lastShown, today)
 
     supabase
       .from('profiles')
@@ -57,13 +60,14 @@ function CatchUpTrigger() {
         } catch {
           // ignore — worst case it shows again next load
         }
+        setWelcomeBack(returningAfterGap)
         setOpen(true)
       })
   }, [authLoading, user, items])
 
   if (!user) return null
 
-  return <CatchUpSheet open={open} items={items} onClose={() => setOpen(false)} />
+  return <CatchUpSheet open={open} items={items} welcomeBack={welcomeBack} onClose={() => setOpen(false)} />
 }
 
 export default CatchUpTrigger

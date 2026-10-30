@@ -65,3 +65,18 @@ export function computeRealityCheck(input: RealityCheckInput): RealityCheckResul
     suggestedFinishDate,
   }
 }
+
+/**
+ * The finish date a given total of required seconds would produce at this
+ * start date / hours-per-day / weekdays — the shared math behind the
+ * Reality Check card's "mark some as Later" and "watch faster" options,
+ * which each shrink requiredSeconds a different way but share this one
+ * finish-date lookup (same formula computeRealityCheck itself uses for its
+ * own suggestedDays/suggestedFinishDate).
+ */
+export function previewFinishDate(requiredSeconds: number, startDate: string, hoursPerDay: number, weekdays: number[]): string | null {
+  if (hoursPerDay <= 0 || weekdays.length === 0) return null
+  const targetStudyDays = Math.ceil(requiredSeconds / (hoursPerDay * 3600))
+  const computedDays = daysToReachStudyDays(startDate, targetStudyDays, weekdays)
+  return Number.isFinite(computedDays) ? addCalendarDays(startDate, computedDays - 1) : null
+}
