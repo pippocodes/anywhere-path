@@ -5,13 +5,15 @@ import {
   fetchOpenReports,
   resolveReport,
   removePost,
+  restorePost,
+  fetchRemovedPosts,
   fetchAnnouncements,
   createAnnouncement,
   setAnnouncementActive,
   deleteAnnouncement,
 } from '../lib/adminApi'
 import { getErrorMessage } from '../lib/friendsApi'
-import type { Announcement, ReportWithPost } from '../types/admin'
+import type { Announcement, RemovedPost, ReportWithPost } from '../types/admin'
 
 export interface UseAdminResult {
   // null = still checking; false = checked, not an admin; true = confirmed admin.
@@ -19,9 +21,11 @@ export interface UseAdminResult {
   loading: boolean
   error: string | null
   reports: ReportWithPost[]
+  removedPosts: RemovedPost[]
   announcements: Announcement[]
   removeReportedPost: (reportId: string, postId: string, reason: string) => Promise<void>
   dismissReport: (reportId: string) => Promise<void>
+  restore: (postId: string) => Promise<void>
   postAnnouncement: (body: string) => Promise<void>
   toggleAnnouncement: (id: string, active: boolean) => Promise<void>
   removeAnnouncement: (id: string) => Promise<void>
@@ -38,6 +42,7 @@ export function useAdmin(): UseAdminResult {
   const { user } = useAuth()
   const [isAdmin, setIsAdmin] = useState<boolean | null>(null)
   const [reports, setReports] = useState<ReportWithPost[]>([])
+  const [removedPosts, setRemovedPosts] = useState<RemovedPost[]>([])
   const [announcements, setAnnouncements] = useState<Announcement[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -58,9 +63,14 @@ export function useAdmin(): UseAdminResult {
         if (cancelled) return
         setIsAdmin(admin)
         if (!admin) return
-        const [reportData, announcementData] = await Promise.all([fetchOpenReports(), fetchAnnouncements()])
+        const [reportData, removedData, announcementData] = await Promise.all([
+          fetchOpenReports(),
+          fetchRemovedPosts(),
+          fetchAnnouncements(),
+        ])
         if (cancelled) return
         setReports(reportData)
+        setRemovedPosts(removedData)
         setAnnouncements(announcementData)
         setError(null)
       })
@@ -96,6 +106,11 @@ export function useAdmin(): UseAdminResult {
     refresh()
   }
 
+  async function restore(postId: string) {
+    await restorePost(postId)
+    refresh()
+  }
+
   async function postAnnouncement(body: string) {
     if (!user) return
     await createAnnouncement(user.id, body)
@@ -117,9 +132,11 @@ export function useAdmin(): UseAdminResult {
     loading,
     error,
     reports,
+    removedPosts,
     announcements,
     removeReportedPost,
     dismissReport,
+    restore,
     postAnnouncement,
     toggleAnnouncement,
     removeAnnouncement,

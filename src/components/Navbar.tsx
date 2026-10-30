@@ -279,6 +279,7 @@ function Navbar() {
         hasUser={!!user}
         username={username}
         userEmail={user?.email ?? null}
+        isAdmin={isAdmin}
         onSignOut={handleSignOut}
       />
     </>
@@ -311,10 +312,11 @@ interface MobileSheetProps {
   hasUser: boolean
   username: string | null
   userEmail: string | null
+  isAdmin: boolean
   onSignOut: () => void
 }
 
-function MobileSheet({ open, onClose, hasUser, username, userEmail, onSignOut }: MobileSheetProps) {
+function MobileSheet({ open, onClose, hasUser, username, userEmail, isAdmin, onSignOut }: MobileSheetProps) {
   return (
     <AnimatePresence>
       {open && (
@@ -403,6 +405,11 @@ function MobileSheet({ open, onClose, hasUser, username, userEmail, onSignOut }:
                 <NavLink to="/profile" onClick={onClose} className="btn btn-secondary" style={{ textAlign: 'center', minHeight: 48 }}>
                   Profile
                 </NavLink>
+                {isAdmin && (
+                  <NavLink to="/admin" onClick={onClose} className="btn btn-secondary" style={{ textAlign: 'center', minHeight: 48 }}>
+                    Admin
+                  </NavLink>
+                )}
                 <button onClick={onSignOut} className="btn-danger" style={{ padding: '14px 22px', borderRadius: 10, minHeight: 48 }}>
                   Log out
                 </button>

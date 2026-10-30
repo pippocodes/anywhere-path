@@ -26,9 +26,11 @@ function Admin() {
     loading,
     error,
     reports,
+    removedPosts,
     announcements,
     removeReportedPost,
     dismissReport,
+    restore,
     postAnnouncement,
     toggleAnnouncement,
     removeAnnouncement,
@@ -89,6 +91,39 @@ function Admin() {
           </div>
         )}
       </section>
+
+      {removedPosts.length > 0 && (
+        <section style={{ marginBottom: 32 }}>
+          <div className="micro-label" style={{ marginBottom: 12 }}>
+            Recently removed ({removedPosts.length})
+          </div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+            {removedPosts.map((r) => (
+              <div key={r.post.id} className="card" style={{ padding: '14px 16px', display: 'flex', flexDirection: 'column', gap: 8 }}>
+                <div style={{ fontSize: 12, color: 'var(--mute)' }}>
+                  Post by {r.authorUsername}
+                  {r.post.removedReason && <> — reason: "{r.post.removedReason}"</>}
+                </div>
+                <p style={{ fontSize: 13.5, color: 'var(--mute)', margin: 0, whiteSpace: 'pre-wrap' }}>{r.post.body}</p>
+                <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+                  <button
+                    type="button"
+                    className="btn-outline"
+                    style={{ fontSize: 12 }}
+                    onClick={() =>
+                      restore(r.post.id)
+                        .then(() => showToast('Post restored', 'success'))
+                        .catch((err) => showToast(getErrorMessage(err, 'Could not restore — try again.'), 'error'))
+                    }
+                  >
+                    Restore
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
 
       <section>
         <div className="micro-label" style={{ marginBottom: 12 }}>

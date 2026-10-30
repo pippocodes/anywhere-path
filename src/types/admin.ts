@@ -22,6 +22,12 @@ export interface ReportWithPost {
   authorUsername: string
 }
 
+/** A post an admin has removed, joined with its author's username — for the "Recently removed" list, where an admin can undo their own removal. */
+export interface RemovedPost {
+  post: Post
+  authorUsername: string
+}
+
 export interface Announcement {
   id: string
   authorId: string

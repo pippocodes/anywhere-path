@@ -1,7 +1,7 @@
 import { supabase } from './supabaseClient'
 import { usernamesFor } from './friendsApi'
 import { mapPost, type PostRow } from './postsApi'
-import type { Announcement, Report, ReportStatus, ReportWithPost } from '../types/admin'
+import type { Announcement, RemovedPost, Report, ReportStatus, ReportWithPost } from '../types/admin'
 
 function requireClient() {
   if (!supabase) throw new Error('Supabase is not configured.')
@@ -84,6 +84,28 @@ export async function removePost(postId: string, reason: string | null): Promise
   const client = requireClient()
   const { error } = await client.rpc('admin_remove_post', { p_post_id: postId, p_reason: reason })
   if (error) throw error
+}
+
+export async function restorePost(postId: string): Promise<void> {
+  const client = requireClient()
+  const { error } = await client.rpc('admin_restore_post', { p_post_id: postId })
+  if (error) throw error
+}
+
+/**
+ * Every post an admin has removed that's still reported (posts_select_admin_reported
+ * requires a report to exist for the post at all, open or not — a removal
+ * only ever happens off the back of a report, so this always matches what
+ * admin_remove_post() actually touched). Lets an admin undo a removal.
+ */
+export async function fetchRemovedPosts(): Promise<RemovedPost[]> {
+  const client = requireClient()
+  const { data, error } = await client.from('posts').select('*').eq('is_removed', true).order('removed_at', { ascending: false })
+  if (error) throw error
+  const posts = ((data ?? []) as PostRow[]).map(mapPost)
+  if (posts.length === 0) return []
+  const usernames = await usernamesFor(posts.map((p) => p.userId))
+  return posts.map((post) => ({ post, authorUsername: usernames.get(post.userId) ?? '(unknown)' }))
 }
 
 type AnnouncementRow = { id: string; author_id: string; body: string; active: boolean; created_at: string }
