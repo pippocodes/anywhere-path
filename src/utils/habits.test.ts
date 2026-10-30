@@ -6,6 +6,7 @@ import {
   daysInMonth,
   monthDates,
   cycleMark,
+  cycleMarkDoneFirst,
   monthCompletionPercent,
   computeCurrentStreak,
   computeBestStreak,
@@ -15,6 +16,8 @@ import {
   isPerfectDay,
   isPerfectWeek,
   isPerfectMonth,
+  last7DayTrail,
+  homeGreetingLine,
 } from './habits'
 
 function habit(marks: Record<string, 0 | 1 | 2>, overrides: Partial<Habit> = {}): Habit {
@@ -51,6 +54,15 @@ describe('cycleMark', () => {
     expect(cycleMark(0)).toBe(1)
     expect(cycleMark(1)).toBe(2)
     expect(cycleMark(2)).toBe(0)
+  })
+})
+
+describe('cycleMarkDoneFirst', () => {
+  it('cycles 0 -> 2 -> 1 -> 0 (done first, the reverse of cycleMark)', () => {
+    expect(cycleMarkDoneFirst(undefined)).toBe(2)
+    expect(cycleMarkDoneFirst(0)).toBe(2)
+    expect(cycleMarkDoneFirst(2)).toBe(1)
+    expect(cycleMarkDoneFirst(1)).toBe(0)
   })
 })
 
@@ -251,5 +263,52 @@ describe('isPerfectMonth', () => {
   it('is false when the month is only partially complete', () => {
     const h = habit({ '2024-01-01': 2 })
     expect(isPerfectMonth([h], 0, 2024)).toBe(false)
+  })
+})
+
+describe('last7DayTrail', () => {
+  it('returns 7 days oldest-first ending at today, classified done/partial/missed', () => {
+    const today = new Date(2024, 0, 10)
+    const h = habit({
+      '2024-01-04': 2, // done (perfect)
+      '2024-01-05': 1, // partial
+      // 01-06 missed (unmarked)
+      '2024-01-07': 2,
+      '2024-01-08': 2,
+      '2024-01-09': 2,
+      '2024-01-10': 2,
+    })
+    const trail = last7DayTrail([h], today)
+    expect(trail).toHaveLength(7)
+    expect(trail[0].date).toBe('2024-01-04')
+    expect(trail[0].status).toBe('done')
+    expect(trail[1].status).toBe('partial')
+    expect(trail[2].status).toBe('missed')
+    expect(trail[6].date).toBe('2024-01-10')
+    expect(trail[6].status).toBe('done')
+  })
+
+  it('treats every day as missed when there are no habits', () => {
+    const trail = last7DayTrail([], new Date(2024, 0, 10))
+    expect(trail.every((d) => d.status === 'missed')).toBe(true)
+  })
+})
+
+describe('homeGreetingLine', () => {
+  it('reports the current streak when one is in progress', () => {
+    const today = new Date(2024, 0, 10)
+    const h = habit({ '2024-01-09': 2, '2024-01-10': 2 })
+    expect(homeGreetingLine([h], today)).toBe('Day 2 on your path')
+  })
+
+  it('welcomes back a returning user whose streak just broke', () => {
+    const today = new Date(2024, 0, 10)
+    const h = habit({ '2024-01-08': 2, '2024-01-09': 0 })
+    expect(homeGreetingLine([h], today)).toBe('Welcome back. Your bad days still count.')
+  })
+
+  it('greets a brand-new user with Day 1 rather than "welcome back"', () => {
+    const h = habit({})
+    expect(homeGreetingLine([h], new Date(2024, 0, 10))).toBe('Day 1 on your path')
   })
 })

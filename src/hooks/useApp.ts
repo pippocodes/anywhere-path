@@ -1,6 +1,6 @@
 import { useCallback, useContext } from 'react'
 import { AppContext } from '../context/AppContext'
-import type { Course, CourseModule, Habit, HabitCategory, Plan, RoadmapDoc, RoadmapPlan, Topic } from '../types'
+import type { Course, CourseModule, Habit, HabitCategory, HabitMark, Plan, RoadmapDoc, RoadmapPlan, Topic } from '../types'
 import { makeId } from '../utils/id'
 import { secondsToTopicFields } from '../utils/duration'
 
@@ -159,6 +159,11 @@ export function useApp() {
     [dispatch]
   )
 
+  const setHabitMark = useCallback(
+    (habitId: string, date: string, mark: HabitMark) => dispatch({ type: 'SET_HABIT_MARK', habitId, date, mark }),
+    [dispatch]
+  )
+
   const deleteHabit = useCallback(
     (habitId: string) => dispatch({ type: 'DELETE_HABIT', habitId }),
     [dispatch]
@@ -264,6 +269,7 @@ export function useApp() {
     archiveHabit,
     reorderHabits,
     cycleHabitMark,
+    setHabitMark,
     deleteHabit,
     addHabitCategory,
     renameHabitCategory,

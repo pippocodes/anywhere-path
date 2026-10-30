@@ -20,7 +20,7 @@ export interface TodayItem {
   href: string
 }
 
-function collectDoneTopicIds(modules: CourseModule[]): Set<string> {
+export function collectDoneTopicIds(modules: CourseModule[]): Set<string> {
   const ids = new Set<string>()
   function visit(mods: CourseModule[]) {
     for (const m of mods) {
