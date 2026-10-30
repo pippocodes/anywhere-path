@@ -1,7 +1,7 @@
 import type { AppData } from '../types'
 import { scheduleCourse } from './courseScheduler'
 import { schedulePlanSteps } from './planScheduler'
-import { collectDoneTopicIds } from '../hooks/useTodayItems'
+import { collectDoneTopicIds } from './nextIncomplete'
 
 export interface NextUpItem {
   kind: 'courseTopic' | 'planStep'

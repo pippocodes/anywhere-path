@@ -1,5 +1,6 @@
 import { useMemo } from 'react'
 import { last7DayTrail, bestCurrentStreak } from '../../utils/habits'
+import { formatDateLabel } from '../../utils/scheduler'
 import LogoStarIcon from '../ui/LogoStarIcon'
 import type { Habit } from '../../types'
 
@@ -19,12 +20,18 @@ function TrailHero({ habits }: Props) {
     <div style={{ display: 'flex', alignItems: 'center', gap: 20, flexWrap: 'wrap' }}>
       <div style={{ position: 'relative', flex: '1 1 260px', minWidth: 220, height: 28, display: 'flex', alignItems: 'center' }}>
         <div style={{ position: 'absolute', left: 7, right: 14, top: '50%', height: 1, background: 'var(--line)', transform: 'translateY(-50%)' }} />
-        <div style={{ position: 'relative', display: 'flex', justifyContent: 'space-between', width: '100%' }}>
+        <div role="group" aria-label="Last 7 days" style={{ position: 'relative', display: 'flex', justifyContent: 'space-between', width: '100%' }}>
           {trail.map((day, i) => {
             const isToday = i === trail.length - 1
             if (isToday) {
               return (
-                <span key={day.date} title="Today" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: STONE_SIZE + 8, height: STONE_SIZE + 8, flexShrink: 0 }}>
+                <span
+                  key={day.date}
+                  role="img"
+                  aria-label={`Today, ${day.status}`}
+                  title="Today"
+                  style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: STONE_SIZE + 8, height: STONE_SIZE + 8, flexShrink: 0 }}
+                >
                   <LogoStarIcon size={STONE_SIZE + 8} />
                 </span>
               )
@@ -32,6 +39,8 @@ function TrailHero({ habits }: Props) {
             return (
               <span
                 key={day.date}
+                role="img"
+                aria-label={`${formatDateLabel(day.date)}: ${day.status}`}
                 title={day.status}
                 style={{
                   width: STONE_SIZE,
