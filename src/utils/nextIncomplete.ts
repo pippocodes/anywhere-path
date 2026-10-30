@@ -21,6 +21,21 @@ export function findNextIncompleteTopic(course: Pick<Course, 'modules'>): NextTo
   return searchModules(course.modules)
 }
 
+/** Every done topic's id, anywhere in a course's module tree — used to skip already-finished lectures when walking a schedule (useTodayItems, findNextUpItem). */
+export function collectDoneTopicIds(modules: CourseModule[]): Set<string> {
+  const ids = new Set<string>()
+  function visit(mods: CourseModule[]) {
+    for (const m of mods) {
+      for (const t of m.topics) {
+        if (t.done) ids.add(t.id)
+      }
+      if (m.modules) visit(m.modules)
+    }
+  }
+  visit(modules)
+  return ids
+}
+
 function searchForTopicModule(modules: CourseModule[], topicId: string): string | null {
   for (const m of modules) {
     if (m.topics.some((t) => t.id === topicId)) return m.id

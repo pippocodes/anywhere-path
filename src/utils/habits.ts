@@ -33,6 +33,14 @@ export function cycleMark(mark: HabitMark | undefined): HabitMark {
   return ((current + 1) % 3) as HabitMark
 }
 
+/** done -> partial -> none — Home's quiet habit list taps "did it" first since that's the common case there, the reverse of cycleMark's none -> partial -> done used everywhere else. */
+export function cycleMarkDoneFirst(mark: HabitMark | undefined): HabitMark {
+  const current = mark ?? 0
+  if (current === 0) return 2
+  if (current === 2) return 1
+  return 0
+}
+
 export function monthCompletionPercent(habits: Habit[], month: number, year: number): number {
   const dates = monthDates(month, year)
   if (habits.length === 0 || dates.length === 0) return 0
@@ -178,4 +186,35 @@ export function isPerfectWeek(habits: Habit[], endDate: string): boolean {
 /** True when every given habit was fully done on every day of that calendar month. */
 export function isPerfectMonth(habits: Habit[], month: number, year: number): boolean {
   return habits.length > 0 && monthCompletionPercent(habits, month, year) === 100
+}
+
+export type TrailDayStatus = 'done' | 'partial' | 'missed'
+
+export interface TrailDay {
+  date: string
+  status: TrailDayStatus
+}
+
+/** Last 7 calendar days (oldest first, ending at and including `today`) as one done/partial/missed read across all given habits together — the Home trail hero. */
+export function last7DayTrail(habits: Habit[], today: Date = new Date()): TrailDay[] {
+  const days: TrailDay[] = []
+  for (let offset = 6; offset >= 0; offset--) {
+    const date = toDateStr(addDays(today, -offset))
+    let status: TrailDayStatus = 'missed'
+    if (habits.length > 0) {
+      if (isPerfectDay(habits, date)) status = 'done'
+      else if (habits.some((h) => (h.marks[date] ?? 0) > 0)) status = 'partial'
+    }
+    days.push({ date, status })
+  }
+  return days
+}
+
+/** One rule-based line for the Home greeting — the current streak, or an acknowledgement of a past one, or a fresh start. No AI. */
+export function homeGreetingLine(habits: Habit[], today: Date = new Date()): string {
+  const active = habits.filter((h) => !h.archived)
+  const streak = bestCurrentStreak(active, today)
+  if (streak > 0) return `Day ${streak} on your path`
+  const hasHistory = active.some((h) => Object.values(h.marks).some((m) => m === 2))
+  return hasHistory ? 'Welcome back. Your bad days still count.' : 'Day 1 on your path'
 }

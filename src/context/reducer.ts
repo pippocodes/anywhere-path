@@ -1,4 +1,4 @@
-import type { AppData, Course, CourseModule, Habit, HabitCategory, Plan, RoadmapDoc, RoadmapPlan, Topic } from '../types'
+import type { AppData, Course, CourseModule, Habit, HabitCategory, HabitMark, Plan, RoadmapDoc, RoadmapPlan, Topic } from '../types'
 import { cycleMark } from '../utils/habits'
 
 export const initialData: AppData = {
@@ -40,6 +40,7 @@ export type Action =
   | { type: 'ARCHIVE_HABIT'; habitId: string; archived: boolean }
   | { type: 'REORDER_HABITS'; orderedIds: string[] }
   | { type: 'CYCLE_HABIT_MARK'; habitId: string; date: string }
+  | { type: 'SET_HABIT_MARK'; habitId: string; date: string; mark: HabitMark }
   | { type: 'DELETE_HABIT'; habitId: string }
   | { type: 'ADD_HABIT_CATEGORY'; category: HabitCategory }
   | { type: 'RENAME_HABIT_CATEGORY'; categoryId: string; name: string }
@@ -273,6 +274,14 @@ export function appReducer(state: AppData, action: Action): AppData {
           h.id !== action.habitId
             ? h
             : { ...h, marks: { ...h.marks, [action.date]: cycleMark(h.marks[action.date]) } }
+        ),
+      }
+
+    case 'SET_HABIT_MARK':
+      return {
+        ...state,
+        habits: state.habits.map((h) =>
+          h.id !== action.habitId ? h : { ...h, marks: { ...h.marks, [action.date]: action.mark } }
         ),
       }
 

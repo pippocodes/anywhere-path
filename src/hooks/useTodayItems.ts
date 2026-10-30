@@ -9,7 +9,7 @@ import { scheduleOutline } from '../utils/scheduler'
 import { parseOutline } from '../utils/outlineParser'
 import { isDueToday } from '../utils/dueToday'
 import { stateFor } from '../utils/sharedTracking'
-import type { CourseModule } from '../types'
+import { collectDoneTopicIds } from '../utils/nextIncomplete'
 
 export type TodayItemKind = 'habit' | 'planStep' | 'courseTopic' | 'roadmapStep' | 'sharedItem'
 
@@ -18,20 +18,6 @@ export interface TodayItem {
   id: string
   title: string
   href: string
-}
-
-function collectDoneTopicIds(modules: CourseModule[]): Set<string> {
-  const ids = new Set<string>()
-  function visit(mods: CourseModule[]) {
-    for (const m of mods) {
-      for (const t of m.topics) {
-        if (t.done) ids.add(t.id)
-      }
-      if (m.modules) visit(m.modules)
-    }
-  }
-  visit(modules)
-  return ids
 }
 
 /**
