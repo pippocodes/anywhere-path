@@ -1,10 +1,11 @@
 import { useMemo, useState, type ReactNode } from 'react'
-import { motion } from 'framer-motion'
+import { AnimatePresence, motion } from 'framer-motion'
 import type { RealityCheckResult } from '../../utils/realityCheck'
 import { previewFinishDate } from '../../utils/realityCheck'
 import { formatDuration } from '../../utils/duration'
 import { formatDateLabel } from '../../utils/scheduler'
 import { addCalendarDays } from '../../utils/planScheduler'
+import LogoStarIcon from '../ui/LogoStarIcon'
 import type { PlanStep } from '../../types'
 
 type SpeedMultiplier = 1.25 | 1.5
@@ -73,10 +74,10 @@ function RealityCheckCard({
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.3, ease: [0.2, 0.8, 0.2, 1] }}
         className="card"
-        style={{ borderLeft: `3px solid ${accent}` }}
+        style={{ border: `1px solid ${accent}` }}
       >
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 6 }}>
-          <span style={{ fontSize: 18, color: 'var(--gold)' }}>✦</span>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
+          <LogoStarIcon size={18} />
           <span style={{ fontWeight: 700, fontSize: 15 }}>This plan fits</span>
         </div>
         <p style={{ fontSize: 13.5, color: 'var(--mute)', margin: 0 }}>
@@ -100,9 +101,9 @@ function RealityCheckCard({
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3, ease: [0.2, 0.8, 0.2, 1] }}
       className="card"
-      style={{ borderLeft: `3px solid ${accent}` }}
+      style={{ border: `1px solid ${accent}` }}
     >
-      <div style={{ fontWeight: 700, fontSize: 15, color: 'var(--rose)', marginBottom: 6 }}>Not enough time yet</div>
+      <div style={{ fontWeight: 700, fontSize: 15, color: 'var(--rose)', marginBottom: 8 }}>Not enough time yet</div>
       <p style={{ fontSize: 13.5, color: 'var(--mute)', marginBottom: 16 }}>
         You need <strong style={{ color: 'var(--cream)' }}>{formatDuration(result.requiredSeconds)}</strong> but
         have <strong style={{ color: 'var(--cream)' }}>{formatDuration(result.availableSeconds)}</strong> across{' '}
@@ -186,10 +187,11 @@ function RealityCheckCard({
               <button
                 key={m}
                 type="button"
+                className="pill-toggle"
                 aria-pressed={speedMultiplier === m}
                 onClick={() => setSpeedMultiplier(m)}
                 style={{
-                  padding: '6px 14px',
+                  padding: '8px 16px',
                   borderRadius: 8,
                   border: speedMultiplier === m ? '1px solid var(--rose)' : '1px solid var(--line)',
                   background: speedMultiplier === m ? 'color-mix(in srgb, var(--rose) 16%, transparent)' : 'var(--surface)',
@@ -220,7 +222,7 @@ function RealityCheckCard({
             type="date"
             value={previewStartDate}
             onChange={(e) => setPreviewStartDate(e.target.value)}
-            style={{ padding: '6px 10px', borderRadius: 8, border: '1px solid var(--line)', fontSize: 13, background: 'var(--surface)', color: 'var(--cream)' }}
+            style={{ padding: '8px 12px', borderRadius: 8, border: '1px solid var(--line)', fontSize: 13, background: 'var(--surface)', color: 'var(--cream)' }}
           />
         </FixOption>
       </div>
@@ -251,7 +253,7 @@ function FixOption({
 }) {
   return (
     <div style={{ border: '1px solid var(--line)', borderRadius: 10, padding: '10px 12px' }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
         <div style={{ minWidth: 0 }}>
           <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--cream)' }}>{label}</div>
           <div style={{ fontSize: 12, color: 'var(--mute)' }}>{preview}</div>
@@ -266,14 +268,24 @@ function FixOption({
           </button>
         )}
       </div>
-      {expandable && open && (
-        <div style={{ marginTop: 10, display: 'flex', flexDirection: 'column', gap: 10 }}>
-          {children}
-          <button type="button" className="btn-outline" style={{ fontSize: 12, alignSelf: 'flex-start' }} disabled={disabled} onClick={onApply}>
-            {applyLabel}
-          </button>
-        </div>
-      )}
+      <AnimatePresence initial={false}>
+        {expandable && open && (
+          <motion.div
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: 'auto' }}
+            exit={{ opacity: 0, height: 0 }}
+            transition={{ duration: 0.2, ease: [0.2, 0.8, 0.2, 1] }}
+            style={{ overflow: 'hidden' }}
+          >
+            <div style={{ marginTop: 8, display: 'flex', flexDirection: 'column', gap: 8 }}>
+              {children}
+              <button type="button" className="btn-outline" style={{ fontSize: 12, alignSelf: 'flex-start' }} disabled={disabled} onClick={onApply}>
+                {applyLabel}
+              </button>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   )
 }

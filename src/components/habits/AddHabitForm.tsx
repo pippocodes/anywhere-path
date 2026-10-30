@@ -149,7 +149,7 @@ function AddHabitForm({ courses, plans, onAdd, onCancel }: Props) {
             type="date"
             value={startDate}
             onChange={(e) => setStartDate(e.target.value)}
-            style={{ padding: '5px 8px', borderRadius: 7, border: '1px solid var(--line)', fontSize: 12.5, background: 'var(--surface)', color: 'var(--cream)' }}
+            style={{ padding: '4px 8px', borderRadius: 7, border: '1px solid var(--line)', fontSize: 12.5, background: 'var(--surface)', color: 'var(--cream)' }}
           />
         </label>
       )}

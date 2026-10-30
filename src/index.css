@@ -289,6 +289,18 @@ input:-webkit-autofill:focus {
   cursor: default;
 }
 
+/* A small selectable toggle button (weekday picker, speed-multiplier picker) —
+   plain, inline-styled buttons outside the .btn family still need press
+   feedback, same as every other pressable control in the app. */
+.pill-toggle {
+  transition: transform 0.15s var(--ease);
+}
+
+.pill-toggle:active {
+  transform: scale(0.95);
+  transition-duration: 0.08s;
+}
+
 .nav-link {
   font-weight: 500;
   font-size: 14.5px;

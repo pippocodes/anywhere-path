@@ -72,7 +72,7 @@ function Navbar() {
   const wordmarkStyle = {
     display: 'flex',
     alignItems: 'center',
-    gap: 10,
+    gap: 8,
     fontFamily: 'var(--font-display)',
     fontStyle: 'italic' as const,
     fontWeight: 600,

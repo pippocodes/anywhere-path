@@ -470,7 +470,14 @@ function PlanBuilder({ editingPlan, onDoneEditing }: Props) {
         {steps.length === 0 ? (
           <p style={{ fontSize: 13, color: 'var(--mute)' }}>Pick a source above to fill this in, or add steps manually below.</p>
         ) : sourceType === 'course' && !customizingSteps ? (
-          <div className="card" style={{ padding: '12px 16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12, flexWrap: 'wrap', marginBottom: 10 }}>
+          <motion.div
+            key="summary"
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.2, ease: [0.2, 0.8, 0.2, 1] }}
+            className="card"
+            style={{ padding: '12px 16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12, flexWrap: 'wrap', marginBottom: 8 }}
+          >
             <span style={{ fontSize: 13.5, color: 'var(--cream)' }}>
               {steps.length} module{steps.length === 1 ? '' : 's'}, {formatDuration(requiredSeconds)},{' '}
               {includedSteps.length === steps.length ? 'all included' : `${includedSteps.length} of ${steps.length} included`}
@@ -478,21 +485,21 @@ function PlanBuilder({ editingPlan, onDoneEditing }: Props) {
             <button type="button" className="btn-outline" style={{ fontSize: 12.5, flexShrink: 0 }} onClick={() => setCustomizingSteps(true)}>
               Customize
             </button>
-          </div>
+          </motion.div>
         ) : (
-          <>
-            <div style={{ display: 'flex', gap: 8, marginBottom: 10, flexWrap: 'wrap' }}>
+          <motion.div key="customize" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.2, ease: [0.2, 0.8, 0.2, 1] }}>
+            <div style={{ display: 'flex', gap: 8, marginBottom: 8, flexWrap: 'wrap' }}>
               <input
                 value={stepFilter}
                 onChange={(e) => setStepFilter(e.target.value)}
                 placeholder="Filter steps…"
-                style={{ flex: '1 1 160px', minWidth: 0, padding: '7px 10px', borderRadius: 8, border: '1px solid var(--line)', fontSize: 12.5 }}
+                style={{ flex: '1 1 160px', minWidth: 0, padding: '8px 12px', borderRadius: 8, border: '1px solid var(--line)', fontSize: 12.5 }}
               />
               <button type="button" className="btn-outline" style={{ fontSize: 12 }} onClick={() => setExcludedIds(new Set())}>
                 Select all
               </button>
             </div>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 6, marginBottom: 10 }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginBottom: 8 }}>
               {filteredStepGroups.length === 0 ? (
                 <p style={{ fontSize: 12.5, color: 'var(--mute)' }}>No steps match "{stepFilter}".</p>
               ) : (
@@ -574,7 +581,7 @@ function PlanBuilder({ editingPlan, onDoneEditing }: Props) {
                 </button>
               </div>
             )}
-          </>
+          </motion.div>
         )}
       </div>
 
@@ -625,6 +632,7 @@ function PlanBuilder({ editingPlan, onDoneEditing }: Props) {
                         <button
                           key={day}
                           type="button"
+                          className="pill-toggle"
                           aria-pressed={active}
                           onClick={() => toggleWeekday(day)}
                           style={{
@@ -709,13 +717,18 @@ function PlanBuilder({ editingPlan, onDoneEditing }: Props) {
         </div>
       )}
 
-      <div style={{ display: 'flex', gap: 10, alignItems: 'center', flexWrap: 'wrap' }}>
+      <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
         <button type="button" className="btn" disabled={!canSave} onClick={handleSave}>
           {editingPlan ? 'Update plan' : 'Save plan'}
         </button>
         {!editingPlan && (steps.length > 0 || title.trim()) && (
           confirmReset ? (
-            <>
+            <motion.div
+              initial={{ opacity: 0, y: 4 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.15, ease: [0.2, 0.8, 0.2, 1] }}
+              style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}
+            >
               <span style={{ fontSize: 12.5, color: 'var(--mute)' }}>Discard everything and start over?</span>
               <button
                 type="button"
@@ -731,7 +744,7 @@ function PlanBuilder({ editingPlan, onDoneEditing }: Props) {
               <button type="button" className="btn-outline" style={{ color: 'var(--mute)' }} onClick={() => setConfirmReset(false)}>
                 Cancel
               </button>
-            </>
+            </motion.div>
           ) : (
             <button type="button" className="btn-outline" style={{ color: 'var(--mute)' }} onClick={() => setConfirmReset(true)}>
               Start over
