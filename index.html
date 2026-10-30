@@ -6,6 +6,15 @@
     <title>Anywhere Path</title>
     <!-- Must come before the inline script below, which looks it up synchronously. -->
     <meta name="theme-color" content="#210100" />
+
+    <!-- iOS home-screen install — Safari ignores the web manifest for most
+         of this, so each needs its own tag. apple-touch-icon intentionally
+         points at a full-bleed, non-rounded icon (logo/anywhere-path-icon-apple.svg's
+         rendered PNG); iOS applies its own corner rounding on top. -->
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="Anywhere Path" />
+    <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png" />
     <!--
       Sets data-theme/data-mode on <html> synchronously, before first paint,
       so there's no flash of the wrong theme. Keep the theme keys, storage

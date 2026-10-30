@@ -1,5 +1,6 @@
 import { NavLink } from 'react-router-dom'
 import RevealHeading from '../components/ui/RevealHeading'
+import { useInstallPrompt } from '../hooks/useInstallPrompt'
 
 interface Section {
   path: string
@@ -19,6 +20,8 @@ const SECTIONS: Section[] = [
 ]
 
 function Settings() {
+  const { canInstall, promptInstall } = useInstallPrompt()
+
   return (
     <div className="page" style={{ maxWidth: 680 }}>
       <RevealHeading as="h1" className="page-title">
@@ -27,6 +30,28 @@ function Settings() {
       <p className="page-subtitle" style={{ marginBottom: 28 }}>
         Manage your account and how Anywhere Path looks.
       </p>
+
+      {canInstall && (
+        <div
+          className="card"
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            gap: 16,
+            padding: '18px 20px',
+            marginBottom: 10,
+          }}
+        >
+          <div>
+            <div style={{ fontSize: 15, fontWeight: 600, marginBottom: 2 }}>Install app</div>
+            <div style={{ fontSize: 12.5, color: 'var(--mute)' }}>Add Anywhere Path to your home screen.</div>
+          </div>
+          <button type="button" className="btn" style={{ flexShrink: 0 }} onClick={promptInstall}>
+            Install
+          </button>
+        </div>
+      )}
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
         {SECTIONS.map((s) => (
