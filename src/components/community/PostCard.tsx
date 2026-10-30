@@ -2,12 +2,20 @@ import { useState } from 'react'
 import { relativeTime } from '../../utils/relativeTime'
 import Modal from '../ui/Modal'
 import Pills from '../ui/Pills'
+import { LockIcon, GlobeIcon, MessageIcon } from './icons'
+import { FriendsIcon } from '../nav/tabIcons'
 import { CHEER_EMOJIS, type CheerEmoji, type PostVisibility, type PostWithDetail, type ReportReason } from '../../types/posts'
 
+const VISIBILITY_ICON: Record<PostVisibility, (props: { size?: number }) => JSX.Element> = {
+  private: LockIcon,
+  friends: FriendsIcon,
+  public: GlobeIcon,
+}
+
 const VISIBILITY_LABEL: Record<PostVisibility, string> = {
-  private: '🔒 Private',
-  friends: '👥 Friends',
-  public: '🌍 Public',
+  private: 'Private',
+  friends: 'Friends',
+  public: 'Public',
 }
 
 const REPORT_REASON_OPTIONS = [
@@ -77,7 +85,13 @@ function PostCard({ detail, onCheer, onUncheer, onDelete, onReport, onBlock }: P
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
         <span style={{ fontWeight: 700, fontSize: 13.5, color: 'var(--cream)' }}>{authorUsername}</span>
         <span style={{ display: 'flex', alignItems: 'center', gap: 10, fontSize: 11.5, color: 'var(--mute)' }}>
-          <span className="outline-badge" style={{ fontSize: 11 }}>{VISIBILITY_LABEL[post.visibility]}</span>
+          <span className="outline-badge" style={{ fontSize: 11, display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+            {(() => {
+              const VisibilityIcon = VISIBILITY_ICON[post.visibility]
+              return <VisibilityIcon size={12} />
+            })()}
+            {VISIBILITY_LABEL[post.visibility]}
+          </span>
           {relativeTime(post.createdAt)}
         </span>
       </div>
@@ -116,7 +130,11 @@ function PostCard({ detail, onCheer, onUncheer, onDelete, onReport, onBlock }: P
             )
           })}
         </div>
-        {post.commentsEnabled && <span style={{ fontSize: 11, color: 'var(--mute)' }}>💬 Comments on</span>}
+        {post.commentsEnabled && (
+          <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, fontSize: 11, color: 'var(--mute)' }}>
+            <MessageIcon size={12} /> Comments on
+          </span>
+        )}
       </div>
 
       {actionsAvailable && (
