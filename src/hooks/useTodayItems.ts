@@ -10,6 +10,7 @@ import { parseOutline } from '../utils/outlineParser'
 import { isDueToday } from '../utils/dueToday'
 import { stateFor } from '../utils/sharedTracking'
 import { collectDoneTopicIds } from '../utils/nextIncomplete'
+import { isHabitStarted } from '../utils/reminders'
 
 export type TodayItemKind = 'habit' | 'planStep' | 'courseTopic' | 'roadmapStep' | 'sharedItem'
 
@@ -39,6 +40,7 @@ export function useTodayItems(): TodayItem[] {
 
     for (const habit of data.habits) {
       if (habit.archived) continue
+      if (!isHabitStarted(habit, data.courses, data.plans, today)) continue
       if ((habit.marks[today] ?? 0) !== 2) {
         result.push({ kind: 'habit', id: habit.id, title: habit.name, href: '/habits' })
       }

@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { computeRealityCheck } from './realityCheck'
+import { computeRealityCheck, previewFinishDate } from './realityCheck'
 
 const ALL_WEEKDAYS = [0, 1, 2, 3, 4, 5, 6]
 
@@ -112,5 +112,23 @@ describe('computeRealityCheck', () => {
       requiredSeconds: 3600,
     })
     expect(result.finishDate).toBe('2024-01-05')
+  })
+})
+
+describe('previewFinishDate', () => {
+  it('matches computeRealityCheck.suggestedFinishDate for the same inputs', () => {
+    // Same scenario as the "suggests an extended day count" case above.
+    expect(previewFinishDate(42 * 3600, '2024-01-01', 4, ALL_WEEKDAYS)).toBe('2024-01-11')
+  })
+
+  it('returns an earlier date for fewer required seconds (e.g. a trimmed or sped-up plan)', () => {
+    const full = previewFinishDate(42 * 3600, '2024-01-01', 4, ALL_WEEKDAYS)
+    const trimmed = previewFinishDate(20 * 3600, '2024-01-01', 4, ALL_WEEKDAYS)
+    expect(trimmed! < full!).toBe(true)
+  })
+
+  it('returns null when there are no study days to schedule into', () => {
+    expect(previewFinishDate(3600, '2024-01-01', 2, [])).toBeNull()
+    expect(previewFinishDate(3600, '2024-01-01', 0, ALL_WEEKDAYS)).toBeNull()
   })
 })

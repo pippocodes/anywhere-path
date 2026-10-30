@@ -403,9 +403,10 @@ input:-webkit-autofill:focus {
  * Phone app chrome (<768px): once signed in, the hamburger + full-screen sheet above
  * is replaced by a slim top bar (logo/bell/avatar) and a fixed bottom tab bar, so this
  * block always sits right after the 860px block it overrides for this narrower range.
- * Signed-out visitors are unaffected — nav.navbar-root-phone-app is only added when a
- * user is present (see Navbar.tsx), so they keep the hamburger + sheet at every width
- * below 860px.
+ * Signed-out visitors never see a hamburger at any width — Navbar.tsx renders a
+ * minimal logo + "Log in" header for them instead, with nothing to collapse into a
+ * sheet — so nav.navbar-root-phone-app (and this whole block) only ever applies once
+ * signed in.
  */
 @media (max-width: 767px) {
   nav.navbar-root-phone-app {
