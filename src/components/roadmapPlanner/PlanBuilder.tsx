@@ -5,6 +5,7 @@ import { useAuth } from '../../context/AuthContext'
 import { useIsPhone } from '../../hooks/useIsPhone'
 import { useToast } from '../ui/Toast'
 import Pills from '../ui/Pills'
+import ChevronIcon from '../ui/ChevronIcon'
 import CategorySelect from '../categories/CategorySelect'
 import CategoryChip from '../categories/CategoryChip'
 import RealityCheckCard from './RealityCheckCard'
@@ -510,8 +511,8 @@ function PlanBuilder({ editingPlan, onDoneEditing }: Props) {
           aria-expanded={!scheduleCollapsed}
         >
           <span className="micro-label">3. Schedule</span>
-          <motion.span animate={{ rotate: scheduleCollapsed ? 0 : 180 }} transition={{ duration: 0.2 }} style={{ color: 'var(--mute)', fontSize: 14 }}>
-            ▾
+          <motion.span animate={{ rotate: scheduleCollapsed ? 0 : 180 }} transition={{ duration: 0.2 }} style={{ color: 'var(--mute)', display: 'flex' }}>
+            <ChevronIcon />
           </motion.span>
         </button>
         <AnimatePresence initial={false}>
@@ -597,7 +598,7 @@ function PlanBuilder({ editingPlan, onDoneEditing }: Props) {
           </div>
           <div
             className="card"
-            style={{ borderLeft: `3px solid ${categoryColor(data.habitCategories, categoryId)}`, display: 'flex', flexDirection: 'column', gap: 6 }}
+            style={{ border: `1px solid ${categoryColor(data.habitCategories, categoryId)}`, display: 'flex', flexDirection: 'column', gap: 6 }}
           >
             {schedule.items.map((item) => (
               <div

@@ -6,6 +6,7 @@ import { formatDateLabel } from '../../utils/scheduler'
 import { formatDuration } from '../../utils/duration'
 import { categoryColor } from '../../utils/courseCategory'
 import { toDateStr } from '../../utils/habits'
+import ChevronIcon from '../ui/ChevronIcon'
 
 interface Props {
   course: Pick<Course, 'modules' | 'startDate' | 'hoursPerDay' | 'weekdays' | 'categoryId'>
@@ -65,8 +66,8 @@ function CourseSchedule({ course, categories }: Props) {
             {' '}· {schedule.totalDays} study day{schedule.totalDays === 1 ? '' : 's'}
           </span>
         </div>
-        <motion.span animate={{ rotate: collapsed ? 0 : 180 }} transition={{ duration: 0.2 }} style={{ color: 'var(--mute)', fontSize: 14 }}>
-          ▾
+        <motion.span animate={{ rotate: collapsed ? 0 : 180 }} transition={{ duration: 0.2 }} style={{ color: 'var(--mute)', display: 'flex' }}>
+          <ChevronIcon />
         </motion.span>
       </button>
 

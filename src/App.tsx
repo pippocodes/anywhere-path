@@ -34,6 +34,7 @@ const NotificationsSettings = lazy(() => import('./pages/settings/NotificationsS
 const AiPrivacySettings = lazy(() => import('./pages/settings/AiPrivacySettings'))
 const HelpSettings = lazy(() => import('./pages/settings/HelpSettings'))
 const AboutSettings = lazy(() => import('./pages/settings/AboutSettings'))
+const Admin = lazy(() => import('./pages/Admin'))
 const NotFound = lazy(() => import('./pages/NotFound'))
 const Login = lazy(() => import('./pages/auth/Login'))
 const SignUp = lazy(() => import('./pages/auth/SignUp'))
@@ -147,6 +148,14 @@ function AnimatedRoutes() {
               element={
                 <ProtectedRoute demoHeading="Create a free account to add friends and share tracking">
                   <FriendProfile />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/admin"
+              element={
+                <ProtectedRoute demoHeading="Create a free account">
+                  <Admin />
                 </ProtectedRoute>
               }
             />
